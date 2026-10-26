@@ -1,0 +1,45 @@
+services:
+  shiplean:
+    image: ${SHIPLEAN_IMAGE:-ghcr.io/shiplean/shiplean}
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      SHIPLEAN_DB_CONNECTION: "Host=postgres;Port=5432;Database=shiplean;Username=shiplean;Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+      SHIPLEAN_ADMIN_EMAIL: ${SHIPLEAN_ADMIN_EMAIL:?Set SHIPLEAN_ADMIN_EMAIL in .env}
+      SHIPLEAN_ADMIN_PASSWORD: ${SHIPLEAN_ADMIN_PASSWORD:?Set SHIPLEAN_ADMIN_PASSWORD in .env}
+      SHIPLEAN_BLOB_S3_CONNECTION: "bucket=shiplean;serviceUrl=http://minio:9000;region=us-east-1;accessKey=${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in .env};secretKey=${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env};forcePathStyle=true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: shiplean
+      POSTGRES_USER: shiplean
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shiplean -d shiplean"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  minio_data:
