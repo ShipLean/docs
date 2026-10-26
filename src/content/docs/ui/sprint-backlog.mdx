@@ -1,11 +1,32 @@
 ---
 title: "Sprint backlog"
-description: "burndown, velocity chart, sprint end and the roll-over prompt."
+description: "Track a sprint's committed work, burndown, velocity, and unfinished items at sprint end."
 sidebar:
   order: 24
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-burndown, velocity chart, sprint end and the roll-over prompt.
+import Shot from '@/components/Shot.astro';
 
+Use a sprint backlog to follow committed and completed work, see the burndown, and review the stories, bugs, and tasks assigned to the sprint.
+
+**Address:** `/p/:key/sprints/:sprintId/backlog`.
+
+## Overview
+
+<Shot name="ui-sprint-backlog-overview" alt="Sprint backlog with committed and completed points, burndown chart, work items, and sprint summary." />
+
+## Read the sprint progress
+
+The summary compares committed, completed, and remaining points. The burndown chart shows remaining work across the sprint's working days against the ideal line. Review the backlog table and the side rail for work by state and team member.
+
+<Shot name="ui-sprint-backlog-burndown" alt="Sprint burndown with ideal and actual remaining work across working days." />
+
+From the sprint menu, open **Capacity** to edit the points available per person. The capacity view also compares the team total with committed points and velocity.
+
+## Review unfinished work at sprint end
+
+When ShipLean prompts you to end a sprint, review each unfinished item and choose whether to move it to the next sprint, return it to the top of the backlog, or leave it in the ended sprint. You can set the same choice for all items. Open tasks move with their story; completed tasks stay in the ended sprint. Choose **Apply** to record the decisions, or **Decide later** to close the prompt without applying them.
+
+<Shot name="ui-sprint-backlog-rollover" alt="Sprint end review showing unfinished items, rollover choices, and Apply or Decide later." />
+
+The ended sprint keeps its committed and completed totals for velocity history. Moving unfinished work does not rewrite those totals.

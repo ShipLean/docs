@@ -1,11 +1,52 @@
 ---
 title: "Project settings"
-description: "General (key, name, working days), States (your own states per type, categories), Members, Sprints (velocity window), Integrations."
+description: "Edit project details, working days, work item states, members, sprint forecasts, and Jira integration."
 sidebar:
   order: 26
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-General (key, name, working days), States (your own states per type, categories), Members, Sprints (velocity window), Integrations.
+import Shot from '@/components/Shot.astro';
 
+Use project settings to manage details and options shared with everyone in the project. Project admins can edit these settings; members can view them.
+
+**Address:** `/p/:key/settings/:tab`, where `:key` is the project key and `:tab` is `general`, `states`, `members`, `sprints`, or `integrations`.
+
+## Overview
+
+<Shot name="ui-project-settings-overview" alt="Project settings General tab showing project details and working days." />
+
+Settings tabs share one draft. Select **Save** to apply changes across tabs, or **Discard** to clear unsaved edits. Changes take effect for everyone in the project.
+
+## Edit project details and working days
+
+On **General**, edit the project name or description and choose the working days used for sprint dates and burndown. The project key is read-only after creation. Save your changes from the settings header.
+
+<Shot name="ui-project-settings-general" alt="General project settings with project name, permanent key, and working day choices." />
+
+## Configure states
+
+On **States**, choose a work item type and manage its states. You can add or rename a state, change its category, reorder states, or remove one where allowed. Categories group states as Proposed, In progress, Resolved, Completed, or Removed. ShipLean shows each state's item count and checks whether a state can be removed before you save.
+
+<Shot name="ui-project-settings-states" alt="State settings for one work item type with categories, item counts, and state controls." />
+
+## Manage members
+
+On **Members**, add people by email, change their project role, or remove their membership. Project admins manage settings and members; other members can plan and edit work. A project must keep at least one admin.
+
+<Shot name="ui-project-settings-members" alt="Project members list with roles and member controls." />
+
+## Set sprint forecast options
+
+On **Sprints & forecast**, set the velocity window: how many ended sprints are averaged. Leave the velocity override blank to use the calculated average, or enter a value in points. This tab also links to **All sprints**, where you can change dates for an individual sprint.
+
+<Shot name="ui-project-settings-sprints" alt="Sprint settings with velocity window and optional velocity override." />
+
+## Connect Jira
+
+On **Integrations**, project admins can save a Jira Cloud or Jira Server/Data Center connection and review import jobs. The token is stored encrypted and is not shown again. The connection is read-only: ShipLean reads from Jira and does not write back.
+
+<Shot name="ui-project-settings-integrations" alt="Project integrations with Jira connection and import job list." />
+
+## Keyboard shortcut
+
+- **Ctrl+S** (Windows/Linux) or **⌘S** (macOS): save changed settings.
