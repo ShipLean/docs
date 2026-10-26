@@ -67,7 +67,7 @@ Connection settings for an S3 bucket. Separate `name=value` settings with semico
 
 - **Default:** Not set.
 - **Example:** `bucket=shiplean;region=ap-southeast-1;prefix=prod/`
-- **Set it when:** You want attachments and photos in AWS S3 or an S3-compatible service such as R2 or MinIO, especially for multiple instances or when app disk is not persistent.
+- **Set it when:** You want attachments and photos in AWS S3 or an S3-compatible service such as R2 or RustFS, especially for multiple instances or when app disk is not persistent.
 
 ShipLean chooses the first configured store in this order: `SHIPLEAN_BLOB_S3_CONNECTION`, then `SHIPLEAN_BLOB_DB_CONNECTION`, then the folder at `SHIPLEAN_BLOB_ROOT`. Startup logs the selected store and reason with passwords and secret keys omitted. It warns when both connection settings are present. Changing stores does not move existing files; files remain in the old store.
 
@@ -91,11 +91,11 @@ Maximum total attachment bytes held by one work item, counting live files. Repla
 
 ### `SHIPLEAN_TRUSTED_PROXIES`
 
-Comma-separated addresses or CIDRs for the reverse proxy whose forwarded client address and scheme ShipLean trusts. Compose trusts its own network by default.
+Comma-separated addresses or CIDRs for reverse proxies whose forwarded client address and scheme ShipLean trusts. The published app trusts loopback peers by default; it does not implicitly trust a container network.
 
-- **Default:** Compose trusts its own network; outside Compose, loopback is trusted by default.
-- **Example:** `172.31.250.0/24,10.0.0.12`
-- **Set it when:** Your proxy connects from an address outside the trusted defaults. Use the address ShipLean sees as the proxy peer.
+- **Default:** Loopback peers are trusted. The published app does not implicitly trust a proxy network.
+- **Example:** `10.0.0.12`
+- **Set it when:** Your reverse proxy connects from an address outside loopback. Use the address ShipLean sees as the proxy peer. The supplied Caddy Compose example explicitly sets `172.31.251.2/32` for its Caddy container; use the address or CIDR for your own proxy setup.
 
 ### `SHIPLEAN_FORWARDED_FOR_HEADER`
 
@@ -319,8 +319,8 @@ Number of neighbouring characters repeated between indexed text chunks.
 
 Lowest semantic similarity score, from 0 to 1, accepted as a meaning match.
 
-- **Default:** `0.55`.
-- **Example:** `0.55`
+- **Default:** `0.84` for the published embedding model.
+- **Example:** `0.84`
 - **Set it when:** You need to tune the semantic match threshold.
 
 ### `SHIPLEAN_SEARCH_TOP_PER_LIST`
