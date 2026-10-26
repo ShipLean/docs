@@ -13,7 +13,7 @@ ShipLean stores attachments and profile photos in a folder, PostgreSQL, or an S3
 | --- | --- | --- |
 | Folder | `SHIPLEAN_BLOB_ROOT` | You run one instance with persistent disk mounted at the selected path. The default is `data/blobs` under the app folder; the quick-start Compose file uses `/data/blobs` on a named volume. |
 | PostgreSQL | `SHIPLEAN_BLOB_DB_CONNECTION` | You want attachments stored in the same or a separate PostgreSQL database. This is suitable when multiple instances run or the app has no persistent disk. |
-| S3 | `SHIPLEAN_BLOB_S3_CONNECTION` | You use AWS S3 or an S3-compatible service such as Cloudflare R2, MinIO, or RustFS. This is suitable when multiple instances run or the app has no persistent disk. |
+| S3 | `SHIPLEAN_BLOB_S3_CONNECTION` | You use AWS S3 or an S3-compatible service such as Cloudflare R2 or RustFS. This is suitable when multiple instances run or the app has no persistent disk. |
 
 ## Know which store ShipLean uses
 
@@ -57,10 +57,10 @@ Find your account ID and create bucket-scoped read/write credentials in the [Clo
 
 [Download the R2 environment example](https://github.com/ShipLean/docs/blob/main/examples/storage/r2.env.example).
 
-### Local MinIO
+### Local RustFS
 
-The MinIO Compose example runs an S3-compatible service on the same Compose network as ShipLean. Copy its `.env.example` to `.env` and replace every placeholder before starting the stack. The app uses `minio:9000` as the service endpoint and forces path-style addressing. Create the bucket named `shiplean` in the MinIO Console at `http://localhost:9001` before uploading files.
+The RustFS Compose example pins the official [RustFS 1.0.4-glibc image](https://github.com/orgs/rustfs/packages/container/package/rustfs). It runs an S3-compatible service on the same Compose network as ShipLean. Copy its `.env.example` to `.env` and replace every placeholder before starting the stack. The app uses `rustfs:9000` as the S3 endpoint with `us-east-1` signing region and path-style addressing. Create the bucket named `shiplean` in the RustFS Console at `http://localhost:9001` before uploading files.
 
-[Open the MinIO Compose example](https://github.com/ShipLean/docs/blob/main/examples/storage/minio/docker-compose.yml). It also includes PostgreSQL so you can run the example as a complete stack. The [MinIO container guide](https://min.io/docs/minio/container/index.html) documents its S3 API port and root credential variables.
+[Open the RustFS Compose example](https://github.com/ShipLean/docs/blob/main/examples/storage/rustfs/docker-compose.yml). It also includes PostgreSQL so you can run the example as a complete stack. The official [RustFS container guide](https://docs.rustfs.com/en/installation/container/docker) documents its API and Console ports and access-key settings. RustFS uses path-style S3 requests by default, as described in its [URL addressing guide](https://docs.rustfs.com/en/integration/virtual). This single-node example is for local evaluation; RustFS documents no redundancy in single-node single-disk mode.
 
 Stop the example with `docker compose down`. Keep the named volumes if you want to retain the database and objects; remove volumes only when you intend to delete that data.

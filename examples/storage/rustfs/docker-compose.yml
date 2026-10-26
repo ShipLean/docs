@@ -7,11 +7,11 @@ services:
       SHIPLEAN_DB_CONNECTION: "Host=postgres;Port=5432;Database=shiplean;Username=shiplean;Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
       SHIPLEAN_ADMIN_EMAIL: ${SHIPLEAN_ADMIN_EMAIL:?Set SHIPLEAN_ADMIN_EMAIL in .env}
       SHIPLEAN_ADMIN_PASSWORD: ${SHIPLEAN_ADMIN_PASSWORD:?Set SHIPLEAN_ADMIN_PASSWORD in .env}
-      SHIPLEAN_BLOB_S3_CONNECTION: "bucket=shiplean;serviceUrl=http://minio:9000;region=us-east-1;accessKey=${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in .env};secretKey=${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env};forcePathStyle=true"
+      SHIPLEAN_BLOB_S3_CONNECTION: "bucket=shiplean;serviceUrl=http://rustfs:9000;region=us-east-1;accessKey=${RUSTFS_ACCESS_KEY:?Set RUSTFS_ACCESS_KEY in .env};secretKey=${RUSTFS_SECRET_KEY:?Set RUSTFS_SECRET_KEY in .env};forcePathStyle=true"
     depends_on:
       postgres:
         condition: service_healthy
-      minio:
+      rustfs:
         condition: service_started
 
   postgres:
@@ -28,18 +28,21 @@ services:
       timeout: 5s
       retries: 12
 
-  minio:
-    image: quay.io/minio/minio
-    command: server /data --console-address ":9001"
+  rustfs:
+    image: ghcr.io/rustfs/rustfs:1.0.4-glibc
+    command: ["/data"]
     ports:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9001:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in .env}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?Set RUSTFS_ACCESS_KEY in .env}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?Set RUSTFS_SECRET_KEY in .env}
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
     volumes:
-      - minio_data:/data
+      - rustfs_data:/data
 
 volumes:
   postgres_data:
-  minio_data:
+  rustfs_data:
