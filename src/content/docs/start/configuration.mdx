@@ -271,6 +271,50 @@ API key used to authenticate ShipLean's Seq log connection.
 - **Example:** `<seq-api-key>`
 - **Set it when:** Your Seq server requires an API key. Keep it in a secret store.
 
+## OpenTelemetry
+
+ShipLean can export traces, metrics, and logs over OTLP to a collector or backend. Set `OTEL_EXPORTER_OTLP_ENDPOINT` to enable all three signals. Without an endpoint, OpenTelemetry export is off. Console logs and the optional Seq sink continue to work as before.
+
+### `OTEL_EXPORTER_OTLP_ENDPOINT`
+
+OTLP collector address. Setting this variable enables traces, metrics, and logs.
+
+- **Default:** Not set; OTLP export is off.
+- **Example:** `https://otel-collector.example.com`
+- **Set it when:** You want ShipLean telemetry sent to an OTLP collector, Grafana Alloy, or another compatible backend.
+
+### `OTEL_EXPORTER_OTLP_PROTOCOL`
+
+OTLP transport protocol. ShipLean supports `grpc` and `http/protobuf`. With `http/protobuf`, signal paths are appended to the endpoint; for example, logs use `/v1/logs`.
+
+- **Default:** SDK-dependent; typically `grpc` or `http/protobuf`.
+- **Example:** `http/protobuf`
+- **Set it when:** Your collector requires a particular OTLP transport. Choose one it accepts.
+
+### `OTEL_EXPORTER_OTLP_HEADERS`
+
+Comma-separated `key=value` headers sent with telemetry exports. Use this for collector credentials such as an API key.
+
+- **Default:** No additional headers.
+- **Example:** `api-key=<collector-api-key>`
+- **Set it when:** Your collector requires an API key or another request header. Keep credentials in a secret store.
+
+### `OTEL_SERVICE_NAME`
+
+Value of the telemetry resource's `service.name` attribute.
+
+- **Default:** `shiplean`.
+- **Example:** `shiplean-production`
+- **Set it when:** You want this instance to use a different service name in your telemetry backend.
+
+### `OTEL_RESOURCE_ATTRIBUTES`
+
+Additional comma-separated `key=value` resource attributes added to telemetry.
+
+- **Default:** No additional attributes.
+- **Example:** `deployment.environment=production`
+- **Set it when:** You want to label telemetry with deployment or environment details.
+
 ## Jira import
 
 ### `SHIPLEAN_JIRA_ALLOW_LOCAL_ENDPOINTS`
