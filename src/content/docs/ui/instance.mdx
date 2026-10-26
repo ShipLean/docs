@@ -1,11 +1,44 @@
 ---
 title: "Instance settings"
-description: "General (base URL), Users (create, one-time passwords, lockouts, disable), Projects (who may create projects), Integrations, instance admins and the \"no implicit project access\" rule."
+description: "Manage instance details, project creation, users, integrations, and instance administration."
 sidebar:
   order: 29
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-General (base URL), Users (create, one-time passwords, lockouts, disable), Projects (who may create projects), Integrations, instance admins and the "no implicit project access" rule.
+import Shot from '@/components/Shot.astro';
 
+Instance settings let instance admins manage the ShipLean installation and see projects across it. You need instance-admin access to use these settings.
+
+**Address:** `/instance/:tab`, where `:tab` is `general`, `users`, `projects`, or `integrations`.
+
+## Overview
+
+<Shot name="ui-instance-overview" alt="Instance settings with its General, Users, Projects, and Integrations sections." />
+
+## Set instance details and project creation
+
+Open **General** to edit the instance name and base URL, and choose whether everyone or only instance admins may create projects. Save the changes when finished. The base URL is used to form agent connection addresses. Changing it disconnects existing agents; they must connect again.
+
+<Shot name="ui-instance-general" alt="General instance settings with name, base URL, and project creation choices." />
+
+## Manage users
+
+Open **Users** to find users and view their status, project memberships, and last sign-in. From a user's actions, an admin can manage their access, including granting or removing instance-admin access, issuing a one-time password, unlocking a locked account, or disabling the account. Disabling an account ends its sessions and agent access.
+
+<Shot name="ui-instance-users" alt="Instance users list with account status and administrator actions." />
+
+## Review projects
+
+Open **Projects** to see projects across the instance, their members, and their project admins. An instance admin does not automatically become a member of each project. To enter a project's settings, join it as an admin from its row first. Joining gives you explicit membership.
+
+<Shot name="ui-instance-projects" alt="Instance project list showing project membership and explicit join actions." />
+
+## Configure integrations
+
+Open **Integrations** to manage the installation's shared integration settings. The available settings are for GitHub, GitLab, and allowed hosts used by Jira import. Save changes from this tab.
+
+<Shot name="ui-instance-integrations" alt="Instance-wide GitHub, GitLab, and host allow-list settings." />
+
+## Access rule
+
+Instance-admin access is for managing the installation. It does not grant access to project data by itself. Join a project or ask one of its admins to add you before opening its work.

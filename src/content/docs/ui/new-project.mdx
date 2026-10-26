@@ -1,11 +1,35 @@
 ---
 title: "New project"
-description: "what the key is and why it can't change."
+description: "Choose a project name and permanent key, then set up optional members and a first sprint."
 sidebar:
   order: 27
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-what the key is and why it can't change.
+import Shot from '@/components/Shot.astro';
 
+Create a project to give its backlog and boards a home. Its key becomes part of every work item key and link, so choose it carefully.
+
+**Address:** `/projects/new`.
+
+## Overview
+
+<Shot name="ui-new-project-overview" alt="New project form showing the project name, permanent key, and setup options." />
+
+## Create a project
+
+1. Open the project picker and choose **New project**, or open `/projects/new`.
+2. Enter a project name. ShipLean suggests a short key and checks that it has the required length, contains only letters, and is available.
+3. Keep the suggested key or enter another available key. If it is taken, choose one of the suggested alternatives.
+4. Optionally add project members by their full email address.
+5. Choose whether to start with the defaults, copy settings from an existing project, and whether to create a first sprint. If you create a sprint, set its dates.
+6. Select **Create project**.
+
+<Shot name="ui-new-project-key" alt="A proposed project key with its availability checks and alternatives." />
+
+The key is permanent because it is used in work item identifiers and links. It cannot be changed after project creation.
+
+<Shot name="ui-new-project-options" alt="Optional initial project setup, member, and first sprint choices." />
+
+## Who can create projects
+
+Project creation can be limited by an instance admin to instance admins. If your account is not allowed to create a project, ask an instance admin to change the instance's project creation setting or create the project for you.

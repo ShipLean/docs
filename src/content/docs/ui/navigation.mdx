@@ -1,11 +1,44 @@
 ---
 title: "Navigating ShipLean"
-description: "the side menu, crumbs, project switcher, user menu, themes, live presence (who else is on a screen), search."
+description: "Move between projects and screens, and find your way back with the project picker and breadcrumbs."
 sidebar:
   order: 15
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-the side menu, crumbs, project switcher, user menu, themes, live presence (who else is on a screen), search.
+import Shot from '@/components/Shot.astro';
 
+Use the side menu to open project areas and your account. The project picker switches the project while keeping you on the same screen when that screen exists in the other project.
+
+**Address:** Project screens use `/p/:key/...`; the key is the project key. The profile is `/profile`.
+
+## Overview
+
+<Shot name="ui-navigation-overview" alt="ShipLean navigation with a project selected, section links, breadcrumbs, and the account menu." />
+
+## Switch projects
+
+1. Select the project button above the side menu links.
+2. Search by project name or key, or choose a project from Recent or All your projects.
+3. Select a result. ShipLean opens the corresponding screen in that project. If there is no matching screen, it opens the Stories backlog.
+
+<Shot name="ui-navigation-project-picker" alt="The project picker with search and project choices." />
+
+Press **Ctrl+P** on Windows or Linux, or **⌘P** on macOS, to open the project picker. Press the same shortcut while it is open to focus its search field. The shortcut does nothing while a modal dialog is open.
+
+## Use the side menu and breadcrumbs
+
+Select **Backlogs**, **Boards**, **Sprints**, **Jira import**, or **Settings** to move through the current project's screens. The available project links appear when you have a project selected. Breadcrumbs show the current project or ShipLean and then the screen you are viewing.
+
+<Shot name="ui-navigation-account-menu" alt="The account menu open with profile and sign-out options." />
+
+Select your account at the bottom of the menu to open **Your profile** and sign out. Instance admins also see **Instance settings** here.
+
+## Options and presence
+
+Use your profile's Appearance section to choose a theme and density. Your appearance setting is saved to your account. On project screens, the top bar can show who else is on the same screen; this indicator does not appear on install-level pages such as your profile.
+
+The top bar also shows the current location in breadcrumbs. On narrower screens, the side menu becomes a strip across the top.
+
+## Keyboard shortcuts
+
+- **Ctrl+P** (Windows/Linux) or **⌘P** (macOS): open the project picker; when open, focus its search field.

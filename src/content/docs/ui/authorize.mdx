@@ -1,11 +1,30 @@
 ---
 title: "Connecting an agent: the consent screen"
-description: "what the person sees (verified vs unverified host, scopes, allow/deny)"
+description: "Review the agent, host, and access requested before allowing or denying a connection."
 sidebar:
   order: 30
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-what the person sees (verified vs unverified host, scopes, allow/deny). Short; the detail lives in section 3.
+import Shot from '@/components/Shot.astro';
 
+When an agent connects, ShipLean asks you to review the client and the access it requests. Allow only a connection you recognize and want to grant.
+
+**Address:** `/authorize?request=<id>` for a pending connection request.
+
+## Overview
+
+<Shot name="ui-authorize-overview" alt="Placeholder for the live agent consent screen; an authorization request is required to show it." />
+
+The published consent screen is request-specific, so this page uses a placeholder until a real local OAuth connection can be prepared for capture. A made-up request identifier shows an error page, not the consent screen.
+
+## Review a connection
+
+The consent screen shows the agent's name, the host it runs on, and the scopes it requests. A verified client shows its declared host. A client registered without a verified metadata document is marked unverified. Review both the client and the requested scopes before choosing **Allow** or **Deny**.
+
+The first connection asks for read and write access. Read access covers reading and previews; write access covers creating and updating work. Planning access can be requested later when an agent needs to apply sprint planning. Re-consenting adds requested access to the existing connection; it does not remove scopes already granted.
+
+<Shot name="ui-authorize-review" alt="Placeholder for reviewing agent identity, verified or unverified host, and requested scopes." />
+
+If you allow the request, the browser returns to the agent and the connection appears under **Connected agents** in your profile. You can revoke it there later. If you deny it, the agent does not receive access.
+
+For client setup, available authentication methods, and scope details, see [Connect an agent](/agents/connect/) and [Scopes and step-up](/agents/scopes/).
