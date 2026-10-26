@@ -1,6 +1,6 @@
 ---
 title: "Integrations"
-description: "Connect GitHub and GitLab link cards, receive pull request webhooks, and send logs to Seq."
+description: "Connect GitHub and GitLab link cards, receive pull request webhooks, and export logs and telemetry."
 sidebar:
   order: 9
 ---
@@ -96,5 +96,19 @@ SHIPLEAN_SEQ_API_KEY=<seq-ingestion-key>
 ```
 
 Use HTTPS when the endpoint is reachable over an untrusted network. Keep the API key in your deployment's secret store.
+
+## Export traces, metrics, and logs
+
+To send telemetry to an OTLP collector, set `OTEL_EXPORTER_OTLP_ENDPOINT`. This enables traces, metrics, and logs. Without it, OTLP export is off. ShipLean continues to log to the console and to Seq when Seq is configured.
+
+```dotenv
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otel-collector.example.com
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_EXPORTER_OTLP_HEADERS=api-key=<collector-api-key>
+OTEL_SERVICE_NAME=shiplean-production
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment=production
+```
+
+Set the protocol to `grpc` or `http/protobuf`, whichever your collector accepts. With `http/protobuf`, the exporter adds signal paths such as `/v1/logs`. Use `OTEL_EXPORTER_OTLP_HEADERS` for credentials and keep them in your deployment's secret store. `OTEL_SERVICE_NAME` defaults to `shiplean`; the resource attributes are optional. For OTLP details, see the [OpenTelemetry .NET configuration reference](https://opentelemetry.io/docs/zero-code/dotnet/configuration/).
 
 For every integration variable and its defaults, see [configuration](/start/configuration/).
