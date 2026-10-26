@@ -5,7 +5,7 @@ sidebar:
   order: 8
 ---
 
-To run more than one ShipLean instance, point each instance at the same Redis service and use a shared attachment store such as PostgreSQL or S3. A local folder is not shared between instances unless you provide shared storage outside the app.
+To run more than one ShipLean instance, point every instance at the same application PostgreSQL database using `SHIPLEAN_DB_CONNECTION`, the same Redis service, and a shared attachment store such as PostgreSQL or S3. A local folder is not shared between instances unless you provide shared storage outside the app.
 
 ## Add the Redis backplane
 
