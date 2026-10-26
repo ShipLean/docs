@@ -54,7 +54,7 @@ When oauth2-proxy forwards directly to ShipLean, `pass_access_token` puts the ac
 
 The example uses the current `skip_auth_routes` option. It exempts only MCP, OAuth token-management, discovery, and webhook paths. Do not use a broad exemption for all `/oauth/` routes.
 
-Files: [`oauth2-proxy.cfg`](https://github.com/ShipLean/docs/blob/main/examples/proxy/oauth2-proxy.cfg) and [`oauth2-proxy.shiplean.env`](https://github.com/ShipLean/docs/blob/main/examples/proxy/oauth2-proxy.shiplean.env). See the [oauth2-proxy configuration reference](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview/) for `pass_access_token`, `set_xauthrequest`, and `skip_auth_route`.
+Files: [`oauth2-proxy.cfg`](https://github.com/ShipLean/docs/blob/main/examples/proxy/oauth2-proxy.cfg) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/oauth2-proxy.shiplean.env.example). See the [oauth2-proxy configuration reference](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview/) for `pass_access_token`, `set_xauthrequest`, and `skip_auth_route`.
 
 #### Cloudflare Access
 
@@ -68,7 +68,7 @@ File: [`cloudflare-access.md`](https://github.com/ShipLean/docs/blob/main/exampl
 
 Enable `pass_identity_headers` on the protected ShipLean route. Pomerium sends its signed assertion in `X-Pomerium-Jwt-Assertion`; configure the matching issuer and audience for that route. The example uses URI issuer format so the issuer is `https://shiplean.example.com/`, and route path patterns for the public bypass routes.
 
-File: [`pomerium.yaml`](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.yaml). See Pomerium's [JWT identity verification](https://www.pomerium.com/docs/get-started/fundamentals/core/jwt-verification), [route path matching](https://www.pomerium.com/docs/reference/routes/path-matching), [JWT issuer format](https://www.pomerium.com/docs/reference/routes/jwt-issuer-format), and [public access](https://www.pomerium.com/docs/reference/routes/public-access) documentation.
+Files: [`pomerium.yaml`](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.yaml) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.shiplean.env.example). See Pomerium's [JWT identity verification](https://www.pomerium.com/docs/get-started/fundamentals/core/jwt-verification), [route path matching](https://www.pomerium.com/docs/reference/routes/path-matching), [JWT issuer format](https://www.pomerium.com/docs/reference/routes/jwt-issuer-format), and [public access](https://www.pomerium.com/docs/reference/routes/public-access) documentation.
 
 #### Authelia plain-header mode
 
@@ -78,7 +78,7 @@ Use this only if your proxy cannot send a signed token. Authelia's trusted-heade
 Anyone who can connect to ShipLean from a trusted address can claim any email by sending `Remote-Email`. Keep the backend unreachable except through the proxy. The proxy must overwrite these headers from Authelia on every request, including bypass paths, and must remove any client-supplied copies. Do not publish the ShipLean port. Prefer token mode if you cannot enforce these network controls.
 :::
 
-File: [`authelia-nginx.conf`](https://github.com/ShipLean/docs/blob/main/examples/proxy/authelia-nginx.conf). See Authelia's [trusted-header SSO](https://www.authelia.com/integration/trusted-header-sso/introduction/) and [NGINX integration](https://www.authelia.com/integration/proxies/nginx/) documentation.
+Files: [`authelia-nginx.conf`](https://github.com/ShipLean/docs/blob/main/examples/proxy/authelia-nginx.conf) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/authelia.shiplean.env.example). See Authelia's [trusted-header SSO](https://www.authelia.com/integration/trusted-header-sso/introduction/) and [NGINX integration](https://www.authelia.com/integration/proxies/nginx/) documentation.
 
 ### Sign out through the proxy
 
