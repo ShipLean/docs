@@ -43,9 +43,45 @@ The component reads `src/assets/shots/<name>-light.webp` and `<name>-dark.webp`.
 
 The initial `ui-backlogs-overview` pair comes from the product's page-shot baselines at commit `0a9e4e139ce655f1f4ad457e7516fef3feef4bad`: `backlogs.spec.tsx-snapshots/backlog-{light,dark}-linux.png`. It is resized to 1440px and converted to WebP at quality 82. Keep each captured asset under 150 KB.
 
-`pnpm shots` is reserved for `scripts/shots/run.ts`; the capture runner and seed are added separately. Page specs export `shots: ShotSpec[]` from `scripts/shots/specs/<page>.ts` and import the common types from `scripts/shots/types.ts`. Use unique section-prefixed names such as `ui-backlogs`, `start-guides-first-project`, and `work-research`. A spec name equals its `<Shot name>`; `--page` will select the exact spec basename.
+To capture screenshots, install Chromium once with `pnpm exec playwright install chromium`. The runner starts its own disposable Compose stack, waits for `/health`, restores the demo fixtures before every shot/theme, signs in, selects the theme in **Your profile → Appearance**, and captures each spec in a fresh browser context. It removes that stack and its volumes when it finishes. Docker Compose is required for this mode; it does not depend on `examples/quickstart/`.
 
-`SeedResult` uses item keys for its epic, feature, and story arrays, and UUIDs for `projectId`, `sprint`, and `boardId`. Array order is deterministic. `features[0]` is **Guide new members through their first project**, whose goal is to help a new member create their first project and find the next action. A dynamic route can use `(ctx) => '/p/DEMO/items/' + ctx.features[0]`. Each shot/theme must start from restored seed state.
+Keep disposable credentials in a private JSON file outside the repo, with permissions `0600`:
+
+```json
+{"admin":{"email":"docs@example.com","password":"choose-a-disposable-password"}}
+```
+
+```sh
+pnpm shots --config /path/to/private-shots.json
+pnpm shots --config /path/to/private-shots.json --page ui-backlogs
+pnpm shots --no-stack http://127.0.0.1:8080 --config /path/to/private-shots.json
+```
+
+Use an isolated instance. Ordinary captures restore the seed's managed DEMO fixtures through the REST API. `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` override the configuration's admin fields. Use `--no-stack <baseUrl>` to select an existing instance; other fields in a shared runtime JSON file are ignored. The runner never prints credentials or external error details. Avoid putting passwords on the command line. `SHIPLEAN_SHOTS_PORT` changes the disposable stack's loopback port (default `18080`); `SHIPLEAN_IMAGE` overrides its image. `--browser <executable>` or `PLAYWRIGHT_EXECUTABLE_PATH` explicitly selects a browser on hosts that cannot use the pinned Playwright download.
+
+To prove browser capture without credentials or a seed, use the explicit public sign-in sample:
+
+```sh
+pnpm shots --no-stack http://127.0.0.1:8080 --page _sample
+```
+
+`_sample` is excluded from ordinary discovery and skips seed and sign-in. The public login page follows the emulated OS theme because it has no theme control. Ordinary runs dynamically import `scripts/shots/seed.ts` and fail clearly if it is absent.
+
+Page specs export `shots: ShotSpec[]` from `scripts/shots/specs/<page>.ts` and import the common types from `scripts/shots/types.ts`. `--page` selects the exact basename, without `.ts`; omit it to run every ordinary spec. Use globally unique section-prefixed names such as `ui-backlogs-overview`, `start-guides-first-project`, and `work-research`. A spec name equals its `<Shot name>`.
+
+```ts
+import type { ShotSpec } from '../types';
+
+export const shots: ShotSpec[] = [{
+  name: 'work-ideas-feature',
+  route: (ctx) => '/p/DEMO/items/' + ctx.features[0],
+  // Optional: steps: async (page, ctx) => { ... }
+}];
+```
+
+`SeedResult` uses item keys for its epic, feature, and story arrays, and UUIDs for `projectId`, `sprint`, and `boardId`. Array order is deterministic. `features[0]` is **Guide new members through their first project**, whose goal is to help a new member create their first project and find the next action. Routes must be application-relative, starting with `/`; callbacks run after seeding. Steps must await the visible UI state they need and be repeatable. A step that creates extra data must restore its own fixtures or use a deterministic rerunnable strategy. Do not use fixed sleeps.
+
+The runner waits for requests, fonts and images before capture and disables screenshot animations. The browser uses UTC, English, a fixed clock for the run, and a 1440×900 viewport. Optional `clip` crops are fitted inside a 1440×900 canvas. Each theme is written to `src/assets/shots/` as a real WebP of at most 150,000 bytes. Encoding starts at quality 82 and reduces quality as needed; unusually noisy captures also reduce effective image detail while retaining the 1440×900 file dimensions. Review generated images before committing them. Screenshot assets are committed separately from this pipeline.
 
 ## Other checks and integrations
 
