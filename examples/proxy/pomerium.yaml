@@ -1,5 +1,9 @@
 # Route excerpt for Pomerium Core. Keep ShipLean on a private network so only
 # Pomerium can connect to its upstream address.
+# JWT: https://www.pomerium.com/docs/get-started/fundamentals/core/jwt-verification
+# Route matching: https://www.pomerium.com/docs/reference/routes/path-matching
+# JWT issuer: https://www.pomerium.com/docs/reference/routes/jwt-issuer-format
+# Public paths: https://www.pomerium.com/docs/reference/routes/public-access
 signing_key_file: /pomerium/ec_private.pem
 
 routes:
