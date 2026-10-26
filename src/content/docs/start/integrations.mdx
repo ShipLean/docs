@@ -5,7 +5,7 @@ sidebar:
   order: 9
 ---
 
-Connect GitHub or GitLab to show live pull request, merge request, and issue details on work-item links. Webhooks can add pull or merge request links automatically and complete linked work when all requests are closed and at least one is merged. You can also send application logs to Seq.
+Connect GitHub or GitLab to show live pull request, merge request, and issue details on Feature links. Webhooks can add pull or merge request links to Stories, Tasks, and Bugs automatically and complete linked work when all requests are closed and at least one is merged. You can also send application logs to Seq.
 
 ## Connect GitHub and GitLab link cards
 
@@ -13,10 +13,10 @@ Set integration defaults in **Instance settings → Integrations**, or provide t
 
 | Setting | What it enables |
 | --- | --- |
-| `SHIPLEAN_GITHUB_TOKEN` | Reads private GitHub issue and pull request details, as well as public ones. Without a token, only public repositories can be read. |
+| `SHIPLEAN_GITHUB_TOKEN` | Lets GitHub Feature links show private issue and pull request details, as well as public ones. Without a token, only public repositories can be read. |
 | `SHIPLEAN_GITHUB_API_URL` | GitHub API endpoint. Keep the default `https://api.github.com`, or set a GitHub Enterprise Server API URL such as `https://github.example.com/api/v3`. |
-| `SHIPLEAN_GITLAB_URL` | The GitLab host whose issue and merge request links ShipLean reads, such as `https://gitlab.example.com`. Other GitLab hosts remain ordinary links. |
-| `SHIPLEAN_GITLAB_TOKEN` | Reads private GitLab issue and merge request details on the configured GitLab host. |
+| `SHIPLEAN_GITLAB_URL` | The GitLab host whose Feature issue and merge request links ShipLean reads, such as `https://gitlab.example.com`. Other GitLab hosts remain ordinary links. |
+| `SHIPLEAN_GITLAB_TOKEN` | Lets GitLab Feature links show private issue and merge request details on the configured GitLab host. |
 
 Tokens are sent only to HTTPS API addresses. The app will not save a token with an HTTP URL. Store tokens in instance settings or your secret manager, and use tokens with only the read access needed to retrieve issue and request details.
 
