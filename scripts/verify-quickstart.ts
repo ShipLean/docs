@@ -11,7 +11,7 @@ const project = `docs-check-${randomBytes(8).toString('hex')}`;
 const email = `docs-${randomBytes(8).toString('hex')}@example.com`;
 const password = randomBytes(32).toString('hex');
 const databasePassword = randomBytes(32).toString('hex');
-const environment = { ...process.env, COMPOSE_PROJECT_NAME: project };
+const environment: NodeJS.ProcessEnv = { ...process.env, COMPOSE_PROJECT_NAME: project };
 // These are substituted only by the copied .env file, as in the published steps.
 for (const key of ['SHIPLEAN_IMAGE', 'SHIPLEAN_ADMIN_EMAIL', 'SHIPLEAN_ADMIN_PASSWORD', 'POSTGRES_PASSWORD', 'COMPOSE_FILE', 'COMPOSE_PROFILES', 'COMPOSE_ENV_FILES']) delete environment[key];
 
