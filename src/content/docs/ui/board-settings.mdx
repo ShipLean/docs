@@ -1,11 +1,62 @@
 ---
 title: "Board settings"
-description: "columns ↔ states, WIP limits, split columns, definition of done, swimlanes, card fields, style rules, tag colours, annotations"
+description: "Map states to columns and choose the board's WIP limits, card fields, swimlanes, styles, tag colours and roll-up annotations."
 sidebar:
   order: 21
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-columns ↔ states, WIP limits, split columns, definition of done, swimlanes, card fields, style rules, tag colours, annotations. One shot per settings section.
+import Shot from '../../../components/Shot.astro';
 
+Board settings control how one level's board is organized and how its cards look. Open **Settings** on the board, choose a section, and save when you are ready. Your edits stay as a draft until you save.
+
+**Address:** `/p/:key/boards/:level?settings=:section` (`level` is `stories`, `features`, or `epics`).
+
+## Map columns to states
+
+<Shot name="ui-board-settings-columns" alt="Board settings showing columns, state mappings, WIP limits, split columns and definitions of done." />
+
+Rename columns and map each work-item type's states to them. A column can map different states for Stories, Bugs, Features, and Epics. Make sure every state used by the board is mapped.
+
+Set a WIP limit on a middle column to show when its card count is over the limit. The first and last columns cannot have a limit. Split a middle column into **Doing** and **Done** sub-columns when you want to distinguish work in progress from work finished in that state.
+
+Add a definition of done to a column to show the team what must be true before work moves on. You can write it with Markdown. The first and last columns do not have a split option.
+
+## Choose card fields
+
+<Shot name="ui-board-settings-fields" alt="Board settings showing card fields and a preview card." />
+
+Choose whether cards show their key, assignee, tags, and story points. You can also show empty fields and add extra fields such as the parent, priority, or who changed the item. The preview shows how your choices affect a card.
+
+## Add style rules
+
+<Shot name="ui-board-settings-styles" alt="Board settings with conditional card style rules and a preview." />
+
+Add a rule to highlight cards that match its criteria. Choose a colour and text formatting, then set the criteria. Reorder rules to choose which one takes effect when a card matches more than one. You can disable a rule without deleting it.
+
+## Set tag colours
+
+<Shot name="ui-board-settings-tags" alt="Board settings showing a colour swatch for each project tag." />
+
+Choose a colour for each tag used in the project. The colour applies to that tag on this board and in the Stories backlog. Clear a colour to return the tag to its neutral style.
+
+## Choose roll-up annotations
+
+<Shot name="ui-board-settings-annotations" alt="Board settings showing child-work roll-up options and a card preview." />
+
+Choose which child-work counts appear as roll-ups on cards. The available counts depend on the board level and item relationships. Use the preview to see which annotations the current choices show.
+
+## Set up swimlanes
+
+<Shot name="ui-board-settings-swimlanes" alt="Board settings showing named, coloured swimlanes and lane criteria." />
+
+Add, rename, colour, and reorder lanes. A lane can use criteria or be manual. Criteria lanes are checked from top to bottom, and the first match wins. Work that matches no criteria stays in its manual lane if you moved it there; otherwise, it appears in the default lane. Features boards also have a separate **By Epic** lane choice on the board.
+
+## Choose card reordering
+
+<Shot name="ui-board-settings-reordering" alt="Board settings showing the two card reordering options." />
+
+Choose whether moving a card on the board also changes its order in the Stories backlog. This setting controls the relationship between board moves and backlog order.
+
+## Save or leave settings
+
+Save to apply your draft. If you close the dialog with unsaved edits, choose whether to keep editing or discard those edits. Warnings in the dialog identify settings that need attention before saving.

@@ -1,11 +1,56 @@
 ---
 title: "Taskboard"
-description: "by stories or by people, task states, its own styles and tag colours, taskboard settings."
+description: "Track sprint tasks by their parent Story or Bug, or by assignee, and adjust taskboard card fields, styles and tag colours."
 sidebar:
   order: 25
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-by stories or by people, task states, its own styles and tag colours, taskboard settings.
+import Shot from '../../../components/Shot.astro';
 
+Use the Taskboard to see and move tasks in a sprint. Each column is a Task state. The rows group tasks by their parent Story or Bug, or by the person assigned to each task.
+
+**Address:** `/p/:key/sprints/:sprintId/taskboard`.
+
+## See tasks by Story
+
+<Shot name="ui-taskboard-overview" alt="A sprint Taskboard with tasks arranged by parent Story and Task state." />
+
+The default view groups tasks under their Story or Bug. Each row has a cell for every Task state. Select a row header to collapse or expand its tasks.
+
+## Group tasks by person
+
+Choose **People** in **Group by** to put tasks in rows for their assignee. Tasks without an assignee appear in **Unassigned**. Choose **Stories** to return to parent rows. Your grouping choice is saved for your account.
+
+<Shot name="ui-taskboard-people" alt="The sprint Taskboard grouped into rows for assignees and Unassigned." />
+
+## Move a task
+
+Drag a task card to another state column or row. You can also focus a card and press **Alt+Arrow**: left or right moves it to another Task state, while up or down moves it to the previous or next row.
+
+<Shot name="ui-taskboard-move" alt="A task card focused on the Taskboard, ready to move by keyboard." />
+
+## Pick up an unassigned task
+
+An unassigned task in a Proposed state has a **Pick up** action. Select it to assign the task to yourself and start it.
+
+## Change Task states
+
+The Taskboard columns come from the project's Task states. To add or change those states, open [Project settings](/ui/project-settings/) and edit the states for Tasks. Removed tasks do not appear as columns.
+
+## Taskboard settings
+
+<Shot name="ui-taskboard-settings-fields" alt="Taskboard settings with task card fields and a preview." />
+
+Open **Settings** to choose fields shown on task cards, including keys, assignees, tags, points, and extra fields. For Story and Bug rows, choose the parent fields and whether to show task progress. Changes apply immediately to the Taskboard.
+
+<Shot name="ui-taskboard-settings-styles" alt="Taskboard settings with conditional task card style rules." />
+
+Add, edit, reorder, or disable style rules to highlight tasks that match criteria. If a card matches more than one rule, the first matching rule applies.
+
+<Shot name="ui-taskboard-settings-tags" alt="Taskboard settings showing tag colours for task cards." />
+
+Choose tag colours for this Taskboard. These colours are separate from the colours set on Stories, Features, or Epics boards.
+
+### Keyboard shortcuts
+
+- **Alt+ArrowLeft/Right** moves the focused task one Task state. **Alt+ArrowUp/Down** moves it to the previous or next row.
