@@ -1,11 +1,258 @@
 ---
 title: "Tool reference"
-description: "every tool, grouped (finding work, capturing and editing, Features and research, planning, sprints, status and reporting), with scope, one line on when to use it and the main arguments"
+description: "The MCP tools, scopes, arguments, planning prompts, and request limits."
 sidebar:
   order: 35
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-every tool, grouped (finding work, capturing and editing, Features and research, planning, sprints, status and reporting), with scope, one line on when to use it and the main arguments. Prompts (`plan_feature`, `research_idea`) separately. Limits (1 MB body, ~700 KB attachments), preview-then-apply for writes like `capture_plan`, error shapes. Generate the list from the product's tool registrations if practical, so it stays complete; at minimum cross-check against `docs/mcp.md` and the `[McpServerTool]` names.
+ShipLean registers these tools on `/mcp`. Start with `list_projects` to find the project key you need. Scope labels use the [read, write, and plan scopes](/agents/scopes/).
 
+The argument summaries below come from the server tool registrations in the product source. For connection and authentication, see [Connect an agent](/agents/connect/) and [Authentication options](/agents/auth/).
+
+{/* GENERATED TOOL REFERENCE START */}
+## Tools
+
+The server currently registers **33 tools**. Each tool lists its required scope; preview calls use read scope until you apply them.
+
+### Finding work
+
+#### `get_work_item` — read
+
+Everything about one work item by key, like SHIP-123: its fields, revision, the parents above it, its children with their states, links, its attachments, the last 5 comments (or the 5 before comments_before) and the last 10 history entries (with the agent's name when an agent made the change). Keep the revision if you mean to change the item.
+
+Arguments: `key` — The work item key, like SHIP-123; `comments_before` (optional) — ISO 8601 time of the oldest comment you already have; returns the 5 comments before it.
+
+#### `list_projects` — read
+
+List the projects I am in: each one's key, name, my role and the sprint running now. The first call to make: it shows the project keys the other tools take. Give a project key to see only that one.
+
+Arguments: `project` (optional) — A project key to look at just that project (optional).
+
+#### `read_attachment` — read
+
+Read a Markdown attachment on a work item by name. Returns the text when it is at most 200 KB; larger Markdown files say so and give the UI link. Other files return their metadata and the UI link.
+
+Arguments: `item` — The work item's key, such as SHIP-12; `name` — The attachment file name, such as research-2026-10-26.md.
+
+#### `search` — read
+
+Find work items, sprints and projects by words and/or by type, state, assignee, sprint, tag or parent. Words are matched by meaning as well as spelling, in titles, descriptions, tags, comments and Markdown attachments (named in `attachment`), and a work item key ranks first. Use this before create_feature when an idea might already have a Feature. Best matches first; at most `limit` (default 10 with words, 25 without; max 25), and it says when there are more. Removed items are left out.  Without `project` the words search every project you are in (it used to default to your most recent project; give `project` to narrow it). With words, `state`, `assignee` and `sprint` only make sense inside one project, so give `project` or a `parent` key with them. `type` and `tag` work across projects.  With words, closed items are included unless `include_closed` is false. Without words it lists the filtered items, newest change first, in your most recent project when none is named.
+
+Arguments: `words` (optional) — Words to look for, like "checkout timeout" (optional when you filter); `project` (optional) — Project key (optional: with words, every project you are in); `type` (optional) — Work item type: epic, feature, story, bug or task; `state` (optional) — A state name, like "In progress" (with words, needs project or parent); `assignee` (optional) — A person: me, a name or an email (with words, needs project or parent); `sprint` (optional) — A sprint: current, next or its name (with words, needs project or parent); `tag` (optional) — A tag; `parent` (optional) — The key of the parent item, like SHIP-12. It implies its project; `include_closed` (optional) — Include items in a completed state when searching by words (default true); `limit` (optional) — How many matches to return (default 10 with words, 25 without; at most 25).
+
+### Capturing and editing
+
+#### `attach_markdown` — write
+
+Attach research findings, analyses, comparisons, plans and retros as Markdown on a work item instead of keeping them in local files. The name must end in .md. Attaching a name the item already has replaces that file. It shows on the item as attached by you through this tool, and its text is searchable.
+
+Arguments: `feature` — The item's key, such as SHIP-12; `name` — The file name, ending in .md, such as design.md; `content` — The Markdown text.
+
+#### `attach_file` — write
+
+Attach any file to a work item, sent as base64. The request is limited to 1 MB, so a file over about 700 KB can't go this way: ask the person to upload bigger files in the item's Attachments. Attaching a name the item already has replaces that file.
+
+Arguments: `feature` — The item's key, such as SHIP-12; `name` — The file name, such as diagram.png; `content_type` — The file's content type, such as image/png; `base64` — The file's bytes, base64 encoded.
+
+#### `capture_work` — write (preview: read; apply: write)
+
+Put new work in the backlog: up to 25 epics, features, stories, bugs or tasks from the conversation, each with its title, description, acceptance criteria, repro steps, severity, points, tags, priority, parent and sprint. One item is created straight away. Several items come back as a preview and a plan; call again with that plan to create exactly those items in one go. Name the project when the user is in more than one.
+
+Arguments: `items` (optional) — The items to create, 1 to 25. Left out when you pass a plan; `project` (optional) — The project key, such as SHIP. Needed when the user is in more than one project; `plan` (optional) — The plan a preview returned. Creates exactly what it holds and ignores items.
+
+#### `break_down` — write
+
+Split a story or bug into child tasks, or a feature into stories (or an epic into features), from a list of titles with optional points, description (Markdown) and tags. Up to 25 children, created together. They take the parent's sprint; the parent's state is left alone.
+
+Arguments: `parent` — The parent's key, such as SHIP-12; `children` — The children, 1 to 25.
+
+#### `comment` — write
+
+Add a comment to a work item. On a Feature this is its session log: add one at the end of every working session. Plain text only; @mentions do not notify anyone yet. It shows as the person's comment, via this agent.
+
+Arguments: `item` — The item's key, such as SHIP-12; `text` — The comment, in plain text.
+
+#### `link` — write
+
+Link a work item to another one (related, blocked_by, duplicate or predecessor), or to an outside page such as a pull request or a doc by passing url and a title.
+
+Arguments: `item` — The item's key, such as SHIP-12; `to` (optional) — The other item's key. Leave out when you pass a url; `type` (optional) — related (the default), blocked_by (item is blocked by the other), duplicate or predecessor (the other comes first); `url` (optional) — An outside page's address (http or https), instead of to; `title` (optional) — What the outside page is called. Leave out to use the title ShipLean reads from the page; `note` (optional) — A note about why the page is linked, shown on its card.
+
+#### `refine_work_item` — write
+
+Improve one work item: rewrite its title, description or acceptance criteria, and set its points, tags, priority, severity or parent. A rewritten checklist keeps the ticked state of every line whose text is unchanged. Pass expected_revision (from get_work_item) to refuse if someone has edited it since you read it. A note becomes a comment explaining the change.
+
+Arguments: `item` — The item's key, such as SHIP-12; `title` (optional) — A new title; `description` (optional) — A new description in Markdown; replaces the old one; `acceptance_criteria` (optional) — The whole acceptance checklist, one line each; replaces the old one; `points` (optional) — Story points; `tags` (optional) — The whole tag list; replaces the old one; `priority` (optional) — 1 (highest) to 4; `severity` (optional) — A bug's severity, 1 (critical) to 4 (low); `parent` (optional) — The parent's key, or none to detach it; `expected_revision` (optional) — The revision you read. A stale write is refused as a conflict; `note` (optional) — Why you changed it. Added as a comment after the change.
+
+#### `report_link_state` — write
+
+Report what you can see at an address ShipLean can't read (a private GitLab merge request, say): its title and its state (open, draft, merged or closed) as of a time. It applies to every link with that address on the work items you can reach, and the card shows it as reported by you.
+
+Arguments: `url` — The address, exactly as it is linked; `as_of` — When what you report was true, as an ISO 8601 time, such as 2026-10-25T09:00:00Z; `title` (optional) — The page's title; `state` (optional) — open, draft, merged or closed.
+
+### Features and research
+
+#### `set_status` — write
+
+Write a Feature's one-line status (up to 500 characters) and stamp it verified now, by you and through this tool, even when the text is unchanged. Call this at the end of every session on a Feature, even when nothing changed, so it shows the Feature was checked. Optionally move the Feature to a state by name in the same write. Only a Feature has a status.
+
+Arguments: `feature` — The Feature's key, such as SHIP-12; `status` — The status, one line; `state` (optional) — Move the Feature to this state, by name, in the same write.
+
+#### `create_feature` — write
+
+Create a Feature when an idea first comes up, before any research: search first, then use this with a goal. Optionally set its one-line status, state, epic and slug. The slug is its short name in addresses; it defaults to one made from the title and can't be changed later. Name the project when the user is in more than one.
+
+Arguments: `title` — The Feature's title; `goal` — The goal: what the Feature is for; `project` (optional) — The project key, such as SHIP. Needed when the user is in more than one project; `epic` (optional) — The key of the epic this Feature belongs to; `slug` (optional) — Lower-case words joined by hyphens, at most 64 characters. Defaults to one made from the title; `status` (optional) — The one-line status. Stamps it verified now, by you; `state` (optional) — Start the Feature in this state, by name.
+
+### Planning
+
+#### `get_brief` — read
+
+The brief to work from for an item of a plan capture_plan created. For a task, the whole brief its agent follows: the common brief, the task's own brief, the shared branch and the report to send back with report_task. For a story, the lead's brief for that lane. For a feature, the conductor's view: its waves in order, each with its stories and whether they are done, and the first wave that can start.
+
+Arguments: `item` — The key of a task, story or feature in a plan, such as SHIP-12.
+
+#### `capture_plan` — write (preview: read; apply: write)
+
+Put a plan for several agents in the backlog: a feature (an existing one by key, or a new one), its stories (one per lane of a wave) and their tasks (one per agent brief), with the shared branch, the common brief and the plan document attached to the feature. A call without a plan comes back as a preview and a plan, with any warnings about the plan's shape; call again with the same arguments and that plan to create exactly what was previewed in one go; changed arguments are refused. Follow planning_guide when you write the plan.
+
+Arguments: `feature` — The feature the plan lands under; `shared_branch` — The git branch every agent of the plan pushes to; `common_brief` — The brief every agent reads before its own, in Markdown; `stories` — The stories, one per lane of a wave, each with its tasks; `project` (optional) — The project key, such as SHIP. Needed when the user is in more than one project; `plan_markdown` (optional) — The whole plan document, in Markdown, attached to the feature; `plan` (optional) — The plan a preview returned. Send it with the same arguments as the preview to create exactly what was previewed; changed arguments are refused.
+
+#### `planning_guide` — read
+
+How work moves through ShipLean from idea to done (part work), and how to break a feature or epic down for several agents working in parallel (part guide and the templates). Returns one part as Markdown, the names of every part, and what the project's past retros said to change next time. Read work when research might become work; read guide before you plan.
+
+Arguments: `part` (optional) — Which part: work (idea to done), guide (the default for planning), brief, report, plan_reviewer, code_reviewer, fix, lead or retro; `project` (optional) — The project key whose past retros the lessons come from, such as SHIP. Leave out for the guide alone; with it, the lessons come from that project's retros.
+
+#### `plan_status` — read
+
+How a plan capture_plan created is going: its waves in order, each story with its state and who has it, and each task with its state, model role, context size, when it started and finished, its commits, how many review rounds it took and whether it was left orphaned. Also the first wave that can start. Use it to run the plan wave by wave and to write its retro.
+
+Arguments: `item` — The plan's feature key, such as SHIP-12.
+
+#### `report_task` — write
+
+Hand in the report for a task of a plan when you stop work on it, in the shape its brief asks for. The report lands as a comment on the task, each commit and the pull request become links on it, and the task moves on. Done moves it to the first Completed state. Blocked unassigns it and returns it to the first Proposed state, with your reason. Partial leaves it as it is, or moves it to the first InProgress state if it has not started or was Completed. Each left_undone item becomes an orphan task. A report on a Completed task is accepted: done leaves it there, blocked and partial reopen it. Send it once per stop, done or not. At most 25 commits and 25 left_undone items a call.
+
+Arguments: `item` — The task's key, such as SHIP-12; `status` — done, blocked or partial; `commits` (optional) — The commits you pushed, in order. Left out means none; `pr_url` (optional) — The pull request's URL, when there is one; `tests_run` (optional) — Each test command you ran, with its pass and fail counts and how long it took. Left out means none; `acceptance_tests` (optional) — The acceptance tests that define done, each with pass or fail. Left out means none; `config_files_changed` (optional) — Config files you changed and why; `red_tests` (optional) — Red tests, each with the task that owns it; `context_used_k` (optional) — About how much context you used, in thousands of tokens; `public_surface` (optional) — The types, tools and signatures you added that others build on; `decisions` (optional) — Decisions a later task would otherwise have to rediscover; `gotchas` (optional) — What cost you time; `left_undone` (optional) — What you left undone, each with why. Left out means none; `temporary_behaviour` (optional) — Temporary behaviour you left in, what it stands in for and what replaces it; `constraint_not_met` (optional) — A constraint of the brief you could not meet, and why.
+
+### Sprints
+
+#### `move_to_sprint` — plan
+
+Move one or a few work items (up to 25) into a sprint, or back to the backlog with sprint "backlog". Their place in the backlog order is kept. Send each item's expected_revision from get_work_item to be told if someone changed it meanwhile; a changed item stops the whole move, nothing is moved, and you get the conflict to decide on.
+
+Arguments: `items_to_move` — The items to move, 1 to 25; `sprint` — current, next, a sprint's name, or backlog to take them out of every sprint; `project` (optional) — The project key, such as SHIP. Left out, it is the project of the first item.
+
+#### `reorder` — plan
+
+Move a work item above or below another one in the backlog. Give exactly one of above or below. This changes the order only; it is not a change to the item and leaves no revision.
+
+Arguments: `item` — The item to move, such as SHIP-123; `above` (optional) — Put the item directly above this item (its key); `below` (optional) — Put the item directly below this item (its key); `expected_revision` (optional) — The revision you last saw. Leave out to move whatever is there now.
+
+#### `review_backlog` — read
+
+Is the backlog in shape? Looks at the top of the stack of one level (stories, features or epics) and flags what is unestimated (stories and bugs), has no acceptance criteria (stories), has no parent (below epics), has not changed in a while, or looks like another item's duplicate (titles that share most of their words). Use it before planning a sprint.
+
+Arguments: `project` (optional) — The project key, such as SHIP. Leave out for the person's most recent project; `level` (optional) — stories (stories and bugs), features or epics. Defaults to stories; `top` (optional) — How many items from the top of the stack to look at, 1 to 100. Defaults to 25; `stale_days` (optional) — An item is stale when it has not changed for this many days. Defaults to 30.
+
+#### `sprint_review` — read
+
+What the sprint review and the retro need: points completed against committed (the sprint metrics' numbers), the stories carried over unfinished, the ones added after the sprint began, the velocity of the last few ended sprints, and how the features the sprint worked on are doing. Comes as data and as plain text sections to paste into a doc.
+
+Arguments: `project` (optional) — The project key, such as SHIP. Leave out for the most recent project; `sprint` (optional) — current, next, or a sprint name. Defaults to current; name the sprint that just ended to review it; `velocity_sprints` (optional) — How many ended sprints the velocity trend shows, 1 to 12. Defaults to 3.
+
+#### `plan_sprint` — plan (preview: read; apply: plan)
+
+Fill a sprint from the top of the backlog. Without `plan` it only proposes: the unplanned stories and bugs, in stack order, that fit the sprint's room (the team's entered capacity, else the velocity; items already in the sprint count against it), and a plan. Call again with that plan to move exactly those items in. Going over capacity warns and never blocks. A sprint with no capacity and no velocity (a first sprint) gets no cut line: pass points_limit to get one.
+
+Arguments: `project` (optional) — The project key, such as SHIP. Needed when the user is in more than one project; `sprint` (optional) — next, current or a sprint name. Defaults to next; `points_limit` (optional) — Fill up to this many points instead of the capacity or velocity; `plan` (optional) — The plan a preview returned. Moves exactly what it holds into the sprint.
+
+#### `end_sprint` — plan (preview: read; apply: plan)
+
+Close a sprint: the roll-over prompt as a tool. Without `plan` it previews which unfinished stories and bugs move to the next sprint (or the backlog) and returns a plan; call again with that plan to move them. The roll-over then shows as decided for everyone. A sprint can be closed from its end day on; while it is still running (its end date is after today) pass end_today: true, which moves its end date to today first. An earlier sprint that has already ended is named by `sprint`.
+
+Arguments: `project` (optional) — The project key, such as SHIP. Needed when the user is in more than one project; `sprint` (optional) — current (the sprint running today) or a sprint name. Defaults to current; `to` (optional) — next (the default: the following sprint, or the backlog when there is none) or backlog; `end_today` (optional) — Close a sprint that is still running: its end date moves to today first; `plan` (optional) — The plan a preview returned. Closes the sprint and moves exactly what it holds.
+
+#### `create_sprint` — plan
+
+Create the next sprint. The name continues the last sprint's number, it starts the day after the last one ends and runs for the same length; each can be given instead. The goal is optional.
+
+Arguments: `project` (optional) — The project key, such as SHIP. Needed when the user is in more than one project; `name` (optional) — The sprint's name. Defaults to the last name with its number plus one; `start_date` (optional) — First day, yyyy-MM-dd. Defaults to the day after the last sprint ends (today for a first sprint); `end_date` (optional) — Last day, yyyy-MM-dd. Defaults to the same length as the last sprint (14 days for a first sprint); `goal` (optional) — What the sprint is for. Optional.
+
+### Status and reporting
+
+#### `whats_changed_since` — read
+
+What moved since you last looked: the edits and comments on work items, grouped by item, with who and when, and a new cursor to keep for next time. Give the cursor from your last call, or a time (ISO 8601, such as 2026-10-20T09:00:00Z) the first time. By default only your own items (assigned to you or created by you); mine=false covers the whole project.
+
+Arguments: `project` (optional) — The project key, such as SHIP. Leave out for the most recent project; `cursor` (optional) — The cursor an earlier call returned; `since` (optional) — An ISO 8601 time to start from, when you have no cursor; `mine` (optional) — true (the default) for items assigned to or created by you; false for every item in the project; `limit` (optional) — The most changes to return, 1 to 500. Defaults to 100.
+
+#### `feature_progress` — read
+
+How a feature or epic is going: how many stories, bugs, tasks and nested features under it are open and closed, the points done against the total, and the open ones with their state and the sprint they are in. The same numbers the Features board shows. Use it for 'how is the Payments epic going?'.
+
+Arguments: `item` — The key of the epic or feature, such as SHIP-12.
+
+#### `sprint_status` — read
+
+The stand-up picture for a sprint: goal, dates, days left, points committed, completed and remaining against the team's capacity, the burndown trend, every item by state with who has it, the blocked items (tagged Blocked or waiting on an open blocked-by link) and tasks with no story. Use it for 'how is the sprint going?'.
+
+Arguments: `project` (optional) — The project key, such as SHIP. Leave out for the most recent project; `sprint` (optional) — current, next, or a sprint name. Defaults to current.
+
+#### `find_work_to_pick_up` — read
+
+List work nobody has taken yet in a sprint (the current sprint unless you name one), top of the stack first. Only unassigned items that have not been started. Optionally only one type (epic, feature, story, bug, task) or only what sits under a parent item such as a story or feature.
+
+Arguments: `project` (optional) — Project key such as SHIP. Leave out for the person's most recent project; `sprint` (optional) — current, next or a sprint name. Defaults to current; `type` (optional) — Only this type: epic, feature, story, bug or task; `parent` (optional) — Only items under this parent, by key such as SHIP-12.
+
+#### `pick_up` — write
+
+Take a work item: assign it to the person and start it, moving it to the first in-progress state of its type, like the Pick up button on the taskboard. Refuses work someone else already has or that is already finished.
+
+Arguments: `item` — The work item key, such as SHIP-123.
+
+#### `update_progress` — write
+
+Report progress on a work item in one call, for example when a PR is up: move it to a state by name, add a note, add a link (a URL and a title) and adjust its points. Give at least one. When this finishes the last open task of a story, the answer says so and offers the state to move the story to; it does not move the story itself.
+
+Arguments: `item` — The work item key, such as SHIP-123; `state` (optional) — Move to this state, by name (for example In review or Closed). States differ per work item type; `note` (optional) — A comment to leave on the item, written after the change; `link_url` (optional) — A link to attach, for example the pull request URL (http or https); `link_title` (optional) — The link's title. Defaults to the URL; `points` (optional) — New story points.
+
+#### `hand_back` — write
+
+Give a work item back to the team: unassign it and return it to the first not-started state of its type, with a note saying why or how far it got.
+
+Arguments: `item` — The work item key, such as SHIP-123; `note` (optional) — Why it is being handed back, or where it got to. Written as a comment after the change.
+
+## Prompts
+
+Prompts give the agent a task-oriented starting message; they are separate from tools and do not have a tool scope.
+
+- **`plan_feature`** — Plan a feature for several agents working in parallel, following ShipLean's planning guide, and put the plan in the backlog. Arguments: `feature` (optional) — The key of the feature to plan, such as SHIP-12; `description` (optional) — What to build, when there is no feature yet.
+- **`research_idea`** — Research something that might become work: find or create a Feature, read what is already on it, research, attach findings, update the body, then comment and set_status. Arguments: `feature` (optional) — The key of an existing Feature, such as SHIP-12; `description` (optional) — What to look into, when there is no Feature yet.
+
+{/* GENERATED TOOL REFERENCE END */}
+
+## Previews and applying changes
+
+Some larger writes first return a preview and an opaque `plan` value. Review the preview, then call the same tool again with that value. For `capture_plan`, send the same arguments again with the returned plan; changed arguments are refused. Previews use read scope. Applying the plan needs the scope shown for that tool. A preview does not write anything.
+
+## Request limits and errors
+
+An `/mcp` request body can be up to **1 MB**. Since an attachment is base64 encoded inside that body, a file of about **700 KB** is the practical maximum for `attach_file`; upload larger files in the ShipLean interface. Markdown attachments can be read as text up to 200 KB; larger files return metadata and a link.
+
+A tool error has this shape:
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "validation",
+    "message": "A short explanation",
+    "field": "project",
+    "candidates": []
+  }
+}
+```
+
+`field` and `candidates` appear when they apply. An error result is distinct from an HTTP authorization response: a missing scope is refused with HTTP 403 before the tool runs. See [MCP transport, limits, and errors](https://github.com/ShipLean/ShipLean/blob/main/docs/mcp.md) for the transport and complete error behavior.
