@@ -4,7 +4,7 @@ import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { chromium, type Page } from 'playwright';
+import { chromium, type BrowserContext, type Page } from 'playwright';
 import sharp from 'sharp';
 import type { SeedResult, ShotSpec } from './types';
 
@@ -209,19 +209,31 @@ export async function main(args = process.argv.slice(2)) {
     }
     await healthy(baseUrl, abort.signal);
     browser = await chromium.launch({ executablePath: values['--browser'] ?? process.env.PLAYWRIGHT_EXECUTABLE_PATH });
+    // A login counts toward the instance's per-email quota even when it succeeds.
+    // Reuse the signed-in snapshot; every capture still gets a new context.
+    let authState: Awaited<ReturnType<BrowserContext['storageState']>> | undefined;
+    if (!sample) {
+      const authContext = await browser.newContext({ viewport, timezoneId: 'UTC', locale: 'en-US' });
+      try {
+        const page = await authContext.newPage();
+        page.setDefaultTimeout(30_000);
+        await signIn(page, baseUrl, admin as Admin);
+        authState = await authContext.storageState();
+      } finally { await authContext.close(); }
+    }
     await mkdir(output, { recursive: true });
     for (const shot of shots) {
       for (const theme of ['light', 'dark'] as const) {
         console.log(`Capturing ${shot.name} (${theme}).`);
         if (abort.signal.aborted) throw new RunnerError('Screenshot capture interrupted.');
         const ctx = seedDemo ? await seedDemo(baseUrl, admin as Admin) : undefined;
-        const context = await browser.newContext({ viewport, deviceScaleFactor: 1, colorScheme: theme, timezoneId: 'UTC', locale: 'en-US', reducedMotion: 'reduce' });
+        const context = await browser.newContext({ storageState: authState, viewport, deviceScaleFactor: 1, colorScheme: theme, timezoneId: 'UTC', locale: 'en-US', reducedMotion: 'reduce' });
         try {
           const page = await context.newPage();
           page.setDefaultTimeout(30_000);
           await page.clock.setFixedTime(captureTime);
           if (!sample) {
-            await signIn(page, baseUrl, admin as Admin);
+            await page.goto(applicationUrl(baseUrl, '/profile'));
             await themeControl(page, theme);
           }
           // Public login has no theme control; it follows the emulated OS preference.

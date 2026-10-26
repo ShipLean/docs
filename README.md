@@ -43,7 +43,7 @@ The component reads `src/assets/shots/<name>-light.webp` and `<name>-dark.webp`.
 
 The initial `ui-backlogs-overview` pair comes from the product's page-shot baselines at commit `0a9e4e139ce655f1f4ad457e7516fef3feef4bad`: `backlogs.spec.tsx-snapshots/backlog-{light,dark}-linux.png`. It is resized to 1440px and converted to WebP at quality 82. Keep each captured asset under 150 KB.
 
-To capture screenshots, install Chromium once with `pnpm exec playwright install chromium`. The runner starts its own disposable Compose stack, waits for `/health`, restores the demo fixtures before every shot/theme, signs in, selects the theme in **Your profile → Appearance**, and captures each spec in a fresh browser context. It removes that stack and its volumes when it finishes. Docker Compose is required for this mode; it does not depend on `examples/quickstart/`.
+To capture screenshots, install Chromium once with `pnpm exec playwright install chromium`. The runner starts its own disposable Compose stack, waits for `/health`, and signs in once. It copies that session into a fresh browser context for every shot/theme, restores the demo fixtures before each capture, and selects the theme in **Your profile → Appearance**. Reusing authentication avoids consuming the per-email sign-in quota on every capture; browser contexts still have separate page state. It removes that stack and its volumes when it finishes. Docker Compose is required for this mode; it does not depend on `examples/quickstart/`.
 
 Keep disposable credentials in a private JSON file outside the repo, with permissions `0600`:
 
@@ -57,7 +57,7 @@ pnpm shots --config /path/to/private-shots.json --page ui-backlogs
 pnpm shots --no-stack http://127.0.0.1:8080 --config /path/to/private-shots.json
 ```
 
-Use an isolated instance. Ordinary captures restore the seed's managed DEMO fixtures through the REST API. `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` override the configuration's admin fields. Use `--no-stack <baseUrl>` to select an existing instance; other fields in a shared runtime JSON file are ignored. The runner never prints credentials or external error details. Avoid putting passwords on the command line. `SHIPLEAN_SHOTS_PORT` changes the disposable stack's loopback port (default `18080`); `SHIPLEAN_IMAGE` overrides its image. `--browser <executable>` or `PLAYWRIGHT_EXECUTABLE_PATH` explicitly selects a browser on hosts that cannot use the pinned Playwright download.
+Use an isolated instance. Ordinary captures restore the seed's managed DEMO fixtures through the REST API. Preserve its reserved `demo-fixture.json` attachment in capture steps. Restored state covers editable fixture fields, links, attachment content, ranks, sprint/capacity and board settings; append-only history/revisions and server-relative labels remain. `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` override the configuration's admin fields. Use `--no-stack <baseUrl>` to select an existing instance; other fields in a shared runtime JSON file are ignored. The runner never prints credentials or external error details. Avoid putting passwords on the command line. `SHIPLEAN_SHOTS_PORT` changes the disposable stack's loopback port (default `18080`); `SHIPLEAN_IMAGE` overrides its image. `--browser <executable>` or `PLAYWRIGHT_EXECUTABLE_PATH` explicitly selects a browser on hosts that cannot use the pinned Playwright download.
 
 To prove browser capture without credentials or a seed, use the explicit public sign-in sample:
 
