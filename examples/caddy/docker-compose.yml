@@ -1,0 +1,65 @@
+services:
+  shiplean:
+    image: ${SHIPLEAN_IMAGE:-ghcr.io/shiplean/shiplean}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SHIPLEAN_DB_CONNECTION: Host=postgres;Port=5432;Database=shiplean;Username=postgres;Password=${POSTGRES_PASSWORD}
+      SHIPLEAN_BLOB_ROOT: /data/blobs
+      SHIPLEAN_TRUSTED_PROXIES: 172.31.251.2/32
+      SHIPLEAN_ADMIN_EMAIL: ${SHIPLEAN_ADMIN_EMAIL}
+      SHIPLEAN_ADMIN_PASSWORD: ${SHIPLEAN_ADMIN_PASSWORD}
+    volumes:
+      - shiplean-blobs:/data/blobs
+    networks:
+      app:
+        ipv4_address: 172.31.251.10
+
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shiplean
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - shiplean-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d shiplean"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - shiplean
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SHIPLEAN_DOMAIN: ${SHIPLEAN_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      app:
+        ipv4_address: 172.31.251.2
+
+networks:
+  app:
+    ipam:
+      config:
+        - subnet: 172.31.251.0/24
+
+volumes:
+  shiplean-pgdata:
+  shiplean-blobs:
+  caddy-data:
+  caddy-config:

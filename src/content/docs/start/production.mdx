@@ -1,11 +1,61 @@
 ---
 title: "Install for production"
-description: "what changes from the quick start"
+description: "Put ShipLean behind TLS, protect its data, and upgrade it safely."
 sidebar:
   order: 4
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-what changes from the quick start. Reverse proxy with TLS (Caddy example in `examples/caddy/`, plus a short nginx and Cloudflare Tunnel note), `SHIPLEAN_TRUSTED_PROXIES` and `SHIPLEAN_FORWARDED_FOR_HEADER` (`CF-Connecting-IP`), setting the instance base URL (and the warning that changing it disconnects every agent), backups of the Postgres database and the blob store, upgrading (pull the new image; migrations run at startup; `SHIPLEAN_DB_MIGRATE`), resource sizing (search embeddings need memory; give a recommended container memory limit).
+For a public instance, keep ShipLean and PostgreSQL on a private container network and put a TLS reverse proxy in front. The [Caddy Compose file](https://github.com/ShipLean/docs/blob/feat/docs-site/examples/caddy/docker-compose.yml), [Caddyfile](https://github.com/ShipLean/docs/blob/feat/docs-site/examples/caddy/Caddyfile), and [environment file](https://github.com/ShipLean/docs/blob/feat/docs-site/examples/caddy/.env) form a standalone example. Point your domain's DNS to the host and allow inbound ports 80 and 443 so Caddy can provision a public TLS certificate. Set `SHIPLEAN_DOMAIN`, `POSTGRES_PASSWORD`, `SHIPLEAN_ADMIN_EMAIL`, and `SHIPLEAN_ADMIN_PASSWORD` in `.env` before starting it. Use a long random password made of letters and digits for `POSTGRES_PASSWORD`. After you sign in as the first instance admin, remove `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` from `.env`. The compose file pins the Caddy address and trusts only that address for forwarded client information. See [Caddy's automatic HTTPS requirements](https://caddyserver.com/docs/automatic-https) and [Caddyfile environment variables](https://caddyserver.com/docs/caddyfile/concepts#environment-variables).
 
+## Configure your proxy
+
+ShipLean honors forwarded client address and scheme headers only when the request comes from a trusted proxy. Set `SHIPLEAN_TRUSTED_PROXIES` to the address or CIDR that connects to ShipLean. If your proxy supplies the client address in a different header, set `SHIPLEAN_FORWARDED_FOR_HEADER` to that header name. The default is `X-Forwarded-For`.
+
+For a direct Caddy-to-ShipLean connection, the example uses Caddy's container address for `SHIPLEAN_TRUSTED_PROXIES`. Caddy passes the original `Host` and supports WebSocket proxying, which ShipLean uses for live board updates. Do not publish ShipLean's port directly to the internet. See the [Caddy reverse proxy reference](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy) for its forwarding and WebSocket behavior.
+
+With nginx, preserve the original `Host`, and forward the WebSocket upgrade headers. For example, inside the location that proxies to ShipLean:
+
+```nginx
+proxy_pass http://127.0.0.1:8080;
+proxy_http_version 1.1;
+proxy_set_header Host $http_host;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+```
+
+ShipLean must trust the address nginx uses to connect. nginx requires the `Upgrade` and `Connection` headers to be passed explicitly for WebSocket proxying; see [nginx's WebSocket proxying guide](https://nginx.org/en/docs/http/websocket.html).
+
+You can also use [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectivity-options/) to connect a private service to Cloudflare without a publicly routable origin address. Restrict the origin so only the tunnel can reach ShipLean. When Cloudflare supplies the client address as `CF-Connecting-IP`, set `SHIPLEAN_FORWARDED_FOR_HEADER=CF-Connecting-IP` and trust only the address of the tunnel connector. See Cloudflare's [HTTP header reference](https://developers.cloudflare.com/fundamentals/reference/http-headers/) for `CF-Connecting-IP`.
+
+## Set the instance URL
+
+In **Instance settings**, set the base URL to the public HTTPS address people and agents use to reach ShipLean. Agents' MCP tokens are bound to this URL. Changing it invalidates that audience, disconnects every agent, and means each agent must connect again.
+
+## Back up data
+
+Back up PostgreSQL and the blob store. Work item data and settings are in PostgreSQL. Attachments and profile photos are in the configured blob store: the `/data/blobs` volume by default, or the Postgres/S3 store selected by configuration. A database backup alone does not include files stored in the blob folder or S3 bucket.
+
+For the included Compose example, you can create a PostgreSQL dump with:
+
+```sh
+docker compose exec -T postgres pg_dump -U postgres -d shiplean --format=custom > shiplean.dump
+```
+
+Back up the `shiplean-blobs` volume with your container host's volume backup or snapshot procedure. If you use Postgres or S3 for blobs, use that store's backup process instead. For a consistent backup pair, pause writes to ShipLean while you capture both stores. Store backup copies away from the host and periodically verify that you can restore them.
+
+## Upgrade
+
+The published image applies the database schema and migrations when it starts. Pull the new image and recreate the app container:
+
+```sh
+docker compose pull shiplean
+docker compose up -d shiplean
+```
+
+`SHIPLEAN_DB_MIGRATE` defaults to `true`. If you set it to `false`, ShipLean skips startup migrations; only do that when you have another process applying the required schema and migrations before the app starts. Keep a current database and blob-store backup before upgrading.
+
+## Size the instance
+
+There is no fixed memory limit published for the container. ShipLean's [search documentation](https://github.com/ShipLean/ShipLean/blob/main/docs/search.md#L97) estimates about 1.7 KB of memory per embedded search row in the semantic vector cache, or about 85 MB for 50,000 rows, before the app, database, model, and other work are counted. This is a cache estimate, not a container limit. Start without a tight memory cap, watch actual use as your data grows, then set a limit with headroom for your own workload. You can set `SHIPLEAN_EMBEDDINGS=off` to keep search lexical (word-based) if you need to reduce embedding-related memory use.
