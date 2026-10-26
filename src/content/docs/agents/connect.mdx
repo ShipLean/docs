@@ -1,11 +1,100 @@
 ---
 title: "Connect an agent"
-description: "tabs per client"
+description: "Connect Claude Code, Claude Desktop, Claude on the web, or Cursor to your ShipLean instance."
 sidebar:
   order: 32
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-tabs per client. Claude Code `claude mcp add --transport http shiplean <base_url>/mcp` (user vs project scope), then `/mcp` → Authenticate. Claude Desktop and Claude web (custom connector URL). Cursor (`mcp.json`, private-use redirect, shown as unverified). Where to find your address (Your profile). Troubleshooting: "Needs authentication", 401 after a password change, base URL changed, Origin errors.
+import Shot from '@/components/Shot.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
+To connect a client, copy your instance's MCP address from **Your profile**. It ends in `/mcp`. Use the public HTTPS address you normally use to open ShipLean.
+
+<Shot name="agents-connect-address" alt="Your profile showing the MCP server address to copy into an agent client." />
+
+Choose the client you use. The first connection opens ShipLean in a browser so you can sign in and review the requested access.
+
+<Tabs>
+  <TabItem label="Claude Code">
+
+    In a terminal, run this command. Replace the address with the one shown in your profile.
+
+    ```sh
+    claude mcp add --transport http shiplean --scope user https://shiplean.example.com/mcp
+    ```
+
+    User scope makes the server available across your Claude Code projects on this machine. To share only the server address with one project, use project scope instead:
+
+    ```sh
+    claude mcp add --transport http shiplean --scope project https://shiplean.example.com/mcp
+    ```
+
+    Project scope writes the server entry to `.mcp.json` in the project root. Review that file before you commit it. Then open Claude Code, enter `/mcp`, choose ShipLean, and select **Authenticate**. Sign in to ShipLean and allow the access listed on the consent page.
+
+    See [Claude Code's MCP setup and scope reference](https://code.claude.com/docs/en/mcp).
+
+  </TabItem>
+  <TabItem label="Claude Desktop">
+
+    In Claude Desktop, open **Customize → Connectors**, choose **Add custom connector**, enter a name such as `ShipLean`, and paste your profile's MCP address. Add the connector, then choose **Connect** and sign in to ShipLean. Review the consent request before allowing it.
+
+    Remote connectors are configured through your Claude account. Claude Desktop's local `claude_desktop_config.json` is for local MCP servers, not this remote ShipLean connection. Your ShipLean instance must be reachable from Anthropic's cloud service.
+
+    See [Claude's custom connector instructions](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
+
+  </TabItem>
+  <TabItem label="Claude on the web">
+
+    In Claude, open **Customize → Connectors**, choose **Add custom connector**, enter a name such as `ShipLean`, and paste your profile's MCP address. Add the connector, then choose **Connect** and sign in to ShipLean. Review the consent request before allowing it.
+
+    Claude connects to remote MCP servers from Anthropic's cloud, so the instance must be reachable there. A server available only on your private network or through your local VPN will not connect from Claude on the web.
+
+    See [Claude's custom connector instructions](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
+
+  </TabItem>
+  <TabItem label="Cursor">
+
+    Add ShipLean to your Cursor MCP configuration. Use `.cursor/mcp.json` in a project or `~/.cursor/mcp.json` for your own use across projects.
+
+    ```json
+    {
+      "mcpServers": {
+        "shiplean": {
+          "url": "https://shiplean.example.com/mcp"
+        }
+      }
+    }
+    ```
+
+    Replace the example URL with the MCP address from your profile. Save the file and restart Cursor. When ShipLean opens the browser consent page, check the instance name and requested scopes before allowing access. Cursor uses a private-use callback URI; ShipLean displays that as an app on your computer and marks the client unverified because it registers dynamically.
+
+    See [Cursor's MCP configuration guide](https://cursor.com/docs/mcp).
+
+  </TabItem>
+</Tabs>
+
+## Review the consent request
+
+The page shows the client name, whether its identity is verified, and the scopes it requests. A verified client uses a published client identity document. A client that registers dynamically is marked unverified. Check that the displayed ShipLean host is yours, then choose **Allow** or **Deny**.
+
+<Shot name="ui-authorize-overview" alt="ShipLean consent page showing the client name, unverified host, requested scopes, and Allow or Deny controls." />
+
+If you deny a request, no connection is granted. To disconnect a client later, open **Your profile → Connected agents** and revoke it.
+
+## Troubleshoot a connection
+
+### The client says “Needs authentication”
+
+This is expected on the first request. Open the client’s MCP settings and choose **Authenticate** or **Connect**. Sign in to the same ShipLean account whose project access the agent should use, then review and allow the consent request.
+
+### The client gets a 401 after a password change
+
+A password change invalidates the person's existing agent tokens. In **Your profile → Connected agents**, revoke the old connection if it is still listed, then authenticate again from the client.
+
+### The client gets a 401 after the instance address changed
+
+Agent tokens are bound to the MCP address. If an administrator changes the instance base URL, update the client to use the new address from your profile and authenticate again.
+
+### A browser request gets an Origin error
+
+ShipLean accepts browser requests only when the request's origin matches the configured instance base URL, including scheme, host, and port. Ask your administrator to check that the configured base URL matches the public address you use. Browser clients are refused when the base URL is blank because ShipLean cannot verify their origin. Non-browser clients that do not send an `Origin` header are unaffected.

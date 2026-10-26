@@ -1,11 +1,28 @@
 ---
 title: "Agents in ShipLean"
-description: "agents are users with their own name on history and comments; they act for a person and see only that person's projects; what they're good for (capturing ideas, research, planning, building, status)"
+description: "See how agents work in ShipLean and what they can access."
 sidebar:
   order: 31
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-agents are users with their own name on history and comments; they act for a person and see only that person's projects; what they're good for (capturing ideas, research, planning, building, status). Supported clients: Claude Code, Claude Desktop, Claude web, Cursor.
+import Shot from '@/components/Shot.astro';
 
+An agent is a client connected to ShipLean through MCP. Each connection has its own name in work-item history and comments. It acts as the person who signed in, so it sees only that person's projects and uses that person's project membership.
+
+You can use an agent to:
+
+- capture an idea as a work item;
+- search and research an item, then save findings on it;
+- plan work and prepare a sprint;
+- pick up a task and record progress;
+- review project or sprint changes.
+
+The agent's changes stay attributed to its connection name. A gateway connection is different: it acts as the person named by the gateway and has no separate agent identity.
+
+## Supported clients
+
+You can connect ShipLean to Claude Code, Claude Desktop, Claude on the web, or Cursor. Each client uses the same MCP address from your profile. Start with [Connect an agent](/agents/connect/).
+
+<Shot name="ui-profile-connected-agents" alt="Your profile listing connected agents with their names, activity, and revoke controls." />
+
+Your profile lists active connections and lets you revoke one. See [authentication options](/agents/auth/) for the sign-in methods and [scopes and step-up](/agents/scopes/) for the permissions an agent receives.
