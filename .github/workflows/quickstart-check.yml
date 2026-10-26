@@ -1,0 +1,33 @@
+name: Verify published-image quick start
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quickstart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.0'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Follow committed quick start and validate Caddy
+        run: pnpm tsx scripts/verify-quickstart.ts
+      - name: Remove disposable containers and volumes on interruption
+        if: always()
+        run: |
+          for project in $(docker compose ls --all --format json | jq -r '.[] | select(.Name | startswith("docs-check-")) | .Name'); do
+            docker ps -aq --filter "label=com.docker.compose.project=$project" | xargs -r docker rm -f
+            docker volume ls -q --filter "label=com.docker.compose.project=$project" | xargs -r docker volume rm
+            docker network ls -q --filter "label=com.docker.compose.project=$project" | xargs -r docker network rm
+          done
