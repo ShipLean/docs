@@ -1,0 +1,64 @@
+---
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  name: string;
+  alt: string;
+}
+
+const { name, alt } = Astro.props;
+const shots = import.meta.glob<{ default: ImageMetadata }>('../assets/shots/*.webp', {
+  eager: true,
+});
+const light = shots[`../assets/shots/${name}-light.webp`]?.default;
+const dark = shots[`../assets/shots/${name}-dark.webp`]?.default;
+const missing = [!light && 'light', !dark && 'dark'].filter(Boolean);
+
+if (missing.length) {
+  console.warn(`[Shot] ${name}: missing ${missing.join(' and ')} screenshot; rendering placeholder.`);
+}
+---
+
+<figure class="shot" data-shot={name}>
+  {
+    light && dark ? (
+      <>
+        <img class="shot-light" src={light.src} width={light.width} height={light.height} alt={alt} loading="lazy" decoding="async" />
+        <img class="shot-dark" src={dark.src} width={dark.width} height={dark.height} alt={alt} loading="lazy" decoding="async" />
+      </>
+    ) : (
+      <div class="shot-placeholder" role="img" aria-label={`Screenshot coming soon: ${alt}`}>
+        <strong>Screenshot coming soon</strong>
+        <span>{alt}</span>
+      </div>
+    )
+  }
+</figure>
+
+<style>
+  .shot {
+    margin: 1.5rem 0;
+    overflow: hidden;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.5rem;
+    background: var(--sl-color-bg-sidebar);
+  }
+  .shot img {
+    width: 100%;
+    height: auto;
+    margin: 0;
+  }
+  .shot-light { display: block; }
+  .shot-dark { display: none; }
+  :global([data-theme='dark']) .shot-light { display: none; }
+  :global([data-theme='dark']) .shot-dark { display: block; }
+  .shot-placeholder {
+    display: grid;
+    gap: 0.5rem;
+    min-height: 10rem;
+    padding: 2rem;
+    place-content: center;
+    text-align: center;
+    color: var(--sl-color-gray-2);
+  }
+</style>

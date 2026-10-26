@@ -1,0 +1,11 @@
+---
+title: "Install for production"
+description: "what changes from the quick start"
+sidebar:
+  order: 4
+---
+
+{/* TODO: Replace this outline with the page's end-user documentation. */}
+## What goes here
+what changes from the quick start. Reverse proxy with TLS (Caddy example in `examples/caddy/`, plus a short nginx and Cloudflare Tunnel note), `SHIPLEAN_TRUSTED_PROXIES` and `SHIPLEAN_FORWARDED_FOR_HEADER` (`CF-Connecting-IP`), setting the instance base URL (and the warning that changing it disconnects every agent), backups of the Postgres database and the blob store, upgrading (pull the new image; migrations run at startup; `SHIPLEAN_DB_MIGRATE`), resource sizing (search embeddings need memory; give a recommended container memory limit).
+
