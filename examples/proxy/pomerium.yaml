@@ -40,6 +40,11 @@ routes:
     regex: ^/api/webhooks(/.*)?$
     allow_public_unauthenticated_access: true
 
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    regex: ^/api/(uploads|downloads)(/.*)?$
+    allow_public_unauthenticated_access: true
+
   # Replace the example policy with the access rule for your organization.
   # Generate and mount a private signing key for Pomerium; do not commit it.
   - from: https://shiplean.example.com

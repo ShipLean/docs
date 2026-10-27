@@ -39,8 +39,9 @@ Tell the proxy to bypass its login check for these paths. They use their own cre
 | `/oauth/token`, `/oauth/register`, `/oauth/revoke` | These OAuth endpoints manage agent credentials. |
 | `/.well-known/` | OAuth client discovery and metadata. |
 | `/api/webhooks/` | GitHub and GitLab verify each delivery with a shared secret. The sender must post JSON. |
+| `/api/uploads/`, `/api/downloads/` | MCP attachment transfer URLs carry their own short-lived credential in the path. |
 
-Keep `/oauth/authorize` behind the proxy; a person must be signed in to approve an agent. A bypassed path can be reached without the proxy session. Token mode still verifies any identity token supplied to ShipLean. See [integrations](/start/integrations/) for webhook setup.
+Keep `/oauth/authorize` behind the proxy; a person must be signed in to approve an agent. A bypassed path can be reached without the proxy session. For attachment transfer URLs, the path token is the credential; the upload URL works once for 10 minutes and the download URL works until it expires. Proxy middleware must pass these paths to ShipLean without requiring login or adding proxy identity. Token mode still verifies any identity token supplied to ShipLean. See [integrations](/start/integrations/) for webhook setup.
 
 All `/api` writes in proxy mode must include a JSON body or the `X-ShipLean-Client` header, even when the proxy authenticates the request. GitHub and GitLab webhook deliveries use JSON.
 
@@ -52,7 +53,7 @@ Each example includes the ShipLean environment settings and the proxy-side confi
 
 When oauth2-proxy forwards directly to ShipLean, `pass_access_token` puts the access token in `X-Forwarded-Access-Token`. This only works when that access token is a signed JWT containing an email claim. If the provider issues opaque access tokens or omits email, pass the ID token as `Authorization: Bearer …` instead. Configure the matching ShipLean header and audience. With oauth2-proxy's `auth_request` integration, enable `set_xauthrequest` too and copy `X-Auth-Request-Access-Token` to the upstream header.
 
-The example uses the current `skip_auth_routes` option. It exempts only MCP, OAuth token-management, discovery, and webhook paths. Do not use a broad exemption for all `/oauth/` routes.
+The example uses the current `skip_auth_routes` option. It exempts only MCP, OAuth token-management, discovery, webhook, and attachment-transfer paths. Do not use a broad exemption for all `/oauth/` routes.
 
 Files: [`oauth2-proxy.cfg`](https://github.com/ShipLean/docs/blob/main/examples/proxy/oauth2-proxy.cfg) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/oauth2-proxy.shiplean.env.example). See the [oauth2-proxy configuration reference](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview/) for `pass_access_token`, `set_xauthrequest`, and `skip_auth_route`.
 
@@ -60,13 +61,13 @@ Files: [`oauth2-proxy.cfg`](https://github.com/ShipLean/docs/blob/main/examples/
 
 Cloudflare Access sends the signed application JWT in `Cf-Access-Jwt-Assertion`. Use your team domain as issuer, the Access certs endpoint for JWKS, and your application's AUD tag as audience. Access does not send a name claim, so new users get a name based on the part of their email before `@`.
 
-Create Access policies for the bypass paths in `cloudflare-access.md`. Bypass means those paths do not require a user login at Access; the backend must remain private and ShipLean still applies its own endpoint checks. Cloudflare recommends validating the assertion header, whose signing keys are published at the certs URL.
+Create Access policies for the bypass paths in `cloudflare-access.md`, including `/api/uploads/*` and `/api/downloads/*`. Bypass means those paths do not require a user login at Access; the backend must remain private and ShipLean still applies its own endpoint checks. Cloudflare recommends validating the assertion header, whose signing keys are published at the certs URL.
 
 File: [`cloudflare-access.md`](https://github.com/ShipLean/docs/blob/main/examples/proxy/cloudflare-access.md). See [Cloudflare's JWT validation guide](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/) and [Access policies](https://developers.cloudflare.com/cloudflare-one/access-controls/policies/).
 
 #### Pomerium
 
-Enable `pass_identity_headers` on the protected ShipLean route. Pomerium sends its signed assertion in `X-Pomerium-Jwt-Assertion`; configure the matching issuer and audience for that route. Set `SHIPLEAN_AUTH_PROXY_TOKEN_JWKS_URL` to Pomerium's published `/.well-known/pomerium/jwks.json` endpoint: Pomerium serves the JWKS directly rather than an OIDC discovery document at the issuer's `/.well-known/openid-configuration` path. The example uses URI issuer format so the issuer is `https://shiplean.example.com/`, and route path patterns for the public bypass routes.
+Enable `pass_identity_headers` on the protected ShipLean route. Pomerium sends its signed assertion in `X-Pomerium-Jwt-Assertion`; configure the matching issuer and audience for that route. Set `SHIPLEAN_AUTH_PROXY_TOKEN_JWKS_URL` to Pomerium's published `/.well-known/pomerium/jwks.json` endpoint: Pomerium serves the JWKS directly rather than an OIDC discovery document at the issuer's `/.well-known/openid-configuration` path. The example uses URI issuer format so the issuer is `https://shiplean.example.com/`, and route path patterns for the public bypass routes, including `/api/uploads/{token}` and `/api/downloads/{token}`.
 
 Files: [`pomerium.yaml`](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.yaml) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.shiplean.env.example). See Pomerium's [JWT identity verification](https://www.pomerium.com/docs/get-started/fundamentals/core/jwt-verification), [route path matching](https://www.pomerium.com/docs/reference/routes/path-matching), [JWT issuer format](https://www.pomerium.com/docs/reference/routes/jwt-issuer-format), and [public access](https://www.pomerium.com/docs/reference/routes/public-access) documentation.
 

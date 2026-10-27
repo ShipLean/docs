@@ -24,8 +24,10 @@ Create additional self-hosted Access applications for these paths and add a **By
 - `https://shiplean.example.com/oauth/revoke*`
 - `https://shiplean.example.com/.well-known/*`
 - `https://shiplean.example.com/api/webhooks/*`
+- `https://shiplean.example.com/api/uploads/*`
+- `https://shiplean.example.com/api/downloads/*`
 
-Cloudflare evaluates path-based applications before the hostname application. Confirm the bypass policy is limited to these protocol paths; keep `/oauth/authorize` protected. Bypassed requests must still reach the private ShipLean backend, and the webhook endpoint checks its configured shared secret.
+Cloudflare evaluates path-based applications before the hostname application. Confirm the bypass policy is limited to these protocol and transfer paths; keep `/oauth/authorize` protected. Bypassed requests must still reach the private ShipLean backend, and the webhook endpoint checks its configured shared secret.
 
 Do not publish the ShipLean port. Allow only the reverse proxy to connect to it and use the address ShipLean sees in `SHIPLEAN_TRUSTED_PROXIES`. Keep the Cloudflare Access application AUD tag private to your deployment configuration.
 
