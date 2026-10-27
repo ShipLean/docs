@@ -41,9 +41,9 @@ Tell the proxy to bypass its login check for these paths. They use their own cre
 | `/api/webhooks/` | GitHub and GitLab verify each delivery with a shared secret. The sender must post JSON. |
 | `/api/uploads/`, `/api/downloads/` | MCP attachment transfer URLs carry their own short-lived credential in the path. |
 
-Keep `/oauth/authorize` behind the proxy; a person must be signed in to approve an agent. A bypassed path can be reached without the proxy session. For attachment transfer URLs, the path token is the credential; the upload URL works once for 10 minutes and the download URL works until it expires. Proxy middleware must pass these paths to ShipLean without requiring login or adding proxy identity. Token mode still verifies any identity token supplied to ShipLean. See [integrations](/start/integrations/) for webhook setup.
+Keep `/oauth/authorize` behind the proxy; a person must be signed in to approve an agent. A bypassed path can be reached without the proxy session. For attachment transfer URLs, the path token is the credential; the upload URL works once for 10 minutes and the download URL works until it expires. Proxy middleware must pass these paths to ShipLean without requiring login or adding proxy identity. Other protected routes still verify any identity token supplied to ShipLean. See [integrations](/start/integrations/) for webhook setup.
 
-All `/api` writes in proxy mode must include a JSON body or the `X-ShipLean-Client` header, even when the proxy authenticates the request. GitHub and GitLab webhook deliveries use JSON.
+Other authenticated `/api` writes in proxy mode must include a JSON body or the `X-ShipLean-Client` header, even when the proxy authenticates the request. Attachment upload URLs are an exception: their short-lived path token is the credential and no client header is needed. GitHub and GitLab webhook deliveries use JSON.
 
 ### Configure a proxy
 
