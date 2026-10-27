@@ -1,11 +1,30 @@
 ---
 title: "Epics as areas"
-description: "use Epics as the wide areas your ideas fall into (e.g. \"Onboarding\", \"Search\", \"Billing\"), not as big projects with an end date"
+description: "Use Epics to group related Features around a lasting area of work."
 sidebar:
   order: 38
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-use Epics as the wide areas your ideas fall into (e.g. "Onboarding", "Search", "Billing"), not as big projects with an end date. How to set them up, the Epics backlog and board, laning the Features board by Epic.
+import Shot from '../../../components/Shot.astro';
 
+An Epic is a wide area for related work, such as onboarding, search or billing. It can stay useful as individual Features come and go; it is not a project with a single end date.
+
+## Set up your areas
+
+Start with a small set of names your team will recognize. Open the [Epics backlog](/ui/backlogs/) and add an Epic for each area. Avoid making an Epic for every idea: put ideas in the Feature under the area they support.
+
+For example, put **Guide new members through their first project** under an onboarding Epic. Its goal is to help a new member create a project and find their next action. The Epic gives that Feature a wider context without changing its goal.
+
+## Review the Epics backlog and board
+
+<Shot name="work-epics-backlog" alt="The DEMO project Epics backlog, with its area rows." />
+
+Use the Epics level in Backlogs to review the list of areas and the [Epics board](/ui/boards/) to see them as cards. Open an Epic to inspect its work and keep the area meaningful as priorities change.
+
+## Group Features by Epic
+
+<Shot name="work-epics-features-board" alt="The DEMO Features board, where you can group Features into lanes by Epic." />
+
+On the Features board, choose swimlanes by Epic to see each area as a lane. This gives you a way to scan related Features together while keeping the board focused on Features. Features without an Epic can appear in the separate no-Epic lane.
+
+The demo Feature **Guide new members through their first project** belongs to an Epic so it appears with that area. See [how to capture an idea](/work/ideas/) and [the full flow](/work/flow/).
