@@ -1,0 +1,90 @@
+---
+title: "Quick start: Docker Compose"
+description: "Run ShipLean and PostgreSQL with Docker Compose."
+sidebar:
+  order: 3
+---
+
+This setup runs the published ShipLean image and PostgreSQL 18. Docker Compose keeps the database and uploaded files in named volumes. It publishes the app on port 8080 and keeps PostgreSQL on the local machine only.
+
+## 1. Download the two files
+
+Create a folder for this deployment, then save these files into it:
+
+- [docker-compose.yml](https://raw.githubusercontent.com/ShipLean/docs/feat/docs-site/examples/quickstart/docker-compose.yml)
+- [.env](https://raw.githubusercontent.com/ShipLean/docs/feat/docs-site/examples/quickstart/.env)
+
+Open `.env` and set `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` to the email and a strong password you will use for the first instance admin. Use a long random password made of letters and digits for `POSTGRES_PASSWORD`. Keep this file private.
+
+## 2. Start ShipLean
+
+From that folder, run:
+
+```sh
+docker compose up -d
+```
+
+Open `http://localhost:8080` and sign in with the admin email and password from `.env`. Create your first project from the app. The first administrator is created when no instance admin exists. After you have signed in, remove both `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` from `.env`; they are bootstrap settings, not your ongoing sign-in settings.
+
+## 3. Check the service
+
+The health endpoint returns the running version:
+
+```sh
+curl --fail http://localhost:8080/health
+```
+
+If the app is not ready yet, check the service logs with `docker compose logs -f shiplean` and retry the health request.
+
+## Compose file
+
+```yaml
+services:
+  shiplean:
+    image: ${SHIPLEAN_IMAGE:-ghcr.io/shiplean/shiplean}
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SHIPLEAN_DB_CONNECTION: Host=postgres;Port=5432;Database=shiplean;Username=postgres;Password=${POSTGRES_PASSWORD}
+      SHIPLEAN_BLOB_ROOT: /data/blobs
+      SHIPLEAN_ADMIN_EMAIL: ${SHIPLEAN_ADMIN_EMAIL}
+      SHIPLEAN_ADMIN_PASSWORD: ${SHIPLEAN_ADMIN_PASSWORD}
+    volumes:
+      - shiplean-blobs:/data/blobs
+
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shiplean
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - shiplean-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d shiplean"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  shiplean-pgdata:
+  shiplean-blobs:
+```
+
+## Environment file
+
+```dotenv
+POSTGRES_PASSWORD=replace-with-a-long-random-value
+SHIPLEAN_ADMIN_EMAIL=you@example.com
+SHIPLEAN_ADMIN_PASSWORD=replace-with-a-unique-password
+```
+
+Set different secret values before starting. Compose reads `.env` automatically. The app and database use named volumes so their data survives container replacement. This example publishes the app directly over HTTP for a local trial. For a public deployment, put a TLS reverse proxy in front of it and review [production setup](/start/production/).
+
+Next: [connect an agent](/agents/connect/) or [put ShipLean behind TLS](/start/production/).

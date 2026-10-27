@@ -1,0 +1,38 @@
+---
+title: "Capturing ideas"
+description: "Search first, then capture an idea as a Feature with a goal and an Epic."
+sidebar:
+  order: 39
+---
+
+import Shot from '../../../components/Shot.astro';
+
+An idea is a Feature with a clear goal, grouped under the Epic it supports. Start it in the first Proposed state for Features (called **New** in the default workflow); choose the equivalent first Proposed state if your project uses different state names.
+
+## Search before you add one
+
+Look for an existing Feature before capturing the idea. In the app, review the Features backlog and use its filters to narrow the list when useful. With an agent, ask it to search for the idea first; its search can match words and meaning in item titles, descriptions, comments and attachments.
+
+If a Feature already covers the idea, continue on that item. Avoid creating another record just because the wording is different.
+
+## Create a Feature in the app
+
+<Shot name="work-ideas-new-feature" alt="New Feature form with fields for the title, Epic, goal and starting state." />
+
+Open the [Features backlog](/ui/backlogs/) and choose **New Feature**. Enter a short title, select its Epic, write the goal as an outcome, and leave **Start as** on the first Proposed state. The default is **New**. You can set a status line too. Create the Feature; ShipLean opens it so you can add the description, links and attachments.
+
+For the running example, the Epic is **Onboarding** and the Feature is **Guide new members through their first project**. Its goal is to help a new member create a project and find their next action.
+
+## Capture an idea with an agent
+
+Tell your connected agent what the idea is and ask it to search before creating a Feature. For example, this is a prompt you could give it; it is illustrative, not a recorded session:
+
+> Search for existing work about helping new members start a project. If there is no matching Feature, capture “Guide new members through their first project” under the Onboarding Epic, with the goal of helping a new member create a project and find their next action. Leave it in the first Proposed state.
+
+The agent should reuse a matching Feature if it finds one. If it creates a Feature, the record stays in ShipLean and is available to you in the backlog.
+
+## Keep the working context on the Feature
+
+Use the Feature’s goal field for the outcome. In the body, keep short Markdown sections for key facts and decisions, the next step, and open questions. Attach longer research separately and link useful sources. Update the body as understanding changes, so the next person can tell what is known and what still needs attention.
+
+See [researching an idea](/work/research/) and [the full flow](/work/flow/).

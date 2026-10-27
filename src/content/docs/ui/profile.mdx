@@ -1,0 +1,42 @@
+---
+title: "Sign in and your profile"
+description: "Manage your profile, appearance, password, sessions, projects, and connected agents."
+sidebar:
+  order: 16
+---
+
+import Shot from '@/components/Shot.astro';
+
+Sign in with your account, then use **Your profile** to manage your identity, appearance, password, sessions, project memberships, and agent connections.
+
+**Address:** `/profile`. The sign-in page is `/login`.
+
+## Overview
+
+<Shot name="ui-profile-overview" alt="Your profile with identity, account, project, and connected-agent sections." />
+
+## Change your profile details
+
+In the identity section, edit your name, choose an avatar colour, or upload or remove a profile photo. Save your changes when the save controls appear. Your email is shown with your profile; it is not an editable profile field.
+
+<Shot name="ui-profile-identity" alt="Profile identity settings with name, avatar appearance, and photo controls." />
+
+## Change your password and appearance
+
+Use the account section to change your password and manage signed-in sessions. You can sign out other sessions, which ends those sessions. In the appearance section, choose a theme and density; the selection is saved to your account.
+
+<Shot name="ui-profile-appearance" alt="Account appearance settings with theme and density choices." />
+
+## Manage connected agents
+
+The Connected agents section lists active agent connections, when each connected and when it was last used. Select **Revoke** on a connection to end it. The agent will need to connect again before it can access ShipLean.
+
+<Shot name="ui-profile-connected-agents" alt="Connected agents list with connection activity and revoke control." />
+
+The MCP address shown in the profile is the address to give an agent, with `/mcp` at the end. If an administrator changes the instance base URL, agents must reconnect using the new address.
+
+## Sign in
+
+Enter your email and password on `/login`. If an administrator gave you a one-time password, ShipLean asks you to choose a new password before continuing. Your session cookie slides forward as you use ShipLean and expires after 14 days without activity. You can also sign out other sessions from your profile.
+
+If your organization uses an identity proxy, the proxy handles sign-in. Your administrator configures how you sign in.

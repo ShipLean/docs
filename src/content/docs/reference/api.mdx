@@ -1,0 +1,12 @@
+---
+title: "REST API"
+description: "The REST API reference is coming. Use ShipLean's MCP tools for supported automation."
+sidebar:
+  order: 47
+---
+
+The REST API reference is coming. Until a reference is published, use ShipLean's MCP tools as the supported interface for automating work. See the [available tools](/agents/tools/) and [connect an agent](/agents/connect/).
+
+MCP clients connect to your instance's `/mcp` address. Sign in through the client when it opens ShipLean's consent page, then review and approve its requested access. For script-based MCP clients, configure the MCP server URL in the client and complete its sign-in flow; do not put a person's password in a script. See [authentication options](/agents/auth/) and [consent](/ui/authorize/).
+
+The product also provides `GET /health` for checking whether the service is running. It is not a work-management API. No REST endpoint reference is published here yet.

@@ -1,0 +1,28 @@
+---
+title: "Connecting an agent: the consent screen"
+description: "Review the agent, host, and access requested before allowing or denying a connection."
+sidebar:
+  order: 30
+---
+
+import Shot from '@/components/Shot.astro';
+
+When an agent connects, ShipLean asks you to review the client and the access it requests. Allow only a connection you recognize and want to grant.
+
+**Address:** `/authorize?request=<id>` for a pending connection request.
+
+## Overview
+
+<Shot name="ui-authorize-overview" alt="Agent consent screen showing the client name, host verification, requested scopes, and Allow or Deny controls." />
+
+## Review a connection
+
+The consent screen shows the agent's name, the host it runs on, and the scopes it requests. A verified client shows its declared host. A client registered without a verified metadata document is marked unverified. Review both the client and the requested scopes before choosing **Allow** or **Deny**.
+
+The first connection asks for read and write access. Read access covers reading and previews; write access covers creating and updating work. Planning access can be requested later when an agent needs to apply sprint planning. Re-consenting adds requested access to the existing connection; it does not remove scopes already granted.
+
+<Shot name="ui-authorize-review" alt="Consent details with the agent identity, verified or unverified host, and requested scopes." />
+
+If you allow the request, the browser returns to the agent and the connection appears under **Connected agents** in your profile. You can revoke it there later. If you deny it, the agent does not receive access.
+
+For client setup, available authentication methods, and scope details, see [Connect an agent](/agents/connect/) and [Scopes and step-up](/agents/scopes/).

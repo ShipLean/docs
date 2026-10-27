@@ -1,0 +1,67 @@
+---
+title: "The flow at a glance"
+description: "Follow an idea from its Epic through evidence, a decision, planning, delivery and learning."
+sidebar:
+  order: 37
+---
+
+import Shot from '../../../components/Shot.astro';
+
+ShipLean is the record from the first idea through delivery. Keep the goal, evidence, decisions and handoff on the Feature so the next person can continue without relying on files on one machine.
+
+These stage names describe the way you work; they are not all Feature states. In the default workflow, a new idea is **New**, work in progress is **Active**, and completed work is **Closed**. To park an idea, leave it in a Proposed state and explain why in its status line.
+
+<div class="work-flow" aria-label="Work moves from an Epic to an idea, research, evaluation, planning, build and done">
+  <a href="/work/epics/"><strong>Epic</strong><span>area</span></a><b aria-hidden="true">→</b>
+  <a href="/work/ideas/"><strong>Idea</strong><span>Feature + goal</span></a><b aria-hidden="true">→</b>
+  <a href="/work/research/"><strong>Research</strong><span>evidence</span></a><b aria-hidden="true">→</b>
+  <a href="/work/validate/"><strong>Evaluate</strong><span>go · park · remove</span></a><b aria-hidden="true">→</b>
+  <a href="/work/plan/"><strong>Plan</strong><span>Features · Stories · Tasks</span></a><b aria-hidden="true">→</b>
+  <a href="/work/build/"><strong>Build</strong><span>people and agents</span></a><b aria-hidden="true">→</b>
+  <a href="/work/done/"><strong>Done</strong><span>retro</span></a>
+</div>
+
+<style>{`
+  .work-flow { display:flex; align-items:stretch; gap:.45rem; margin:1.5rem 0; }
+  .work-flow a { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:.25rem; padding:.75rem .6rem; border:1px solid var(--sl-color-gray-5); border-radius:.6rem; text-align:center; text-decoration:none; background:var(--sl-color-gray-6); }
+  .work-flow a:hover { border-color:var(--sl-color-accent); }
+  .work-flow span { font-size:.76rem; color:var(--sl-color-gray-2); }
+  .work-flow > b { align-self:center; color:var(--sl-color-gray-3); }
+  @media (max-width: 50rem) { .work-flow { display:grid; grid-template-columns:1fr auto 1fr; } .work-flow > b:nth-of-type(3n) { display:none; } }
+`}</style>
+
+## The stages
+
+### Epic: choose an area
+
+Use an Epic for a broad area such as onboarding or search. It groups related Features and can provide lanes on the Features board. See [Epics as areas](/work/epics/).
+
+### Idea: capture the goal
+
+An idea starts as a Feature in the first Proposed state, with a clear goal and an Epic. Search first and reuse a matching Feature. See [Capturing ideas](/work/ideas/).
+
+### Research: keep evidence with the Feature
+
+Ask an agent to investigate the question, then attach the findings, link sources and record the session on that same Feature. This keeps the evidence available to the next person. See [Researching an idea](/work/research/).
+
+### Evaluate: make the decision visible
+
+Use the evidence to go ahead, park the idea with a reason and a condition to revisit it, or remove it. Put the reasoning in the Feature body. See [Validating an idea](/work/validate/).
+
+### Plan: turn the Feature into work
+
+Plan the same Feature by its key. Break it into Features, Stories and Tasks as needed, and keep the briefs and decisions on those items. See [Planning and breaking down](/work/plan/).
+
+### Build: hand off work
+
+People and agents can work from the same backlog. Keep progress, reports and review notes on the work items so another person can pick up the thread. See [Agents doing the work](/work/build/).
+
+### Done: capture what you learned
+
+When the Feature is complete, move it to the first Completed state (**Closed** by default), record the outcome and attach a short retrospective. Carry useful lessons into the next plan. See [Finishing and learning](/work/done/).
+
+## Follow one Feature
+
+The seeded example **Guide new members through their first project** has the goal of helping a new member create a project and find their next action. The later pages use this same Feature to show how an idea can move through the flow.
+
+<Shot name="work-flow-example-feature" alt="The running example Feature in the DEMO project, with its goal and Epic visible." />

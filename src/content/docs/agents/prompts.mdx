@@ -1,0 +1,70 @@
+---
+title: "Example prompts"
+description: "Copy prompts for capturing, researching, planning, and reviewing work with an agent."
+sidebar:
+  order: 36
+---
+
+Copy a prompt into a connected agent and replace the example project or item with yours. The agent may ask you to clarify missing details or approve a preview before it makes a change.
+
+## Capture an idea
+
+The agent searches for a similar item first, then creates a Feature if the idea is new.
+
+Tools: `search`, `create_feature`.
+
+```text
+Capture this idea in project SHIP: [describe the idea]. Search first for similar Features so we do not create a duplicate. If it is new, create one Feature with a short title and a clear goal. If a matching Epic is obvious, put the Feature under it; otherwise leave it unparented. Return the new key and link.
+```
+
+## Research an item
+
+The agent reads the item and its existing research, then saves new findings on the item with sources.
+
+Tools: `search`, `get_work_item`, `read_attachment`, `attach_markdown`, `link`, `comment`.
+
+```text
+Research SHIP-12. Read the Feature, its recent comments, and its existing Markdown attachments before starting. Investigate the open questions in the Feature. Save a dated Markdown summary with findings, evidence, source links, and remaining questions using attach_markdown. Add useful source URLs as links on SHIP-12 and leave a short comment describing what you added. Do not overwrite an existing attachment unless you have read it first.
+```
+
+## See what changed since yesterday
+
+The agent summarizes project-wide item edits and comments from the past day and returns a cursor for the next check.
+
+Tool: `whats_changed_since`.
+
+```text
+In project SHIP, use whats_changed_since to show changes from the last 24 hours across the whole project (mine=false). Pass an ISO 8601 UTC time for since. Group the summary by work item, include who changed it and what changed, and return the cursor so I can use it next time.
+```
+
+## Plan an item
+
+The agent reads the Feature and planning guide, then prepares a plan preview. Applying the preview requires your approval.
+
+Tools: `get_work_item`, `planning_guide`, `capture_plan`.
+
+```text
+Prepare a plan for SHIP-12. Read the Feature and call planning_guide for the planning guide. Propose a small, reviewable breakdown into Stories and agent Tasks. Include a shared branch, common brief, task briefs, and the plan document. Use capture_plan to preview the proposed plan, then show me the warnings and proposed items. Do not apply it until I approve the preview.
+```
+
+## Pick up the next task
+
+The agent finds available work, reads its brief, and starts one task that nobody has claimed.
+
+Tools: `find_work_to_pick_up`, `get_brief`, `pick_up`.
+
+```text
+Find the next unassigned, unstarted task in project SHIP. If there is one, read its full brief with get_brief, summarize the goal and constraints, and pick it up with pick_up. If no task is available, tell me. Do not take work that is already assigned or started.
+```
+
+## End a sprint and summarize it
+
+The agent reviews sprint results and previews the roll-over. Ask before it applies the preview and closes the sprint.
+
+Tools: `sprint_status`, `sprint_review`, `end_sprint`.
+
+```text
+Review the current sprint in project SHIP. Read sprint_status and sprint_review, then summarize completed work, unfinished work, and any risks or follow-ups. Call end_sprint to preview where unfinished items would move. Show the preview and any warnings, including whether the sprint end date must move to today. Do not apply the plan or close the sprint until I approve.
+```
+
+For the full list of available tools, see [the tool reference](/agents/tools/). For scope prompts and previews, see [scopes and step-up](/agents/scopes/).

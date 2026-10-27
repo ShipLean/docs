@@ -1,0 +1,34 @@
+---
+title: "Sprints"
+description: "Review project sprints, dates, goals, capacity, and velocity, or create the next sprint."
+sidebar:
+  order: 22
+---
+
+import Shot from '@/components/Shot.astro';
+
+Use **All sprints** to review past, current, and future sprints, compare committed and completed points, and create the next sprint.
+
+**Address:** `/p/:key/sprints`, where `:key` is your project key.
+
+## Overview
+
+<Shot name="ui-sprints-overview" alt="All sprints list with dates, status, goal, capacity, committed and completed points, and velocity." />
+
+## Create a sprint
+
+1. Open **Sprints** from the project menu.
+2. In **New sprint**, enter a name, start and end dates, and an optional goal.
+3. Select **Create sprint**. ShipLean rejects a sprint whose dates overlap another sprint.
+
+<Shot name="ui-sprints-create" alt="New sprint form with name, dates, and optional goal." />
+
+By default, the next sprint starts on the first working day after the last sprint and uses the same length. Change the dates here for a one-off. Set the project's regular working days in **Settings → General**.
+
+## Review sprint progress and velocity
+
+The sprint list shows dates, status, goal, team capacity, committed points, and completed points. The Velocity chart compares committed and completed points for ended sprints. The project’s velocity window controls how many ended sprints are averaged for planning.
+
+<Shot name="ui-sprints-velocity" alt="Velocity chart comparing committed and completed points across ended sprints." />
+
+Open a sprint from its row, then choose **Capacity** in the sprint navigation to enter each member's capacity in points.

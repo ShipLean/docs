@@ -1,0 +1,3 @@
+{$SHIPLEAN_DOMAIN} {
+	reverse_proxy shiplean:8080
+}

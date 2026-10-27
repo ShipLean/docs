@@ -1,0 +1,57 @@
+---
+title: "Boards"
+description: "Move Stories, Features and Epics through mapped states, group Features by Epic, and review child work from roll-ups."
+sidebar:
+  order: 20
+---
+
+import Shot from '../../../components/Shot.astro';
+
+Use boards to move work through the states your team has mapped to columns. The Stories board shows Stories and Bugs, the Features board shows Features, and the Epics board shows Epics.
+
+**Address:** `/p/:key/boards/stories`, `/p/:key/boards/features`, or `/p/:key/boards/epics`.
+
+## See a board
+
+<Shot name="ui-boards-overview" alt="The Stories board with work arranged in state columns." />
+
+Choose Stories, Features, or Epics from the board level control. Each board has its own columns and card settings. The Features board can also group cards into one lane per Epic.
+
+<Shot name="ui-boards-epics" alt="The Epics board with Epics arranged in state columns." />
+
+## Move a card
+
+Drag a card to another column to change its state. Drop it on a card to place it above that card.
+
+To move a card without a mouse, focus it and press **Alt+Arrow** in the direction you want to move. The card keeps focus after it moves. Left and right move to the next column or split half. Up and down change its position in the same cell.
+
+<Shot name="ui-boards-keyboard" alt="A focused card moved to another board column with the keyboard." />
+
+## Group Features by Epic
+
+On the Features board, choose **By Epic** in the Lanes control. Choose **None** to show one set of columns. The lane choice is saved for your account.
+
+<Shot name="ui-boards-features-lanes" alt="The Features board grouped into Epic lanes." />
+
+## Open child work from a roll-up
+
+Feature cards can show roll-ups for their Stories and Bugs. Epic cards can show roll-ups for their Features. Select a roll-up to open the child list, then select a child to open it.
+
+<Shot name="ui-boards-rollups" alt="A Feature card with its Stories roll-up expanded." />
+
+## Confirm work before marking it done
+
+When you move a Feature with unfinished child work into a Done column, ShipLean opens a confirmation with the children that are not done. Review the list, then confirm the move or cancel it. This check does not appear when there is no unfinished child work.
+
+<Shot name="ui-boards-done-confirm" alt="Confirmation listing unfinished child work before a Feature moves to Done." />
+
+## Options
+
+- Use the board level control to switch between Stories, Features, and Epics.
+- On Stories, turn swimlanes on or off when the board has lanes configured.
+- On Features, choose **By Epic** or **None** for lanes.
+- Open **Settings** to change this board's columns, card fields, styles, tag colours, annotations, and other available options. See [Board settings](/ui/board-settings/).
+
+### Keyboard shortcuts
+
+- **Alt+ArrowLeft/Right** moves the focused card to the next column or split half. **Alt+ArrowUp/Down** moves it one position within the same cell.

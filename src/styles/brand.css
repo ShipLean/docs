@@ -1,0 +1,82 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
+/* Palette and typography from ShipLean/shiplean.app site/tokens.css.
+   Starlight resolves system preference and the reader's choice to data-theme. */
+:root {
+  --color-bg: #171e2d;
+  --color-surface: #1f2839;
+  --color-surface-2: #29344a;
+  --color-border: #334058;
+  --color-text: #eef2f8;
+  --color-muted: #a0aec6;
+  --color-accent: #5cc8f0;
+  --color-accent-fg: #06192a;
+  --color-accent-soft: #163a57;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, monospace;
+
+  --sl-color-white: var(--color-text);
+  --sl-color-gray-1: #d5deec;
+  --sl-color-gray-2: var(--color-muted);
+  --sl-color-gray-3: #7d8ca5;
+  --sl-color-gray-4: var(--color-border);
+  --sl-color-gray-5: var(--color-surface-2);
+  --sl-color-gray-6: var(--color-surface);
+  --sl-color-black: var(--color-bg);
+  --sl-color-accent-low: var(--color-accent-soft);
+  --sl-color-accent: var(--color-accent);
+  --sl-color-accent-high: var(--color-accent);
+  --sl-color-bg: var(--color-bg);
+  --sl-color-bg-nav: var(--color-surface);
+  --sl-color-bg-sidebar: var(--color-surface);
+  --sl-color-hairline: var(--color-border);
+  --sl-color-hairline-light: var(--color-border);
+  --sl-color-hairline-shade: var(--color-border);
+  --sl-color-text: var(--color-text);
+  --sl-font: var(--font-sans);
+  --sl-font-mono: var(--font-mono);
+  --sl-content-width: 48rem;
+}
+
+:root[data-theme='light'] {
+  --color-bg: #e8eef7;
+  --color-surface: #f7f9fd;
+  --color-surface-2: #dfe7f3;
+  --color-border: #cdd9ea;
+  --color-text: #1c2638;
+  --color-muted: #52627c;
+  --color-accent: #2563c9;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #dae6fb;
+
+  --sl-color-gray-1: #29344a;
+  --sl-color-gray-2: var(--color-muted);
+  --sl-color-gray-3: #71829c;
+  --sl-color-gray-4: #adbed7;
+  --sl-color-gray-5: var(--color-border);
+  --sl-color-gray-6: var(--color-surface-2);
+  --sl-color-gray-7: var(--color-surface);
+}
+
+.site-title {
+  gap: 0.875rem;
+  font-weight: 600;
+}
+
+.site-title img {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.sidebar-content a[aria-current='page'] {
+  color: var(--color-accent-fg);
+  background-color: var(--color-accent);
+}
+
+.sl-markdown-content :is(h1, h2, h3, h4), h1 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}

@@ -1,0 +1,32 @@
+---
+title: "Finishing and learning"
+description: "Complete a Feature and attach a retrospective that informs future plans."
+sidebar:
+  order: 44
+---
+
+import Shot from '../../../components/Shot.astro';
+
+When the work for **Guide new members through their first project** is complete, check its Stories and Tasks, record the outcome, and finish the Feature in its Completed state. The Feature keeps the plan and its retrospective together.
+
+<Shot name="work-done-overview" alt="The DEMO Feature detail page for guiding new members through their first project." />
+
+## Use Blocked and Parked for different situations
+
+Use **Blocked** when work cannot continue because it is waiting on a dependency or decision. Mark the blocker with a Blocked tag or a blocked-by link, and record what would unblock the work. Use **Parked** when the team chooses to defer the Feature; keep it in the Proposed state and start its status line with `Parked:` followed by why and what would make the team pick it up again. A blocked item needs attention to resume; a parked Feature is a deliberate pause.
+
+The default workflow does not add separate Blocked or Parked states. It uses **New** (Proposed), **Active** (In Progress), **Resolved** (Resolved), **Closed** (Completed), and **Removed** (Removed). State names and categories are separate: the category determines how ShipLean treats a state in progress, resolution, completion, or removal. If your project has custom states, check its workflow when choosing a destination. Use the Feature's `set_status` call to set its one-line status and, when appropriate, its state.
+
+## Finish the Feature
+
+1. Check that the agreed Stories and Tasks are complete and that the result meets the Feature's goal.
+2. Add a retrospective as a Markdown attachment to the Feature. Use a name such as `retro-2026-10-27-first-project.md` and include what happened, delays, what worked, and actionable lessons under **What to change next time**.
+3. Set the Feature's state to its Completed state and update the status line to summarize the outcome.
+
+For a captured plan, review `plan_status` for the task timeline and review rounds before writing the retrospective. The retrospective template helps you record the work and turn observations into instructions for the next plan.
+
+## Carry lessons forward
+
+Attach retros to the Feature with the name pattern `retro-<yyyy-mm-dd>-<topic>.md`. When you plan later work, call `planning_guide` with the project key. It returns lessons from that project's recent retrospectives, including each **What to change next time** section. Apply the relevant lessons to the new plan and say which ones you used.
+
+Next: [Fit this flow to Scrum or Kanban](/work/cadence/).

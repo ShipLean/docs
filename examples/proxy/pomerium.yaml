@@ -1,0 +1,58 @@
+# Route excerpt for Pomerium Core. Keep ShipLean on a private network so only
+# Pomerium can connect to its upstream address.
+# JWT: https://www.pomerium.com/docs/get-started/fundamentals/core/jwt-verification
+# Route matching: https://www.pomerium.com/docs/reference/routes/path-matching
+# JWT issuer: https://www.pomerium.com/docs/reference/routes/jwt-issuer-format
+# Public paths: https://www.pomerium.com/docs/reference/routes/public-access
+signing_key_file: /pomerium/ec_private.pem
+
+routes:
+  # These endpoints have their own credentials or discovery behavior. Pomerium
+  # forwards them without requiring a user session. Keep these before the main
+  # route so the specific path routes match first.
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    regex: ^/mcp(/.*)?$
+    allow_public_unauthenticated_access: true
+
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    regex: ^/oauth/token(/.*)?$
+    allow_public_unauthenticated_access: true
+
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    regex: ^/oauth/register(/.*)?$
+    allow_public_unauthenticated_access: true
+
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    regex: ^/oauth/revoke(/.*)?$
+    allow_public_unauthenticated_access: true
+
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    regex: ^/\.well-known(/.*)?$
+    allow_public_unauthenticated_access: true
+
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    regex: ^/api/webhooks(/.*)?$
+    allow_public_unauthenticated_access: true
+
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    regex: ^/api/(uploads|downloads)(/.*)?$
+    allow_public_unauthenticated_access: true
+
+  # Replace the example policy with the access rule for your organization.
+  # Generate and mount a private signing key for Pomerium; do not commit it.
+  - from: https://shiplean.example.com
+    to: http://shiplean:8080
+    jwt_issuer_format: uri
+    pass_identity_headers: true
+    policy:
+      - allow:
+          and:
+            - domain:
+                is: example.com

@@ -1,0 +1,45 @@
+---
+title: "Agents doing the work"
+description: "Choose a build pattern and keep briefs, progress, and reports on the work items."
+sidebar:
+  order: 43
+---
+
+import Shot from '../../../components/Shot.astro';
+
+ShipLean supports people and agents working from the same backlog. Choose a pattern that fits **Guide new members through their first project**: one agent taking a task, a coordinated plan, or a mix of both.
+
+<Shot name="work-build-overview" alt="The DEMO sprint taskboard with stories and their tasks visible." />
+
+## One agent, one task at a time
+
+An agent can find unassigned work in the current sprint with `find_work_to_pick_up`. It can narrow the list by type or parent. It takes a task with `pick_up`, which assigns it and moves it into the first in-progress state for that type. Work is pulled; the tool does not take an item assigned to someone else.
+
+While working, the agent can use `update_progress` to change the state, add a note or link, or update story points. When it stops, it calls `hand_back` to unassign the item and return it to the first proposed state, with an optional note about progress. If it is part of a captured plan, the agent uses `report_task` to submit the required report instead.
+
+## Run a captured plan
+
+The conductor reads the Feature's plan with `get_brief`, then uses `plan_status` to see the waves, Story and Task states, owners, commits, and review rounds. It starts a wave when the previous wave's Stories are complete or removed. Agents read their own task brief with `get_brief`, work independently, and report with `report_task` when they stop, including when work is blocked or partial.
+
+The report is recorded on the Task. It can include commits, test results, decisions, constraints, and unfinished work. Each unfinished item is recorded as an unowned task for the plan to assign. A completed Task still needs its review. Add reviewer findings as a comment beginning `Review · `; keep fix-round notes on the Task. Close a Story after its Tasks pass review, then the next wave can begin.
+
+## Mix people and agents
+
+People and agents can work on the same board and sprint. Assign a task to the person or agent who will take it. History and comments show who made each change, so the next contributor can follow the work.
+
+## Keep the run in ShipLean
+
+Put progress and handoff information on the Feature, Story, or Task it belongs to:
+
+- Keep brief changes in the task description and explain them in a comment.
+- Put notes for a later wave in a comment on its Story or the Feature.
+- Submit task reports with `report_task`; use comments for review findings and decisions.
+- Keep the Feature's status line current as the run moves forward.
+
+The next person can read the item, its comments, and attachments without relying on files from another person's machine.
+
+## Link pull requests to work
+
+Include the work item key in a pull request title or branch name so the webhook can link it to ShipLean and close it when the pull request merges. For example, use `SHIP-123` in the title for work on that item. See [GitHub and GitLab integrations](/start/integrations/) to configure the webhook.
+
+Next: [Finish the Feature and capture what you learned](/work/done/).

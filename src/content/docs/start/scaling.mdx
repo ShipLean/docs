@@ -1,0 +1,46 @@
+---
+title: "Running more than one instance"
+description: "Configure Redis and shared blob storage when you run multiple ShipLean instances."
+sidebar:
+  order: 8
+---
+
+To run more than one ShipLean instance, point every instance at the same application PostgreSQL database using `SHIPLEAN_DB_CONNECTION`, the same Redis service, and a shared attachment store such as PostgreSQL or S3. A local folder is not shared between instances unless you provide shared storage outside the app.
+
+## Add the Redis backplane
+
+Set `SHIPLEAN_REDIS_CONNECTION` on every ShipLean instance. SignalR uses Redis as its backplane so an event published by one instance can reach clients connected to another. Redis also carries presence updates and member removals between instances.
+
+Set `channelPrefix` in the StackExchange.Redis connection string. It defaults to `shiplean`; use a distinct prefix for every deployment that shares one Redis server so their channels and keys stay separate.
+
+```yaml
+services:
+  shiplean:
+    environment:
+      SHIPLEAN_REDIS_CONNECTION: "redis:6379,channelPrefix=shiplean-prod"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7.4
+```
+
+Add the environment setting and Redis service to the Compose file you already use for ShipLean. Use a different prefix, such as `shiplean-staging`, for another deployment sharing that Redis. Make Redis reachable before the app starts: if Redis cannot be reached during startup, ShipLean fails to start and the container restarts.
+
+Even with Redis, configure sticky sessions on your load balancer. SignalR negotiate and the WebSocket connection must land on the same ShipLean instance.
+
+## Share attachment storage
+
+Every instance needs access to the same attachments and profile photos. Configure `SHIPLEAN_BLOB_DB_CONNECTION` to use a shared PostgreSQL blob database, or configure `SHIPLEAN_BLOB_S3_CONNECTION` for a shared S3 bucket. The instance-local folder default is not suitable for multiple instances unless the path is shared and consistently mounted.
+
+Changing the configured blob store does not move files already stored in another location. Plan a separate file migration before switching a running deployment to a different store. See [Storage options](/start/storage/) for provider examples and the store selection order.
+
+## What Redis shares
+
+With `SHIPLEAN_REDIS_CONNECTION` configured, Redis supports:
+
+- SignalR's backplane for live event delivery across instances.
+- Presence state and updates across instances.
+- Member-removal messages so connected users removed from a project are dropped across instances.
+
+Without Redis, the event bus, presence tracker, and member-removal handling stay in process. Live events, presence, and removals are therefore local to the instance that handled them. See the [real-time events guide](https://github.com/ShipLean/ShipLean/blob/main/docs/events.md#running-more-than-one-instance) for the product's full multi-instance behavior.

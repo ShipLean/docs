@@ -1,0 +1,27 @@
+name: Built site checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  site-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.0'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm tsx --test scripts/checks/site.test.ts
+      - run: pnpm check:site

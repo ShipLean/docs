@@ -1,0 +1,62 @@
+---
+title: "What is ShipLean"
+description: "See how ShipLean organizes work, plans sprints, and connects agents."
+sidebar:
+  order: 2
+---
+
+ShipLean is a self-hosted planning app for one team. A project contains its members, work items, boards, and sprints. You can plan work in backlogs and boards, track a sprint on its taskboard, and let an agent work through the MCP endpoint.
+
+## What you can do
+
+- **Plan in backlogs.** Rank Stories, Features, and Epics. Switch between a list and a tree, filter items, and see points and progress roll up from child Stories and Bugs.
+- **Track work on boards.** Map each work item type's states to columns. Set work-in-progress limits, swimlanes, card fields, styles, and a definition of done.
+- **Plan sprints.** Set capacity per person, use the forecast to fill upcoming sprints, then follow the sprint backlog, burndown, and velocity chart.
+- **Move sprint work on the taskboard.** See the sprint's Stories and Bugs against Task states, grouped by Story or person.
+- **Keep work together.** Work items have fields, Tasks, a Markdown discussion, links, attachments, and revision history.
+- **Configure a project.** Set its permanent 2–4 letter key, working days, members, states for each work item type, and the forecast's velocity window.
+- **Import a Jira project.** Map it into one ShipLean project, review progress and errors, and rerun the import when needed.
+- **Manage the instance.** Admins manage users, one-time passwords, lockouts, project creation, and instance-admin access.
+- **Connect agents over MCP.** Approve an agent in the browser; it can then read and write work items under its own name.
+
+## How work items fit together
+
+Epics hold Features. A Feature can hold smaller Features, Stories, and Bugs. Stories and Bugs hold Tasks. This lets you keep a broad area, its planned outcomes, and the work that implements them in one hierarchy.
+
+<figure aria-labelledby="work-hierarchy-caption" style="margin: 2rem 0;">
+  <svg viewBox="0 0 760 286" role="img" aria-labelledby="work-hierarchy-title work-hierarchy-desc" style="width: 100%; height: auto; color: var(--sl-color-gray-3);">
+    <title id="work-hierarchy-title">ShipLean work item hierarchy</title>
+    <desc id="work-hierarchy-desc">An Epic contains Features. Features contain nested Features, Stories, and Bugs. Stories and Bugs contain Tasks.</desc>
+    <defs>
+      <marker id="hierarchy-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 z" fill="currentColor" />
+      </marker>
+    </defs>
+    <g fill="none" stroke="currentColor" stroke-width="2" marker-end="url(#hierarchy-arrow)">
+      <path d="M110 58 C155 58 165 58 208 58" />
+      <path d="M304 58 C350 58 360 58 402 58" />
+      <path d="M304 62 C350 62 360 143 402 143" />
+      <path d="M304 64 C350 64 360 228 402 228" />
+      <path d="M498 143 C545 143 555 143 598 143" />
+      <path d="M498 228 C545 228 555 228 598 228" />
+    </g>
+    <g>
+      <rect x="18" y="34" width="92" height="48" rx="12" fill="var(--sl-color-bg)" stroke="var(--sl-color-accent)" stroke-width="2" /><text x="64" y="64" fill="var(--sl-color-text)" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">Epic</text>
+      <rect x="212" y="34" width="92" height="48" rx="12" fill="var(--sl-color-bg)" stroke="var(--sl-color-accent)" stroke-width="2" /><text x="258" y="64" fill="var(--sl-color-text)" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">Feature</text>
+      <rect x="406" y="34" width="92" height="48" rx="12" fill="var(--sl-color-bg)" stroke="var(--sl-color-accent)" stroke-width="2" /><text x="452" y="64" fill="var(--sl-color-text)" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">Feature</text>
+      <rect x="406" y="119" width="92" height="48" rx="12" fill="var(--sl-color-bg)" stroke="var(--sl-color-accent)" stroke-width="2" /><text x="452" y="149" fill="var(--sl-color-text)" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">Story</text>
+      <rect x="406" y="204" width="92" height="48" rx="12" fill="var(--sl-color-bg)" stroke="var(--sl-color-accent)" stroke-width="2" /><text x="452" y="234" fill="var(--sl-color-text)" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">Bug</text>
+      <rect x="602" y="119" width="92" height="48" rx="12" fill="var(--sl-color-bg)" stroke="var(--sl-color-accent)" stroke-width="2" /><text x="648" y="149" fill="var(--sl-color-text)" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">Task</text>
+      <rect x="602" y="204" width="92" height="48" rx="12" fill="var(--sl-color-bg)" stroke="var(--sl-color-accent)" stroke-width="2" /><text x="648" y="234" fill="var(--sl-color-text)" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">Task</text>
+    </g>
+    <text x="258" y="103" fill="var(--sl-color-gray-2)" font-family="system-ui, sans-serif" font-size="13" text-anchor="middle">can contain</text>
+  </svg>
+  <figcaption id="work-hierarchy-caption" style="color: var(--sl-color-gray-2); font-size: 0.9rem; text-align: center;">A Feature can contain another Feature, a Story, or a Bug. Stories and Bugs can each contain Tasks.</figcaption>
+</figure>
+
+Every type has its own states. Each state belongs to one category: **Proposed**, **In Progress**, **Resolved**, **Completed**, or **Removed**. You can choose the states for each type in project settings; boards map columns to those states. The app uses categories for shared behavior, such as recognizing completed work.
+
+Estimates use story points. ShipLean does not hard-delete work: move an item to a Removed state or archive it. Sprints are flat time boxes, with capacity recorded per person.
+
+For the full model and its design decisions, see [the public issue #1](https://github.com/ShipLean/ShipLean/issues/1).
+
