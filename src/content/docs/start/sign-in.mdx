@@ -66,7 +66,7 @@ File: [`cloudflare-access.md`](https://github.com/ShipLean/docs/blob/main/exampl
 
 #### Pomerium
 
-Enable `pass_identity_headers` on the protected ShipLean route. Pomerium sends its signed assertion in `X-Pomerium-Jwt-Assertion`; configure the matching issuer and audience for that route. The example uses URI issuer format so the issuer is `https://shiplean.example.com/`, and route path patterns for the public bypass routes.
+Enable `pass_identity_headers` on the protected ShipLean route. Pomerium sends its signed assertion in `X-Pomerium-Jwt-Assertion`; configure the matching issuer and audience for that route. Set `SHIPLEAN_AUTH_PROXY_TOKEN_JWKS_URL` to Pomerium's published `/.well-known/pomerium/jwks.json` endpoint: Pomerium serves the JWKS directly rather than an OIDC discovery document at the issuer's `/.well-known/openid-configuration` path. The example uses URI issuer format so the issuer is `https://shiplean.example.com/`, and route path patterns for the public bypass routes.
 
 Files: [`pomerium.yaml`](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.yaml) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.shiplean.env.example). See Pomerium's [JWT identity verification](https://www.pomerium.com/docs/get-started/fundamentals/core/jwt-verification), [route path matching](https://www.pomerium.com/docs/reference/routes/path-matching), [JWT issuer format](https://www.pomerium.com/docs/reference/routes/jwt-issuer-format), and [public access](https://www.pomerium.com/docs/reference/routes/public-access) documentation.
 
