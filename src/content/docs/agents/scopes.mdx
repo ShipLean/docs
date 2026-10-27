@@ -7,7 +7,7 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-Scopes limit what an OAuth agent connection can do. ShipLean always grants read access. You approve write access at first consent. It asks for plan access only when the agent first needs to apply sprint planning or close a sprint.
+Scopes limit what an OAuth agent connection can do. Every connection needs read access. Depending on the MCP client, its initial authorization request can ask for read, write, and plan together, or request additional access later when needed. When a client requests another scope later, ShipLean asks you to approve it before the operation runs.
 
 <Shot name="agents-scopes-stepup" alt="Consent showing read as always granted, write selected, and plan as an additional scope." />
 
@@ -25,7 +25,7 @@ The MCP prompts `plan_feature` and `research_idea` are prompt templates, not too
 
 ## What happens at step-up
 
-When an agent calls a tool without the scope it needs, ShipLean returns HTTP `403` with an `insufficient_scope` response before the tool runs. The response names the current and required scopes. The MCP client sends you back through consent. You see the client name, its verified or unverified host, and the additional scope requested, then choose whether to grant it.
+When an agent calls a tool without the scope it needs, ShipLean returns HTTP `403` with an `insufficient_scope` response before the tool runs. The response names the current and required scopes. A client that supports scope step-up can send you back through consent. You see the client name, its verified or unverified host, and the additional scope requested, then choose whether to grant it.
 
 ShipLean adds the new scope to the existing authorization. It does not remove scopes you already approved. If you deny the request, the operation does not run; the agent can continue with actions allowed by its existing scopes.
 

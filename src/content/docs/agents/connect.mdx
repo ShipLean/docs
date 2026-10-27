@@ -23,6 +23,8 @@ Choose the client you use. The first connection opens ShipLean in a browser so y
     claude mcp add --transport http shiplean --scope user https://shiplean.example.com/mcp
     ```
 
+    To authenticate without making an LLM request, run `claude mcp login shiplean`. It opens a browser for ShipLean sign-in and consent. If you cannot open a browser on this machine, run `claude mcp login --no-browser shiplean`; Claude Code prints an authorization URL and waits for the local callback. After consent completes, run `claude mcp get shiplean` to confirm the server reports **Connected**.
+
     User scope makes the server available across your Claude Code projects on this machine. To share only the server address with one project, use project scope instead:
 
     ```sh
