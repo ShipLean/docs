@@ -83,7 +83,7 @@ for (const group of groupsInOrder) {
   if (!inGroup.length) continue;
   generated += `\n### ${group}\n`;
   for (const tool of inGroup) {
-    generated += `\n#### \`${tool.name}\` — ${tool.scope}${tool.preview ? ` (preview: read; apply: ${tool.scope})` : ''}\n\n${tool.description}\n`;
+    generated += `\n#### \`${tool.name}\` — ${tool.scope}${tool.preview ? ` (preview: read; apply: ${tool.scope})` : ''}\n\n${tool.description.replaceAll('<', '&lt;').replaceAll('>', '&gt;')}\n`;
     if (tool.parameters.length) generated += `\nArguments: ${tool.parameters.join('; ')}.\n`;
   }
 }

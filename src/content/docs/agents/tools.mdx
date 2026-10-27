@@ -30,7 +30,7 @@ Arguments: `project` (optional) — A project key to look at just that project (
 
 #### `read_attachment` — read
 
-Read a Markdown attachment on a work item by name. Returns the text when it is at most 200 KB; larger Markdown files say so and give the UI link. Other files return their metadata and the UI link.
+Read a Markdown attachment on a work item by name. Returns the text when it is at most 200 KB. For any other file (an image such as a pasted screenshot, a PDF) and for larger Markdown it returns metadata, the UI link and a short-lived download_url (10 minutes, reusable) with a curl command: run it in the shell to save the file (curl -o &lt;file&gt; '&lt;url&gt;'), then read it from disk; the bytes never pass through the model.
 
 Arguments: `item` — The work item's key, such as SHIP-12; `name` — The attachment file name, such as research-2026-10-26.md.
 
@@ -50,9 +50,9 @@ Arguments: `feature` — The item's key, such as SHIP-12; `name` — The file na
 
 #### `attach_file` — write
 
-Attach any file to a work item, sent as base64. The request is limited to 1 MB, so a file over about 700 KB can't go this way: ask the person to upload bigger files in the item's Attachments. Attaching a name the item already has replaces that file.
+Attach any file to a work item. For anything but a small file, leave out base64 and use the upload URL: the call returns upload_url and a curl command (curl -T &lt;file&gt; '&lt;url&gt;'); run it in the shell, so the bytes never pass through you. The URL works once, for 10 minutes, up to the attachment size limit (25 MB by default). With base64 the file is sent in the call itself, which is limited to 1 MB (about 700 KB of file): use it only for tiny files. Attaching a name the item already has replaces that file.
 
-Arguments: `feature` — The item's key, such as SHIP-12; `name` — The file name, such as diagram.png; `content_type` — The file's content type, such as image/png; `base64` — The file's bytes, base64 encoded.
+Arguments: `feature` — The item's key, such as SHIP-12; `name` — The file name, such as diagram.png; `content_type` — The file's content type, such as image/png; `base64` (optional) — The file's bytes, base64 encoded. Leave out to get an upload URL instead.
 
 #### `capture_work` — write (preview: read; apply: write)
 
@@ -237,9 +237,18 @@ Prompts give the agent a task-oriented starting message; they are separate from 
 
 Some larger writes first return a preview and an opaque `plan` value. Review the preview, then call the same tool again with that value. For `capture_plan`, send the same arguments again with the returned plan; changed arguments are refused. Previews use read scope. Applying the plan needs the scope shown for that tool. A preview does not write anything.
 
+## Attachment transfer URLs
+
+`attach_file` and `read_attachment` issue short-lived URLs for moving file bytes outside the MCP request. `attach_file` needs write scope; `read_attachment` needs read scope. Each URL is tied to the user, work item, and agent authorization that requested it. Project membership is checked again when the URL is used; a removed member, disabled user, or revoked agent cannot use it. A transfer URL is a bearer credential: keep it private and do not put it in logs or shared messages.
+
+- **Upload:** call `attach_file` with `feature`, `name`, and `content_type`, leaving out optional `base64`. The result includes `upload_url`, `expires_at`, and a `curl -T <file> '<url>'` command. It does not attach anything until the command runs. The URL is valid for 10 minutes and succeeds once. The token is claimed before reading bytes; if the upload fails, the claim is released so it can be retried before expiry. Same-name uploads replace the earlier attachment. Uploads are limited to 60 requests per minute per client IP and the configured per-file and per-item attachment limits (25 MB per file and 250 MB per item by default). The declared `content_type` is used for the stored attachment, and SVG is sanitised.
+- **Download:** `read_attachment` returns Markdown text up to 200 KB. For any non-Markdown file or larger Markdown, it returns metadata plus `download_url`, `expires_at`, and `curl -o <file> '<url>'`. The download URL is valid for 10 minutes, can be used repeatedly until it expires, and is limited to 60 requests per minute per client IP. The normal attachment response headers are used; images can be served inline.
+- **Endpoints:** upload uses `PUT /api/uploads/{token}` with the file as the raw request body; download uses `GET /api/downloads/{token}`. These endpoints are unauthenticated because the token in the path is their credential; they need no cookie, bearer, or `X-ShipLean-Client` header. Unknown, expired, spent, or no-longer-authorised URLs return 404 without revealing which condition applied. If an upload is too large or the item has no remaining attachment capacity, it fails without storing the file.
+- **Reverse proxies:** bypass login and identity injection for `/api/uploads/` and `/api/downloads/`, as for other endpoints with their own credentials. See [sign-in proxy paths](/start/sign-in/#keep-the-backend-private) and the runnable [proxy examples](https://github.com/ShipLean/docs/tree/main/examples/proxy).
+
 ## Request limits and errors
 
-An `/mcp` request body can be up to **1 MB**. Since an attachment is base64 encoded inside that body, a file of about **700 KB** is the practical maximum for `attach_file`; upload larger files in the ShipLean interface. Markdown attachments can be read as text up to 200 KB; larger files return metadata and a link.
+An `/mcp` request body can be up to **1 MB**. Since an attachment is base64 encoded inside that body, a file of about **700 KB** is the practical maximum for inline `attach_file`; for larger files, omit `base64` and use the upload URL returned by the tool. Markdown attachments can be read as text up to 200 KB; larger files return metadata and a short-lived download URL.
 
 A tool error has this shape:
 
