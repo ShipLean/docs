@@ -5,13 +5,13 @@ sidebar:
   order: 8
 ---
 
-To run more than one ShipLean instance, point every instance at the same application PostgreSQL database using `SHIPLEAN_DB_CONNECTION`, the same Redis service, and a shared attachment store such as PostgreSQL or S3. A local folder is not shared between instances unless you provide shared storage outside the app.
+To run more than one ShipLean instance, point every instance at the same application PostgreSQL database with `SHIPLEAN_DB_CONNECTION`. Point them all at the same Redis service, and use a shared attachment store such as PostgreSQL or S3. A local folder is not shared between instances unless you provide shared storage outside the app.
 
 ## Add the Redis backplane
 
-Set `SHIPLEAN_REDIS_CONNECTION` on every ShipLean instance. SignalR uses Redis as its backplane so an event published by one instance can reach clients connected to another. Redis also carries presence updates and member removals between instances.
+Set `SHIPLEAN_REDIS_CONNECTION` on every ShipLean instance. SignalR uses Redis as its backplane, so an event published by one instance can reach clients connected to another. Redis also carries presence updates and member removals between instances.
 
-Set `channelPrefix` in the StackExchange.Redis connection string. It defaults to `shiplean`; use a distinct prefix for every deployment that shares one Redis server so their channels and keys stay separate.
+Set `channelPrefix` in the StackExchange.Redis connection string. It defaults to `shiplean`. Use a distinct prefix for every deployment that shares one Redis server, so that their channels and keys stay separate.
 
 ```yaml
 services:
@@ -25,22 +25,22 @@ services:
     image: redis:7.4
 ```
 
-Add the environment setting and Redis service to the Compose file you already use for ShipLean. Use a different prefix, such as `shiplean-staging`, for another deployment sharing that Redis. Make Redis reachable before the app starts: if Redis cannot be reached during startup, ShipLean fails to start and the container restarts.
+Add the environment setting and the Redis service to the Compose file you already use for ShipLean. Use a different prefix, such as `shiplean-staging`, for any other deployment that uses that Redis server. Make Redis reachable before the app starts. If Redis cannot be reached during startup, ShipLean fails to start and the container restarts.
 
-Even with Redis, configure sticky sessions on your load balancer. SignalR negotiate and the WebSocket connection must land on the same ShipLean instance.
+Configure sticky sessions on your load balancer even when you use Redis. The SignalR negotiate request and the WebSocket connection must reach the same ShipLean instance.
 
 ## Share attachment storage
 
-Every instance needs access to the same attachments and profile photos. Configure `SHIPLEAN_BLOB_DB_CONNECTION` to use a shared PostgreSQL blob database, or configure `SHIPLEAN_BLOB_S3_CONNECTION` for a shared S3 bucket. The instance-local folder default is not suitable for multiple instances unless the path is shared and consistently mounted.
+Every instance needs access to the same attachments and profile photos. Set `SHIPLEAN_BLOB_DB_CONNECTION` to use a shared PostgreSQL blob database, or set `SHIPLEAN_BLOB_S3_CONNECTION` to use a shared S3 bucket. The default local folder works for multiple instances only if the path is shared and mounted the same way on each one.
 
-Changing the configured blob store does not move files already stored in another location. Plan a separate file migration before switching a running deployment to a different store. See [Storage options](/start/storage/) for provider examples and the store selection order.
+Changing the configured blob store does not move files that are already stored elsewhere. Plan a file migration before you switch a running deployment to a different store. See [Storage options](/start/storage/) for provider examples and for the order in which ShipLean selects a store.
 
 ## What Redis shares
 
-With `SHIPLEAN_REDIS_CONNECTION` configured, Redis supports:
+With `SHIPLEAN_REDIS_CONNECTION` set, Redis handles these tasks:
 
-- SignalR's backplane for live event delivery across instances.
-- Presence state and updates across instances.
-- Member-removal messages so connected users removed from a project are dropped across instances.
+- The SignalR backplane, which delivers live events across instances.
+- Presence state and updates, shared across instances.
+- Member-removal messages, which drop connected users who were removed from a project, on every instance.
 
-Without Redis, the event bus, presence tracker, and member-removal handling stay in process. Live events, presence, and removals are therefore local to the instance that handled them. See the [real-time events guide](https://github.com/ShipLean/ShipLean/blob/main/docs/events.md#running-more-than-one-instance) for the product's full multi-instance behavior.
+Without Redis, the event bus, presence tracker, and member-removal handling run in each instance's memory. Live events, presence, and removals therefore apply only to the instance that handled them. See the [real-time events guide](https://github.com/ShipLean/ShipLean/blob/main/docs/events.md#running-more-than-one-instance) for the product's full multi-instance behavior.

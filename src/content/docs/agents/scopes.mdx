@@ -7,7 +7,7 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-Scopes limit what an OAuth agent connection can do. Every connection needs read access. Depending on the MCP client, its initial authorization request can ask for read, write, and plan together, or request additional access later when needed. When a client requests another scope later, ShipLean asks you to approve it before the operation runs.
+Scopes limit what an OAuth agent connection can do. Every connection needs read access. Depending on the MCP client, the first authorization request can ask for read, write, and plan together, or it can ask for more access later. When a client requests another scope, ShipLean asks you to approve it before the operation runs.
 
 <Shot name="agents-scopes-stepup" alt="Consent showing read as always granted, write selected, and plan as an additional scope." />
 
@@ -19,9 +19,9 @@ Scopes limit what an OAuth agent connection can do. Every connection needs read 
 | `shiplean:write` | Capture or update work, add comments, links, or attachments, and record progress. | `attach_file`, `attach_markdown`, `break_down`, `capture_work`, `capture_plan`, `comment`, `create_feature`, `hand_back`, `link`, `pick_up`, `refine_work_item`, `report_link_state`, `report_task`, `set_status`, `update_progress` |
 | `shiplean:plan` | Apply a sprint plan, move work into or between sprints, change backlog order, or end a sprint. | `create_sprint`, `end_sprint`, `move_to_sprint`, `plan_sprint`, `reorder` |
 
-`capture_plan` and `capture_work` can preview first using read access; applying the preview requires write access. `plan_sprint` and `end_sprint` also preview with read access and require plan access to apply. A single-item `capture_work` call writes directly and needs write access.
+`capture_plan` and `capture_work` can preview with read access. Applying the preview requires write access. `plan_sprint` and `end_sprint` also preview with read access, and they require plan access to apply. A single-item `capture_work` call writes directly and needs write access.
 
-The MCP prompts `plan_feature` and `research_idea` are prompt templates, not tool calls. The tools they lead to still need their own scopes.
+The MCP prompts `plan_feature` and `research_idea` are prompt templates, not tool calls. The tools that they lead to still need their own scopes.
 
 ## What happens at step-up
 
@@ -29,4 +29,4 @@ When an agent calls a tool without the scope it needs, ShipLean returns HTTP `40
 
 ShipLean adds the new scope to the existing authorization. It does not remove scopes you already approved. If you deny the request, the operation does not run; the agent can continue with actions allowed by its existing scopes.
 
-Review the client and host on the consent page before approving a new scope. You can later revoke the whole connection from **Your profile → Connected agents**. See [authentication options](/agents/auth/) for the token and revocation details.
+Review the client and host on the consent page before approving a new scope. You can later revoke the whole connection from **Connected agents** on your profile. See [authentication options](/agents/auth/) for the token and revocation details.

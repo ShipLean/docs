@@ -5,11 +5,11 @@ sidebar:
   order: 9
 ---
 
-Connect GitHub or GitLab to show live pull request, merge request, and issue details on Feature links. Webhooks can add pull or merge request links to Stories, Tasks, and Bugs automatically and complete linked work when all requests are closed and at least one is merged. You can also send application logs to Seq.
+Connect GitHub or GitLab to show live pull request, merge request, and issue details on Feature links. Webhooks can add pull or merge request links to Stories, Tasks, and Bugs automatically. They also complete linked work when all requests are closed and at least one is merged. You can also send application logs to Seq.
 
 ## Connect GitHub and GitLab link cards
 
-Set integration defaults in **Instance settings → Integrations**, or provide the corresponding environment variables. Settings saved in the app override environment defaults for GitHub and GitLab tokens and the GitLab URL. `SHIPLEAN_GITHUB_API_URL` is configured only through the environment. Clearing the saved GitLab URL restores the environment URL and token pair. The environment token is not combined with a saved GitLab URL.
+Set integration defaults in the **Integrations** section of **Instance settings**, or provide the matching environment variables. Settings saved in the app override the environment defaults for the GitHub and GitLab tokens and the GitLab URL. `SHIPLEAN_GITHUB_API_URL` can be set only in the environment. Clearing the saved GitLab URL restores the environment URL and token pair. The environment token is never combined with a saved GitLab URL.
 
 | Setting | What it enables |
 | --- | --- |
@@ -18,9 +18,9 @@ Set integration defaults in **Instance settings → Integrations**, or provide t
 | `SHIPLEAN_GITLAB_URL` | The GitLab host whose Feature issue and merge request links ShipLean reads, such as `https://gitlab.example.com`. Other GitLab hosts remain ordinary links. |
 | `SHIPLEAN_GITLAB_TOKEN` | Lets GitLab Feature links show private issue and merge request details on the configured GitLab host. |
 
-Tokens are sent only to HTTPS API addresses. The app will not save a token with an HTTP URL. Store tokens in instance settings or your secret manager, and use tokens with only the read access needed to retrieve issue and request details.
+Tokens are sent only to HTTPS API addresses. The app does not save a token with an HTTP URL. Store tokens in instance settings or in your secret manager. Give each token only the read access it needs to retrieve issue and request details.
 
-For an environment-only setup, add these values to your deployment environment:
+To use environment values only, add these settings to your deployment environment:
 
 ```dotenv
 SHIPLEAN_GITHUB_TOKEN=<github-read-token>
@@ -29,13 +29,13 @@ SHIPLEAN_GITLAB_URL=https://gitlab.example.com
 SHIPLEAN_GITLAB_TOKEN=<gitlab-read-token>
 ```
 
-Omit GitLab settings if you do not use GitLab. To use GitHub Enterprise Server, point `SHIPLEAN_GITHUB_API_URL` at its API endpoint. The integration makes API requests only to configured HTTPS hosts.
+Omit the GitLab settings if you do not use GitLab. To use GitHub Enterprise Server, point `SHIPLEAN_GITHUB_API_URL` at its API endpoint. The integration makes API requests only to configured HTTPS hosts.
 
 ## Turn on pull request webhooks
 
-Webhooks let GitHub or GitLab tell ShipLean when a request opens, changes, merges, or closes. Each provider has a separate secret and endpoint. While a provider's secret is unset, its endpoint returns 404. Set the secret on ShipLean first, then configure the same value in the provider.
+Webhooks let GitHub or GitLab tell ShipLean when a request opens, changes, merges, or closes. Each provider has its own secret and endpoint. While a provider's secret is unset, its endpoint returns 404. Set the secret on ShipLean first, then configure the same value in the provider.
 
-Generate a different long random secret for each provider. For example:
+Generate a separate long random secret for each provider. For example:
 
 ```sh
 openssl rand -hex 32
@@ -48,23 +48,23 @@ SHIPLEAN_GITHUB_WEBHOOK_SECRET=<github-webhook-secret>
 SHIPLEAN_GITLAB_WEBHOOK_SECRET=<gitlab-webhook-secret>
 ```
 
-When ShipLean is behind an identity proxy, bypass proxy sign-in for `/api/webhooks/`. The webhook endpoint authenticates deliveries with its provider secret. GitHub must send `Content-Type: application/json`; GitLab posts JSON. See [sign-in options](/start/sign-in/#keep-the-backend-private) for the proxy path requirements.
+When ShipLean is behind an identity proxy, configure the proxy to skip sign-in for `/api/webhooks/`. The webhook endpoint authenticates deliveries with its provider secret. GitHub must send `Content-Type: application/json`, and GitLab posts JSON. See [sign-in options](/start/sign-in/#keep-the-backend-private) for the proxy path requirements.
 
 ### Configure GitHub
 
-On a repository, open **Settings → Webhooks → Add webhook**. An organization owner can configure an organization webhook under **Organization settings → Webhooks → Add webhook** to cover its repositories. Set:
+On a repository, open **Settings**, select **Webhooks**, and choose **Add webhook**. An organization owner can add an organization webhook under **Organization settings**, then **Webhooks**, then **Add webhook**. The organization webhook covers the organization's repositories. Set:
 
 - **Payload URL:** `https://shiplean.example.com/api/webhooks/github`
 - **Content type:** `application/json`
 - **Secret:** the value of `SHIPLEAN_GITHUB_WEBHOOK_SECRET`
 - **Which events:** select **Let me select individual events**, then **Pull requests** only.
-- Ensure the webhook is **Active**, then add it.
+- Make sure the webhook is **Active**, then add it.
 
 GitHub sends a `ping` when you create the webhook. ShipLean responds with `pong`.
 
 ### Configure GitLab
 
-On a project, open **Settings → Webhooks → Add new webhook**. A group owner can create a group webhook for its projects. Set:
+On a project, open **Settings**, select **Webhooks**, and choose **Add new webhook**. A group owner can create a group webhook for the group's projects. Set:
 
 - **URL:** `https://shiplean.example.com/api/webhooks/gitlab`
 - **Secret token:** the value of `SHIPLEAN_GITLAB_WEBHOOK_SECRET`
@@ -76,19 +76,19 @@ GitLab's menu and fields are documented in [Configure webhooks](https://docs.git
 
 ## Link and complete work from requests
 
-Put a work item key in the pull or merge request title or its source branch. ShipLean checks the title and source branch. Titles must use an uppercase key of two to four letters and digits, such as `SHIP-123`; branch keys can use any case, such as `feature/ship-123-search`.
+Put a work item key in the pull or merge request title or its source branch. ShipLean checks the title and the source branch. Titles must use an uppercase key of two to four letters and digits, such as `SHIP-123`. Branch keys can use any case, such as `feature/ship-123-search`.
 
 Only existing Stories, Tasks, and Bugs are linked. Features and Epics are ignored. The link card shows whether the request is open, merged, or closed. ShipLean does not create work items from webhook payloads.
 
-An item moves to its type's first Completed state when all pull or merge requests linked to it are merged or closed and at least one has merged. A close without a merge does not complete an item on its own. If an item has several linked requests, one still open or with no event keeps the item open. Reopening a request updates its card but does not reopen a completed work item.
+An item moves to its type's first Completed state when all pull or merge requests linked to it are merged or closed, and at least one has merged. A close without a merge does not complete an item on its own. If an item has several linked requests, one that is still open, or one with no event yet, keeps the item open. Reopening a request updates its card but does not reopen a completed work item.
 
-If someone removes an auto-created link, ShipLean does not add it again. Removing the key from a title later also leaves the existing link in place. Webhook deliveries can be inspected in each provider's delivery log.
+If someone removes an auto-created link, ShipLean does not add it again. Removing the key from a title later also leaves the existing link in place. You can inspect webhook deliveries in each provider's delivery log.
 
-Each provider's endpoint accepts events from any repository or group that has the right secret; ShipLean has no repository allowlist. Keep each secret private and rotate it by changing the matching environment variable. Each provider can be disabled independently by unsetting its secret; its endpoint then returns 404.
+Each provider's endpoint accepts events from any repository or group that holds the right secret. ShipLean has no repository allowlist. Keep each secret private. To rotate a secret, change the matching environment variable. Each provider can be disabled on its own by unsetting its secret, after which its endpoint returns 404.
 
 ## Send logs to Seq
 
-Set `SHIPLEAN_SEQ_URL` to your Seq server's ingestion endpoint. If the Seq instance requires an API key, set `SHIPLEAN_SEQ_API_KEY` as well. ShipLean continues to write logs to the console and also sends them to Seq.
+Set `SHIPLEAN_SEQ_URL` to your Seq server's ingestion endpoint. If the Seq instance requires an API key, set `SHIPLEAN_SEQ_API_KEY` as well. ShipLean writes logs to the console and also sends them to Seq.
 
 ```dotenv
 SHIPLEAN_SEQ_URL=http://seq.example.com:5341
@@ -99,7 +99,7 @@ Use HTTPS when the endpoint is reachable over an untrusted network. Keep the API
 
 ## Export traces, metrics, and logs
 
-To send telemetry to an OTLP collector, set `OTEL_EXPORTER_OTLP_ENDPOINT`. This enables traces, metrics, and logs. Without it, OTLP export is off. ShipLean continues to log to the console and to Seq when Seq is configured.
+To send telemetry to an OTLP collector, set `OTEL_EXPORTER_OTLP_ENDPOINT`. This enables traces, metrics, and logs. Without it, OTLP export is off. ShipLean keeps logging to the console and, when Seq is configured, to Seq.
 
 ```dotenv
 OTEL_EXPORTER_OTLP_ENDPOINT=https://otel-collector.example.com
@@ -109,6 +109,6 @@ OTEL_SERVICE_NAME=shiplean-production
 OTEL_RESOURCE_ATTRIBUTES=deployment.environment=production
 ```
 
-Set the protocol to `grpc` or `http/protobuf`, whichever your collector accepts. With `http/protobuf`, the exporter adds signal paths such as `/v1/logs`. Use `OTEL_EXPORTER_OTLP_HEADERS` for credentials and keep them in your deployment's secret store. `OTEL_SERVICE_NAME` defaults to `shiplean`; the resource attributes are optional. For OTLP details, see the [OpenTelemetry .NET configuration reference](https://opentelemetry.io/docs/zero-code/dotnet/configuration/).
+Set the protocol to the one your collector accepts, either `grpc` or `http/protobuf`. With `http/protobuf`, the exporter adds signal paths such as `/v1/logs`. Put credentials in `OTEL_EXPORTER_OTLP_HEADERS`, and keep them in your deployment's secret store. `OTEL_SERVICE_NAME` defaults to `shiplean`. The resource attributes are optional. For OTLP details, see the [OpenTelemetry .NET configuration reference](https://opentelemetry.io/docs/zero-code/dotnet/configuration/).
 
 For every integration variable and its defaults, see [configuration](/start/configuration/).

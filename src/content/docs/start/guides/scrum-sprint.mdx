@@ -1,6 +1,6 @@
 ---
 title: "Run a Scrum sprint"
-description: "capacity, planning mode, the forecast, the taskboard, sprint end and roll-over, velocity."
+description: "Set capacity, plan against the forecast, track Tasks on the taskboard, end a sprint and roll over unfinished work, and read velocity."
 sidebar:
   order: 12
 ---
@@ -15,13 +15,13 @@ Create a sprint from **Sprints** with a name and dates. Open the sprint's **Capa
 
 <Shot name="guide-scrum-capacity" alt="Sprint capacity page with per-person point entries and a team total." />
 
-If nobody has entered capacity, ShipLean uses the project's calculated velocity or velocity override as the forecast. Set the velocity window and optional override in **Settings → Sprints**. The window is the number of ended sprints included in the calculated average.
+If nobody has entered capacity, ShipLean uses the project's calculated velocity or velocity override as the forecast. Set the velocity window and optional override in **Settings**, then **Sprints**. The window is the number of ended sprints included in the calculated average.
 
 See [Sprint planning and capacity](/ui/planning/) for capacity and forecast settings.
 
 ## Plan work against the forecast
 
-Open **Backlogs → Stories** and switch to **Planning**. Move Stories between the backlog and sprint sections. Use the forecast to compare committed points with available capacity or velocity. The forecast warns when you plan over the available amount; it does not block the plan.
+Open **Backlogs**, then **Stories**, and switch to **Planning**. Move Stories between the backlog and sprint sections. Use the forecast to compare committed points with available capacity or velocity. The forecast warns when you plan over the available amount. It does not block the plan.
 
 <Shot name="guide-scrum-planning" alt="Planning mode showing sprint sections and a points forecast." />
 
@@ -31,7 +31,7 @@ See [the sprint backlog](/ui/sprint-backlog/) for its progress view.
 
 ## Track Tasks during the sprint
 
-Open the sprint's **Taskboard** to track its Tasks. It shows Tasks by parent Story or Bug, or grouped by assignee. Move a Task when its state changes; an unassigned Task in a Proposed state can be picked up from its card.
+Open the sprint's **Taskboard** to track its Tasks. It shows Tasks by parent Story or Bug, or grouped by assignee. Move a Task when its state changes. You can pick up an unassigned Task in a Proposed state from its card.
 
 <Shot name="guide-scrum-taskboard" alt="Sprint Taskboard grouping Tasks under their Stories and Bugs." />
 
@@ -39,8 +39,8 @@ See [Taskboard](/ui/taskboard/) for grouping and keyboard controls.
 
 ## End the sprint and roll over unfinished work
 
-To review a pending rollover, open **Sprints** or **Backlogs → Stories**. ShipLean shows the review there for an ended sprint with unfinished work; it does not appear on the sprint backlog page. Review the unfinished Stories and Bugs. For each one, choose to move it to the next sprint, return it to the backlog, or leave it in the ended sprint. Open Tasks move with a Story or Bug that leaves; closed Tasks stay in the ended sprint. Review the next sprint's total against its capacity, then apply the choices.
+To review a pending rollover, open **Sprints**, or open **Backlogs**, then **Stories**. The review appears there for an ended sprint with unfinished work. It does not appear on the sprint backlog page. Review the unfinished Stories and Bugs. For each one, choose to move it to the next sprint, return it to the backlog, or leave it in the ended sprint. Open Tasks move with the Story or Bug that leaves. Closed Tasks stay in the ended sprint. Review the next sprint's total against its capacity, then apply the choices.
 
 <Shot name="guide-scrum-rollover" alt="Sprint end review with unfinished work and its destination choices." />
 
-ShipLean keeps the ended sprint's committed and completed points for velocity, using the state of work at the sprint end date. See [Sprints](/ui/sprints/) for velocity and [the sprint backlog](/ui/sprint-backlog/) for end-of-sprint details.
+ShipLean keeps the committed and completed points of an ended sprint for velocity. It uses the state of work on the sprint end date. See [Sprints](/ui/sprints/) for velocity and [the sprint backlog](/ui/sprint-backlog/) for end-of-sprint details.

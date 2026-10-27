@@ -1,37 +1,37 @@
 ---
 title: "Sign-in options"
-description: "email + password (lockout, one-time passwords, 14-day sliding cookie, \"sign out everywhere\"), and behind an identity proxy: token mode (recommended) with worked examples for oauth2-proxy, Cloudflare Access and Pomerium, plain-header mode for Authelia with its trust warning, sign-out URL, and how the first admin works in proxy mode"
+description: "Email and password sign-in with lockout, one-time passwords, a 14-day sliding cookie, and a sign-out-everywhere action. Identity proxy sign-in in token mode, which is the recommended mode, with examples for oauth2-proxy, Cloudflare Access, and Pomerium. Plain-header mode for Authelia with its trust warning, the sign-out URL, and how the first admin works in proxy mode."
 sidebar:
   order: 7
 ---
 
-ShipLean supports email and password sign-in by default. You can instead let an identity-aware reverse proxy sign people in. In either mode, users still need membership in a project before they can access its work.
+ShipLean supports email and password sign-in by default. You can instead let an identity-aware reverse proxy sign people in. In either mode, users still need project membership before they can access its work.
 
 ## Sign in with email and password
 
-Sign in with the email address and password an instance admin gave you. A one-time password takes you to the password-change form before other actions are allowed.
+Sign in with the email address and password that an instance admin gave you. A one-time password sends you to the password-change form before you can do anything else.
 
-Ten incorrect passwords lock the account for 15 minutes. ShipLean also refuses more than 20 attempts per email in 15 minutes; that refusal looks like a wrong password. A separate limit allows 30 login requests per minute per client address. It returns a rate-limit response. Configure trusted proxy addresses so ShipLean sees the real client address and applies these limits correctly. See [reverse proxy settings](/start/configuration/#reverse-proxy).
+Ten incorrect passwords lock the account for 15 minutes. ShipLean also refuses more than 20 attempts for one email address in 15 minutes. That refusal looks the same as a wrong password. A separate limit allows 30 login requests per minute from each client address. Requests over that limit receive a rate-limit response. Set the trusted proxy addresses so ShipLean sees the real client address and applies these limits correctly. See [reverse proxy settings](/start/configuration/#reverse-proxy).
 
-The `shiplean.auth` cookie is HttpOnly, uses SameSite=Lax, is Secure over HTTPS, and expires after 14 days without activity. Each active request slides the expiry. Changing a password or choosing **Sign out other sessions** ends sessions at once. Disabling an account or changing an admin-managed security setting also ends its sessions. Use **Sign out other sessions** from your profile to sign out everywhere else; your current session stays active. A session on another instance may take up to a minute to notice an administrative change.
+The `shiplean.auth` cookie is HttpOnly and uses SameSite=Lax. It is Secure over HTTPS. It expires after 14 days without activity, and each active request extends the expiry. Changing a password or choosing **Sign out other sessions** ends sessions at once. Disabling an account or changing an admin-managed security setting also ends that account's sessions. To sign out every other browser, use **Sign out other sessions** in your profile. Your current session stays active. A session on another instance may take up to a minute to notice an administrative change.
 
-Signing out clears the current browser's cookie. It does not invalidate a copied cookie by itself. If you think a cookie was stolen, change your password or sign out other sessions.
+Signing out clears the cookie in the current browser. It does not invalidate a copied cookie by itself. If you think a cookie was stolen, change your password or sign out other sessions.
 
 ## Sign in through an identity proxy
 
-Use an identity proxy when it already authenticates people and can send ShipLean a signed JWT. **Token mode is recommended.** ShipLean verifies the token signature, issuer, expiry, and—when configured—audience on every request. Set the audience as well as the issuer: without an audience check, another token from the same issuer may be accepted.
+Use an identity proxy when it already signs people in and can send ShipLean a signed JWT. **Token mode is recommended.** On every request, ShipLean verifies the token's signature, issuer, and expiry. It also verifies the audience when one is configured. Set the audience along with the issuer. Without an audience check, another token from the same issuer may be accepted.
 
-The first request with a valid identity creates a ShipLean user. Existing users with the same email are adopted, retaining their project membership and history. Email matching ignores case. A disabled user stays disabled. ShipLean issues its ordinary 14-day sliding cookie after a successful proxy sign-in.
+The first request with a valid identity creates a ShipLean user. ShipLean adopts an existing user with the same email, and that user keeps its project memberships and history. Email matching ignores case. A disabled user stays disabled. After a successful proxy sign-in, ShipLean issues the same 14-day sliding cookie that it uses for password sign-in.
 
 ### Set the first instance admin
 
-Set `SHIPLEAN_ADMIN_EMAIL` to the identity's email. If that user already exists, ShipLean makes them an instance admin at startup when no instance admin exists. Otherwise, it makes the user an admin on their first proxy sign-in. `SHIPLEAN_ADMIN_PASSWORD` is ignored with a warning in proxy mode. After an admin exists, the setting has no effect.
+Set `SHIPLEAN_ADMIN_EMAIL` to the identity's email address. If that user already exists, ShipLean makes them an instance admin at startup, provided no instance admin exists. If the user does not exist yet, ShipLean makes them an admin on their first proxy sign-in. In proxy mode, ShipLean ignores `SHIPLEAN_ADMIN_PASSWORD` and logs a warning. After an admin exists, the email setting has no effect.
 
 ### Keep the backend private
 
-Do not publish ShipLean's port to the public network. Put it on a private network that only the reverse proxy can reach, and configure `SHIPLEAN_TRUSTED_PROXIES` with the address or CIDR ShipLean sees for that proxy. This prevents direct backend access and makes forwarded client addresses trustworthy.
+Do not publish ShipLean's port to the public network. Put it on a private network that only the reverse proxy can reach. Set `SHIPLEAN_TRUSTED_PROXIES` to the address or CIDR range that ShipLean sees for that proxy. This prevents direct access to the backend, and it means forwarded client addresses can be trusted.
 
-Tell the proxy to bypass its login check for these paths. They use their own credentials or discovery behavior:
+Configure the proxy to skip its login check for these paths. Each path uses its own credentials or discovery behavior:
 
 | Path | Why it bypasses the proxy login |
 | --- | --- |
@@ -41,17 +41,17 @@ Tell the proxy to bypass its login check for these paths. They use their own cre
 | `/api/webhooks/` | GitHub and GitLab verify each delivery with a shared secret. The sender must post JSON. |
 | `/api/uploads/`, `/api/downloads/` | MCP attachment transfer URLs carry their own short-lived credential in the path. |
 
-Keep `/oauth/authorize` behind the proxy; a person must be signed in to approve an agent. A bypassed path can be reached without the proxy session. For attachment transfer URLs, the path token is the credential; the upload URL works once for 10 minutes and the download URL works until it expires. Proxy middleware must pass these paths to ShipLean without requiring login or adding proxy identity. Other protected routes still verify any identity token supplied to ShipLean. See [integrations](/start/integrations/) for webhook setup.
+Keep `/oauth/authorize` behind the proxy, because a person must be signed in to approve an agent. A bypassed path can be reached without a proxy session. For attachment transfer URLs, the token in the path is the credential. An upload URL works once, for 10 minutes. A download URL works until it expires. Proxy middleware must pass these paths to ShipLean without requiring a login or adding proxy identity. Other protected routes still verify any identity token that ShipLean receives. See [integrations](/start/integrations/) for webhook setup.
 
-Other authenticated `/api` writes in proxy mode must include a JSON body or the `X-ShipLean-Client` header, even when the proxy authenticates the request. Attachment upload URLs are an exception: their short-lived path token is the credential and no client header is needed. GitHub and GitLab webhook deliveries use JSON.
+In proxy mode, other authenticated `/api` writes must include a JSON body or the `X-ShipLean-Client` header, even when the proxy has already authenticated the request. Attachment upload URLs are the exception. Their short-lived token in the path is the credential, so they need no client header. GitHub and GitLab webhook deliveries use JSON.
 
 ### Configure a proxy
 
-Each example includes the ShipLean environment settings and the proxy-side configuration to adapt. Keep secrets in your deployment's secret store. The examples are standalone reference files; download them from the [repository](https://github.com/ShipLean/docs/tree/main/examples/proxy).
+Each example includes the ShipLean environment settings and the proxy configuration to adapt. Store secrets in your deployment's secret store. The examples are standalone reference files. Download them from the [repository](https://github.com/ShipLean/docs/tree/main/examples/proxy).
 
 #### oauth2-proxy
 
-When oauth2-proxy forwards directly to ShipLean, `pass_access_token` puts the access token in `X-Forwarded-Access-Token`. This only works when that access token is a signed JWT containing an email claim. If the provider issues opaque access tokens or omits email, pass the ID token as `Authorization: Bearer …` instead. Configure the matching ShipLean header and audience. With oauth2-proxy's `auth_request` integration, enable `set_xauthrequest` too and copy `X-Auth-Request-Access-Token` to the upstream header.
+When oauth2-proxy forwards directly to ShipLean, `pass_access_token` puts the access token in `X-Forwarded-Access-Token`. That header works only when the access token is a signed JWT with an email claim. If the provider issues opaque access tokens or omits the email claim, pass the ID token as `Authorization: Bearer …` instead. Configure the matching ShipLean header and audience. With oauth2-proxy's `auth_request` integration, also enable `set_xauthrequest`, and copy `X-Auth-Request-Access-Token` to the upstream header.
 
 The example uses the current `skip_auth_routes` option. It exempts only MCP, OAuth token-management, discovery, webhook, and attachment-transfer paths. Do not use a broad exemption for all `/oauth/` routes.
 
@@ -59,36 +59,36 @@ Files: [`oauth2-proxy.cfg`](https://github.com/ShipLean/docs/blob/main/examples/
 
 #### Cloudflare Access
 
-Cloudflare Access sends the signed application JWT in `Cf-Access-Jwt-Assertion`. Use your team domain as issuer, the Access certs endpoint for JWKS, and your application's AUD tag as audience. Access does not send a name claim, so new users get a name based on the part of their email before `@`.
+Cloudflare Access sends the signed application JWT in `Cf-Access-Jwt-Assertion`. Use your team domain as the issuer, the Access certs endpoint for JWKS, and your application's AUD tag as the audience. Access does not send a name claim, so ShipLean names new users after the part of their email address before `@`.
 
-Create Access policies for the bypass paths in `cloudflare-access.md`, including `/api/uploads/*` and `/api/downloads/*`. Bypass means those paths do not require a user login at Access; the backend must remain private and ShipLean still applies its own endpoint checks. Cloudflare recommends validating the assertion header, whose signing keys are published at the certs URL.
+Create Access policies for the bypass paths in `cloudflare-access.md`, including `/api/uploads/*` and `/api/downloads/*`. A bypass means those paths do not require a user login at Access. The backend must stay private, and ShipLean still applies its own endpoint checks. Cloudflare recommends validating the assertion header against the signing keys published at the certs URL.
 
 File: [`cloudflare-access.md`](https://github.com/ShipLean/docs/blob/main/examples/proxy/cloudflare-access.md). See [Cloudflare's JWT validation guide](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/) and [Access policies](https://developers.cloudflare.com/cloudflare-one/access-controls/policies/).
 
 #### Pomerium
 
-Enable `pass_identity_headers` on the protected ShipLean route. Pomerium sends its signed assertion in `X-Pomerium-Jwt-Assertion`; configure the matching issuer and audience for that route. Set `SHIPLEAN_AUTH_PROXY_TOKEN_JWKS_URL` to Pomerium's published `/.well-known/pomerium/jwks.json` endpoint: Pomerium serves the JWKS directly rather than an OIDC discovery document at the issuer's `/.well-known/openid-configuration` path. The example uses URI issuer format so the issuer is `https://shiplean.example.com/`, and route path patterns for the public bypass routes, including `/api/uploads/{token}` and `/api/downloads/{token}`.
+Enable `pass_identity_headers` on the protected ShipLean route. Pomerium sends its signed assertion in `X-Pomerium-Jwt-Assertion`. Configure the matching issuer and audience for that route. Set `SHIPLEAN_AUTH_PROXY_TOKEN_JWKS_URL` to Pomerium's published `/.well-known/pomerium/jwks.json` endpoint. Pomerium serves the JWKS directly. It does not serve an OIDC discovery document at the issuer's `/.well-known/openid-configuration` path. The example uses the URI issuer format, so the issuer is `https://shiplean.example.com/`. It also defines route path patterns for the public bypass routes, including `/api/uploads/{token}` and `/api/downloads/{token}`.
 
 Files: [`pomerium.yaml`](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.yaml) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/pomerium.shiplean.env.example). See Pomerium's [JWT identity verification](https://www.pomerium.com/docs/get-started/fundamentals/core/jwt-verification), [route path matching](https://www.pomerium.com/docs/reference/routes/path-matching), [JWT issuer format](https://www.pomerium.com/docs/reference/routes/jwt-issuer-format), and [public access](https://www.pomerium.com/docs/reference/routes/public-access) documentation.
 
 #### Authelia plain-header mode
 
-Use this only if your proxy cannot send a signed token. Authelia's trusted-header flow returns `Remote-Email` and `Remote-Name` to the reverse proxy, which must set them on its request to ShipLean. Configure `SHIPLEAN_TRUSTED_PROXIES` to the reverse proxy's address, not Authelia's.
+Use this only if your proxy cannot send a signed token. Authelia's trusted-header flow returns `Remote-Email` and `Remote-Name` to the reverse proxy. The reverse proxy must set them on its request to ShipLean. Set `SHIPLEAN_TRUSTED_PROXIES` to the reverse proxy's address, not Authelia's.
 
 :::caution[Header mode trusts the proxy completely]
 Anyone who can connect to ShipLean from a trusted address can claim any email by sending `Remote-Email`. Keep the backend unreachable except through the proxy. The proxy must overwrite these headers from Authelia on every request, including bypass paths, and must remove any client-supplied copies. Do not publish the ShipLean port. Prefer token mode if you cannot enforce these network controls.
 :::
 
-The NGINX example sets `client_max_body_size 40m`: NGINX defaults this request-body limit to 1 MB, while a default-size MCP attachment uses about 33.4 MiB after base64 encoding. If you increase `SHIPLEAN_ATTACHMENT_MAX_BYTES`, raise the NGINX limit to at least the resulting base64 request cap (`4 × ceil(file_limit / 3) + 64 KiB`). See the [NGINX directive reference](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size).
+The NGINX example sets `client_max_body_size 40m`. NGINX defaults this request-body limit to 1 MB. A default-size MCP attachment takes about 33.4 MiB after base64 encoding. If you raise `SHIPLEAN_ATTACHMENT_MAX_BYTES`, raise the NGINX limit to at least the resulting base64 request cap, which is `4 × ceil(file_limit / 3) + 64 KiB`. See the [NGINX directive reference](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size).
 
 Files: [`authelia-nginx.conf`](https://github.com/ShipLean/docs/blob/main/examples/proxy/authelia-nginx.conf) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/authelia.shiplean.env.example). See Authelia's [trusted-header SSO](https://www.authelia.com/integration/trusted-header-sso/introduction/) and [NGINX integration](https://www.authelia.com/integration/proxies/nginx/) documentation.
 
 ### Sign out through the proxy
 
-Set `SHIPLEAN_AUTH_PROXY_SIGN_OUT_URL` to the identity proxy's sign-out URL. It can be a path such as `/oauth2/sign_out` or an absolute HTTP(S) URL. Without it, ShipLean hides **Sign out** because the proxy would sign the person in again immediately. **Sign out other sessions** remains available to invalidate other ShipLean cookies.
+Set `SHIPLEAN_AUTH_PROXY_SIGN_OUT_URL` to the identity proxy's sign-out URL. It can be a path such as `/oauth2/sign_out` or an absolute HTTP or HTTPS URL. Without it, ShipLean hides **Sign out**, because the proxy would sign the person in again right away. **Sign out other sessions** stays available. It invalidates the other ShipLean cookies.
 
 ### Plain-header configuration details
 
-Set `SHIPLEAN_AUTH_PROXY_EMAIL_HEADER` to the trusted email header. `SHIPLEAN_AUTH_PROXY_NAME_HEADER` is optional. ShipLean reads these headers only from loopback and addresses listed in `SHIPLEAN_TRUSTED_PROXIES`; it ignores them from other peers. Never set the email header and token header together. Header mode has no email verification check, and proxy sign-in does not provide password, password-change, or one-time-password flows.
+Set `SHIPLEAN_AUTH_PROXY_EMAIL_HEADER` to the trusted email header. `SHIPLEAN_AUTH_PROXY_NAME_HEADER` is optional. ShipLean reads these headers only from loopback addresses and from addresses listed in `SHIPLEAN_TRUSTED_PROXIES`. It ignores them from any other peer. Never set the email header and the token header together. Header mode does not check that the email address is verified. Proxy sign-in also has no password, password-change, or one-time-password flows.
 
-For token mode, set `SHIPLEAN_AUTH_PROXY_TOKEN_HEADER` and required `SHIPLEAN_AUTH_PROXY_TOKEN_ISSUER`. The JWKS URL is discovered from the issuer unless set explicitly. `SHIPLEAN_AUTH_PROXY_TOKEN_AUDIENCE` is optional in the product but strongly recommended. The email and name claims default to `email` and `name`. A present `email_verified` claim must be true; an absent claim is accepted. See [all sign-in settings](/start/configuration/).
+For token mode, set `SHIPLEAN_AUTH_PROXY_TOKEN_HEADER` and `SHIPLEAN_AUTH_PROXY_TOKEN_ISSUER`, which is required. ShipLean discovers the JWKS URL from the issuer unless you set it explicitly. `SHIPLEAN_AUTH_PROXY_TOKEN_AUDIENCE` is optional, but you should set it. The email and name claims default to `email` and `name`. A present `email_verified` claim must be true. ShipLean accepts a token that has no `email_verified` claim. See [all sign-in settings](/start/configuration/).

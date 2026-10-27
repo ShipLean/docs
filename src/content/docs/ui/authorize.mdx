@@ -7,9 +7,9 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-When an agent connects, ShipLean asks you to review the client and the access it requests. Allow only a connection you recognize and want to grant.
+When an agent connects, ShipLean asks you to review the client and the access it requests. Allow only connections you recognize and want to grant.
 
-**Address:** `/authorize?request=<id>` for a pending connection request.
+The address for a pending connection request is `/authorize?request=<id>`.
 
 ## Overview
 
@@ -17,9 +17,9 @@ When an agent connects, ShipLean asks you to review the client and the access it
 
 ## Review a connection
 
-The consent screen shows the agent's name, the host it runs on, and the scopes it requests. A verified client shows its declared host. A client registered without a verified metadata document is marked unverified. Review both the client and the requested scopes before choosing **Allow** or **Deny**.
+The consent screen shows the agent's name, the host it runs on, and the scopes it requests. A verified client shows its declared host. ShipLean marks a client as unverified when it was registered without a verified metadata document. Review both the client and the requested scopes before you choose **Allow** or **Deny**.
 
-The first connection asks for read and write access. Read access covers reading and previews; write access covers creating and updating work. Planning access can be requested later when an agent needs to apply sprint planning. Re-consenting adds requested access to the existing connection; it does not remove scopes already granted.
+The first connection asks for read and write access. Read access covers reading and previews. Write access covers creating and updating work. An agent can request planning access later, when it needs to apply sprint planning. Consenting again adds the requested access to the existing connection. It does not remove scopes that were already granted.
 
 <Shot name="ui-authorize-review" alt="Consent details with the agent identity, verified or unverified host, and requested scopes." />
 

@@ -7,7 +7,7 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-An agent is a client connected to ShipLean through MCP. Each connection has its own name in work-item history and comments. It acts as the person who signed in, so it sees only that person's projects and uses that person's project membership.
+An agent is a client connected to ShipLean through MCP. Each connection has its own name in work item history and comments. The agent acts as the person who signed in. It sees only that person's projects and uses that person's project membership.
 
 You can use an agent to:
 
@@ -17,11 +17,11 @@ You can use an agent to:
 - pick up a task and record progress;
 - review project or sprint changes.
 
-The agent's changes stay attributed to its connection name. A gateway connection is different: it acts as the person named by the gateway and has no separate agent identity.
+The agent's changes stay attributed to its connection name. A gateway connection works differently. It acts as the person the gateway names, and it has no separate agent identity.
 
 ## Supported clients
 
-You can connect ShipLean to Claude Code, Claude Desktop, Claude on the web, or Cursor. Each client uses the same MCP address from your profile. Start with [Connect an agent](/agents/connect/).
+You can connect ShipLean to Claude Code, Claude Desktop, Claude on the web, or Cursor. Every client uses the same MCP address from your profile. To set up a client, start with [Connect an agent](/agents/connect/).
 
 <Shot name="ui-profile-connected-agents" alt="Your profile listing connected agents with their names, activity, and revoke controls." />
 

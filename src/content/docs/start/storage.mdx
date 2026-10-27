@@ -11,56 +11,56 @@ ShipLean stores attachments and profile photos in a folder, PostgreSQL, or an S3
 
 | Store | Configure | Choose it when |
 | --- | --- | --- |
-| Folder | `SHIPLEAN_BLOB_ROOT` | You run one instance with persistent disk mounted at the selected path. The default is `data/blobs` under the app folder; the quick-start Compose file uses `/data/blobs` on a named volume. |
-| PostgreSQL | `SHIPLEAN_BLOB_DB_CONNECTION` | You want attachments stored in the same or a separate PostgreSQL database. This is suitable when multiple instances run or the app has no persistent disk. |
-| S3 | `SHIPLEAN_BLOB_S3_CONNECTION` | You use AWS S3 or an S3-compatible service such as Cloudflare R2 or RustFS. This is suitable when multiple instances run or the app has no persistent disk. |
+| Folder | `SHIPLEAN_BLOB_ROOT` | You run one instance with a persistent disk mounted at the chosen path. The default is `data/blobs` in the app folder. The quick-start Compose file uses `/data/blobs` on a named volume. |
+| PostgreSQL | `SHIPLEAN_BLOB_DB_CONNECTION` | You want attachments in a PostgreSQL database, either the same database or a separate one. Choose it when you run multiple instances or the app has no persistent disk. |
+| S3 | `SHIPLEAN_BLOB_S3_CONNECTION` | You use AWS S3 or an S3-compatible service such as Cloudflare R2 or RustFS. Choose it when you run multiple instances or the app has no persistent disk. |
 
 ## Know which store ShipLean uses
 
-There is no separate store selector. The first configured connection wins:
+No separate setting selects the store. ShipLean uses the first configured connection, checking them in this order:
 
 1. `SHIPLEAN_BLOB_S3_CONNECTION` selects S3.
 2. Otherwise `SHIPLEAN_BLOB_DB_CONNECTION` selects PostgreSQL.
-3. Otherwise ShipLean uses the folder at `SHIPLEAN_BLOB_ROOT` (or its default path).
+3. Otherwise ShipLean uses the folder at `SHIPLEAN_BLOB_ROOT`, or the default folder if that setting is not set.
 
-At startup, ShipLean logs which store it chose and why. The log omits passwords and secret keys. When both connection settings are present, ShipLean logs a warning and uses S3; the PostgreSQL blob setting is ignored.
+At startup, ShipLean logs the store it chose and the reason. The log omits passwords and secret keys. If both connection settings are present, ShipLean logs a warning and uses S3. It ignores the PostgreSQL blob setting.
 
-Changing the store does not move existing files. Existing files stay in the store where ShipLean wrote them. Plan and perform any migration between stores separately before switching the setting.
+Changing the store does not move existing files. Each file stays in the store where ShipLean wrote it. Plan and run any migration between stores separately, before you switch the setting.
 
 ## Configure S3
 
-Set `SHIPLEAN_BLOB_S3_CONNECTION` to semicolon-separated `name=value` settings. `bucket` is required. Provide `region` or `serviceUrl`. Provide `accessKey` and `secretKey` together, or omit both to use the AWS default credential chain. The optional `forcePathStyle` setting is `true` or `false`; `prefix` is placed before every object key. Create the bucket before starting ShipLean.
+Set `SHIPLEAN_BLOB_S3_CONNECTION` to semicolon-separated `name=value` settings. `bucket` is required. Provide `region` or `serviceUrl`. Provide `accessKey` and `secretKey` together, or omit both to use the AWS default credential chain. The optional `forcePathStyle` setting takes `true` or `false`. ShipLean puts `prefix` before every object key. Create the bucket before you start ShipLean.
 
-The examples use placeholders. Put real credentials in a secret manager or protected environment file, and restrict each key to the bucket ShipLean uses.
+The examples use placeholder values. Put real credentials in a secret manager or a protected environment file. Restrict each key to the bucket that ShipLean uses.
 
 ### AWS S3
 
-For AWS, use the bucket's region and omit `serviceUrl` so the SDK selects the AWS endpoint. For example:
+For AWS, use the bucket's region and omit `serviceUrl`, so the SDK selects the AWS endpoint. For example:
 
 ```text
 SHIPLEAN_BLOB_S3_CONNECTION=bucket=shiplean-prod;region=ap-southeast-1;prefix=prod/
 ```
 
-The [AWS S3 endpoint reference](https://docs.aws.amazon.com/general/latest/gr/s3.html) lists regional endpoints. AWS supports virtual-hosted and path-style addressing; the `forcePathStyle` option is usually unnecessary for AWS.
+The [AWS S3 endpoint reference](https://docs.aws.amazon.com/general/latest/gr/s3.html) lists regional endpoints. AWS supports virtual-hosted and path-style addressing. The `forcePathStyle` option is usually unnecessary for AWS.
 
 [Download the AWS environment example](https://github.com/ShipLean/docs/blob/main/examples/storage/aws.env.example).
 
 ### Cloudflare R2
 
-Use the account-specific R2 S3 endpoint, region `auto`, and the Access Key ID and Secret Access Key from an R2 API token. The example uses path-style addressing:
+Use the account-specific R2 S3 endpoint, the region `auto`, and the Access Key ID and Secret Access Key from an R2 API token. The example uses path-style addressing:
 
 ```text
 SHIPLEAN_BLOB_S3_CONNECTION=bucket=shiplean-prod;region=auto;serviceUrl=https://<ACCOUNT_ID>.r2.cloudflarestorage.com;accessKey=<R2_ACCESS_KEY_ID>;secretKey=<R2_SECRET_ACCESS_KEY>;forcePathStyle=true;prefix=prod/
 ```
 
-Find your account ID and create bucket-scoped read/write credentials in the [Cloudflare R2 S3 setup guide](https://developers.cloudflare.com/r2/get-started/s3/). Cloudflare documents `auto` as the S3 API region in its [R2 S3 compatibility reference](https://developers.cloudflare.com/r2/api/s3/api/).
+Find your account ID and create bucket-scoped read and write credentials in the [Cloudflare R2 S3 setup guide](https://developers.cloudflare.com/r2/get-started/s3/). Cloudflare lists `auto` as the S3 API region in its [R2 S3 compatibility reference](https://developers.cloudflare.com/r2/api/s3/api/).
 
 [Download the R2 environment example](https://github.com/ShipLean/docs/blob/main/examples/storage/r2.env.example).
 
 ### Local RustFS
 
-The RustFS Compose example pins the official [RustFS 1.0.4-glibc image](https://github.com/orgs/rustfs/packages/container/package/rustfs). It runs an S3-compatible service on the same Compose network as ShipLean. Copy its `.env.example` to `.env` and replace every placeholder before starting the stack. The app uses `rustfs:9000` as the S3 endpoint with `us-east-1` signing region and path-style addressing. Create the bucket named `shiplean` in the RustFS Console at `http://localhost:9001` before uploading files.
+The RustFS Compose example pins the official [RustFS 1.0.4-glibc image](https://github.com/orgs/rustfs/packages/container/package/rustfs). It runs an S3-compatible service on the same Compose network as ShipLean. Copy its `.env.example` to `.env` and replace every placeholder before you start the stack. The app uses `rustfs:9000` as the S3 endpoint, with the signing region `us-east-1` and path-style addressing. Create the bucket named `shiplean` in the RustFS Console at `http://localhost:9001` before you upload files.
 
-[Open the RustFS Compose example](https://github.com/ShipLean/docs/blob/main/examples/storage/rustfs/docker-compose.yml). It also includes PostgreSQL so you can run the example as a complete stack. The official [RustFS container guide](https://docs.rustfs.com/en/installation/container/docker) documents its API and Console ports and access-key settings. RustFS uses path-style S3 requests by default, as described in its [URL addressing guide](https://docs.rustfs.com/en/integration/virtual). This single-node example is for local evaluation; RustFS documents no redundancy in single-node single-disk mode.
+[Open the RustFS Compose example](https://github.com/ShipLean/docs/blob/main/examples/storage/rustfs/docker-compose.yml). It also includes PostgreSQL, so you can run the example as a complete stack. The official [RustFS container guide](https://docs.rustfs.com/en/installation/container/docker) documents its API and Console ports and its access-key settings. RustFS uses path-style S3 requests by default, as described in its [URL addressing guide](https://docs.rustfs.com/en/integration/virtual). This single-node example is for local evaluation only. RustFS documents no redundancy in single-node, single-disk mode.
 
-Stop the example with `docker compose down`. Keep the named volumes if you want to retain the database and objects; remove volumes only when you intend to delete that data.
+Stop the example with `docker compose down`. Keep the named volumes to retain the database and stored objects. Remove the volumes only when you want to delete that data.
