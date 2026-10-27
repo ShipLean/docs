@@ -23,7 +23,13 @@ Use the side menu to open project areas and your account. The project picker swi
 
 <Shot name="ui-navigation-project-picker" alt="The project picker with search and project choices." />
 
-Press **Ctrl+P** on Windows or Linux, or **⌘P** on macOS, to open the project picker. Press the same shortcut while it is open to focus its search field. The shortcut does nothing while a modal dialog is open.
+Press **Ctrl+P** on Windows or Linux, or **⌘P** on macOS, or select the search button beside the ShipLean mark to open Quick search. In the narrow strip (under 900px), use the search icon after the project button. Pressing the shortcut while Quick search is open selects the input text; it does nothing while another modal dialog is open. Quick search closes the project picker when opened.
+
+<Shot name="ui-navigation-quicksearch" alt="Quick search open with its search field, recent work items, and available actions." />
+
+Type to search work items, sprints, and projects. Results from the open project come first in each group. Use **↑** and **↓** to move through results, **Enter** to open the selected result, and **Esc** to close Quick search and return focus to its opener. With an empty search, Quick search shows the five most recently opened items saved in this browser, followed by actions. If a search fails, choose **Retry**; previous results remain visible while a new search runs.
+
+Selecting a work item opens its item modal where supported, and opens its full page on backlog or install-level screens, or for an item in another project. A sprint opens its taskboard and a project opens its backlog. Actions can open the current project's Backlogs, Boards, or Sprints; switch the theme; or start a new Epic, Feature, Story, or Bug. New-item actions open the matching backlog with its create control active and type selected. Tasks are created from their parent item.
 
 ## Use the side menu and breadcrumbs
 
@@ -41,4 +47,5 @@ The top bar also shows the current location in breadcrumbs. On narrower screens,
 
 ## Keyboard shortcuts
 
-- **Ctrl+P** (Windows/Linux) or **⌘P** (macOS): open the project picker; when open, focus its search field.
+- **Ctrl+P** (Windows/Linux) or **⌘P** (macOS): open Quick search; when open, select its search text.
+- **↑** and **↓**: move through Quick search results; **Enter** opens the selected result; **Esc** closes it.
