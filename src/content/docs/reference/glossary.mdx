@@ -1,11 +1,33 @@
 ---
 title: "Glossary"
-description: "project key, work item, state, category, Epic, Feature, Story, Bug, Task, sprint, capacity, velocity, forecast, swimlane, WIP limit, agent, scope, consent."
+description: "Plain definitions of ShipLean work, planning, and agent terms."
 sidebar:
   order: 46
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-project key, work item, state, category, Epic, Feature, Story, Bug, Task, sprint, capacity, velocity, forecast, swimlane, WIP limit, agent, scope, consent.
+## Work and projects
 
+- **Project key** — The short identifier for a project, used to distinguish its work. Choose it when you [create a project](/ui/new-project/).
+- **Work item** — An Epic, Feature, Story, Bug, or Task. Work items have a type-specific state and belong to a project. See [work items](/ui/work-items/).
+- **State** — A label that tracks a work item's place in its workflow. The default labels are New, Active, Resolved, Closed, and Removed; projects can configure their own states. See [work item states](/ui/work-items/) and [board settings](/ui/board-settings/).
+- **Category** — The meaning assigned to a state: Proposed, In Progress, Resolved, Completed, or Removed. Boards show states, while ShipLean uses categories to understand their meaning. See [board settings](/ui/board-settings/).
+- **Epic** — A broad area of work that can contain Features. See [Epics](/work/epics/).
+- **Feature** — A piece of work that can contain other Features, Stories, and Bugs. It can hold a goal and the research record. See [Features](/ui/features/).
+- **Story** — A work item that describes a deliverable and can contain Tasks. Story points are estimates on Stories and Bugs. See [work items](/ui/work-items/).
+- **Bug** — A work item for a defect. Bugs can contain Tasks and can have story point estimates. See [work items](/ui/work-items/).
+- **Task** — A work item for a piece of work under a Story or Bug. See [work items](/ui/work-items/).
+
+## Planning
+
+- **Sprint** — A time-boxed period for planned work. Sprints have dates and capacity. See [sprints](/ui/sprints/).
+- **Capacity** — The amount of work a person or team can take into a sprint, measured in story points. See [planning and capacity](/ui/planning/).
+- **Velocity** — The story points completed per sprint, used to help plan future work. See [planning and capacity](/ui/planning/).
+- **Forecast** — An estimate of how much planned work fits in a sprint based on its capacity and the selected velocity. See [planning and capacity](/ui/planning/).
+- **Swimlane** — A horizontal grouping of cards on a board. For example, a Features board can group work by Epic. See [boards](/ui/boards/).
+- **WIP limit** — A maximum number of cards allowed in a board column. See [board settings](/ui/board-settings/).
+
+## Agents and access
+
+- **Agent** — An MCP client connected to ShipLean as its own user. A person approves its requested access and can later revoke the connection. See [connecting an agent](/agents/connect/).
+- **Scope** — A named permission an agent requests, such as reading or writing project work. Review scopes before approving access. See [agent scopes](/agents/scopes/).
+- **Consent** — The approval step where you review an agent's identity and requested scopes, then allow or deny the connection. See [agent consent](/ui/authorize/).

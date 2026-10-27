@@ -1,11 +1,35 @@
 ---
 title: "ShipLean documentation"
-description: "one paragraph on what ShipLean is (self-hosted, one container + Postgres, backlogs/boards/sprints, agents as first-class users over MCP)"
+description: "Use ShipLean to manage work in backlogs, boards, and sprints, and connect agents over MCP."
 sidebar:
   order: 1
 ---
 
-{/* TODO: Replace this outline with the page's end-user documentation. */}
-## What goes here
-one paragraph on what ShipLean is (self-hosted, one container + Postgres, backlogs/boards/sprints, agents as first-class users over MCP). Four cards linking to the four sections. A "fastest path" box: the quick-start compose command and a link to connecting Claude Code.
+import { Card, CardGrid } from '@astrojs/starlight/components';
 
+ShipLean is a self-hosted work tracker that runs as one application container with PostgreSQL. You organize work in backlogs, boards, and sprints, and can connect agents as users over MCP.
+
+<CardGrid stagger>
+	<Card title="Get started" icon="rocket" href="/start/overview/">
+		Install ShipLean, configure your instance, and create your first project.
+	</Card>
+	<Card title="Use the app" icon="pencil" href="/ui/navigation/">
+		Find your way around backlogs, boards, work items, and sprints.
+	</Card>
+	<Card title="Connect agents" icon="setting" href="/agents/overview/">
+		Connect an MCP client and choose the access it can request.
+	</Card>
+	<Card title="Work with ShipLean" icon="list-format" href="/work/ideas/">
+		Move ideas through research, planning, and delivery.
+	</Card>
+</CardGrid>
+
+## Fastest path
+
+Download [`docker-compose.yml`](https://raw.githubusercontent.com/ShipLean/docs/feat/docs-site/examples/quickstart/docker-compose.yml) and [`.env`](https://raw.githubusercontent.com/ShipLean/docs/feat/docs-site/examples/quickstart/.env) into the same folder. Set the admin email and password in `.env`, then run:
+
+```sh
+docker compose up -d
+```
+
+Open `http://localhost:8080` and sign in. When you're ready, [connect Claude Code](/agents/connect/).
