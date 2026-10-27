@@ -43,6 +43,11 @@ export const shots: ShotSpec[] = [
     route: `${project}/boards/features`,
     steps: async (page, ctx) => {
       await featureCard(page, ctx.features[0]).focus();
+      // The default Feature board has a Resolved column before Closed.
+      const resolved = page.waitForResponse(response => response.request().method() === 'POST' && /\/api\/boards\/[^/]+\/moves$/.test(new URL(response.url()).pathname));
+      await page.keyboard.press('Alt+ArrowRight');
+      if (!(await resolved).ok()) throw new Error('Cannot move the demo Feature into Resolved.');
+      await featureCard(page, ctx.features[0]).focus();
       await page.keyboard.press('Alt+ArrowRight');
       await page.getByTestId('board-done-confirm').waitFor({ state: 'visible' });
     },

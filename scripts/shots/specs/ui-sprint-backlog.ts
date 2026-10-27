@@ -11,7 +11,8 @@ export const shots: ShotSpec[] = [
   },
   {
     name: 'ui-sprint-backlog-rollover',
-    route: (ctx) => `/p/DEMO/sprints/${ctx.sprint}/backlog`,
+    // The rollover prompt mounts on the sprints list and Stories backlog.
+    route: '/p/DEMO/sprints',
     steps: async (page, ctx) => {
       const ended = {
         id: ctx.sprint,

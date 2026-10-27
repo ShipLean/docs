@@ -2,8 +2,12 @@ import type { ShotSpec } from '../types';
 
 const route = (ctx: { sprint: string }) => `/p/DEMO/sprints/${ctx.sprint}/taskboard`;
 
+export const showStories: NonNullable<ShotSpec['steps']> = async (page) => {
+  await page.locator('[data-testid="taskboard-group-option"][data-option="stories"]').click();
+};
+
 export const shots: ShotSpec[] = [
-  { name: 'ui-taskboard-overview', route },
+  { name: 'ui-taskboard-overview', route, steps: showStories },
   {
     name: 'ui-taskboard-people',
     route,
@@ -15,7 +19,8 @@ export const shots: ShotSpec[] = [
   {
     name: 'ui-taskboard-move',
     route,
-    steps: async (page) => {
+    steps: async (page, ctx) => {
+      await showStories(page, ctx);
       const card = page.getByTestId('taskboard-card').first();
       await card.focus();
       await page.keyboard.press('Alt+ArrowRight');

@@ -4,12 +4,12 @@ import type { ShotSpec } from '../types';
 
 const clientName = 'ShipLean demo agent';
 const redirectUri = 'http://127.0.0.1:18992/oauth/callback';
-// One real, pending request per local origin and runner process, shared by both shots/themes.
+// One real, pending request per origin/scope set and runner process, shared by both themes.
 // DCR has no deletion endpoint. This public demo client remains in the disposable runtime;
 // no consent is submitted, no tokens are issued, and the DEMO seed registry is untouched.
 const requests = new Map<string, Promise<string>>();
 
-async function prepareRequest(page: Page, origin: string): Promise<string> {
+async function prepareRequest(page: Page, origin: string, plan: boolean): Promise<string> {
   const registration = await page.request.post(`${origin}/oauth/register`, {
     data: { client_name: clientName, redirect_uris: [redirectUri], token_endpoint_auth_method: 'none' },
   });
@@ -28,7 +28,7 @@ async function prepareRequest(page: Page, origin: string): Promise<string> {
     response_type: 'code', client_id: client.client_id, redirect_uri: redirectUri,
     code_challenge: createHash('sha256').update(verifier).digest('base64url'),
     code_challenge_method: 'S256', resource: mcpUrl,
-    scope: 'shiplean:read shiplean:write', state: randomBytes(24).toString('base64url'),
+    scope: `shiplean:read shiplean:write${plan ? ' shiplean:plan' : ''}`, state: randomBytes(24).toString('base64url'),
   });
   const authorization = await page.request.get(`${origin}/oauth/authorize?${query}`, { maxRedirects: 0 });
   const location = authorization.headers().location;
@@ -40,15 +40,16 @@ async function prepareRequest(page: Page, origin: string): Promise<string> {
   return consent.href;
 }
 
-async function showConsent(page: Page) {
+async function consent(page: Page, plan: boolean) {
   const origin = new URL(page.url()).origin;
   if (!['127.0.0.1', 'localhost', '[::1]'].includes(new URL(origin).hostname)) {
     throw new Error('Consent captures require a disposable loopback runtime.');
   }
-  let request = requests.get(origin);
+  const cacheKey = `${origin}:${plan ? 'plan' : 'write'}`;
+  let request = requests.get(cacheKey);
   if (!request) {
-    request = prepareRequest(page, origin);
-    requests.set(origin, request);
+    request = prepareRequest(page, origin, plan);
+    requests.set(cacheKey, request);
   }
   await page.goto(await request);
   const client = page.getByTestId('agent-consent-client');
@@ -60,14 +61,19 @@ async function showConsent(page: Page) {
     || !await page.getByTestId('agent-consent-scope-read').isDisabled()
     || !await page.getByTestId('agent-consent-scope-write').isChecked()
     || await page.getByTestId('agent-consent-scope-write').isDisabled()
-    || await page.getByTestId('agent-consent-scope-plan').isChecked()
-    || !await page.getByTestId('agent-consent-scope-plan').isDisabled()
+    || await page.getByTestId('agent-consent-scope-plan').isChecked() !== plan
+    || await page.getByTestId('agent-consent-scope-plan').isDisabled() !== !plan
     || !await page.getByTestId('agent-consent-allow').isEnabled()
     || !await page.getByTestId('agent-consent-deny').isEnabled()) {
     throw new Error('The live consent identity or requested scopes do not match the demo.');
   }
   await page.getByTestId('agent-consent-localhost-warning').waitFor({ state: 'visible' });
 }
+
+async function showConsent(page: Page) { await consent(page, false); }
+
+// Show a real pending request for the extra scope without granting it.
+export async function showPlanConsent(page: Page) { await consent(page, true); }
 
 export const shots: ShotSpec[] = [
   { name: 'ui-authorize-overview', route: '/profile', steps: showConsent },

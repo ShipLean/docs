@@ -4,7 +4,14 @@ const sprints = '/p/DEMO/sprints';
 
 export const shots: ShotSpec[] = [
   { name: 'ui-sprints-overview', route: sprints },
-  { name: 'ui-sprints-create', route: sprints },
+  {
+    name: 'ui-sprints-create', route: sprints,
+    steps: async (page) => {
+      await page.getByTestId('sprints-new-sprint-name').fill('Sprint 2');
+      await page.getByTestId('sprints-new-sprint-goal').fill('Try the first-project guide with a new teammate');
+      await page.getByTestId('sprints-new-sprint').scrollIntoViewIfNeeded();
+    },
+  },
   {
     name: 'ui-sprints-velocity',
     route: sprints,
