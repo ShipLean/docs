@@ -79,6 +79,8 @@ Use this only if your proxy cannot send a signed token. Authelia's trusted-heade
 Anyone who can connect to ShipLean from a trusted address can claim any email by sending `Remote-Email`. Keep the backend unreachable except through the proxy. The proxy must overwrite these headers from Authelia on every request, including bypass paths, and must remove any client-supplied copies. Do not publish the ShipLean port. Prefer token mode if you cannot enforce these network controls.
 :::
 
+The NGINX example sets `client_max_body_size 40m`: NGINX defaults this request-body limit to 1 MB, while a default-size MCP attachment uses about 33.4 MiB after base64 encoding. If you increase `SHIPLEAN_ATTACHMENT_MAX_BYTES`, raise the NGINX limit to at least the resulting base64 request cap (`4 × ceil(file_limit / 3) + 64 KiB`). See the [NGINX directive reference](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size).
+
 Files: [`authelia-nginx.conf`](https://github.com/ShipLean/docs/blob/main/examples/proxy/authelia-nginx.conf) and [ShipLean environment values](https://github.com/ShipLean/docs/blob/main/examples/proxy/authelia.shiplean.env.example). See Authelia's [trusted-header SSO](https://www.authelia.com/integration/trusted-header-sso/introduction/) and [NGINX integration](https://www.authelia.com/integration/proxies/nginx/) documentation.
 
 ### Sign out through the proxy
