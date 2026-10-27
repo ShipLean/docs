@@ -183,7 +183,7 @@ Destination for the ShipLean sign-out action while proxy sign-in is active.
 
 ### `SHIPLEAN_MCP_GATEWAY_EMAIL_HEADER`
 
-Enables trusted-gateway identity for `/mcp` and names the request header carrying the caller's email. A request without a bearer token and with one non-blank header value acts as that person; a valid ShipLean bearer token continues to work.
+Enables trusted-gateway identity for `/mcp` and names the request header carrying the caller's email. One non-blank email value takes precedence over any bearer token, including a valid ShipLean agent token. If the header is absent, blank, repeated, or not a usable email, ShipLean checks the bearer token as usual; without a valid bearer the request is refused.
 
 - **Default:** Not set; `/mcp` accepts ShipLean agent bearer tokens and ignores this header.
 - **Example:** `x-user-email`
