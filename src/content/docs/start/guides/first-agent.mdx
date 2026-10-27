@@ -1,13 +1,13 @@
 ---
 title: "Connect Claude Code and capture your first idea"
-description: "the one-liner, consent, then ask the agent to research an idea and watch the Feature fill in."
+description: "Add ShipLean to Claude Code, approve the connection, then ask the agent to research an idea and review the Feature it creates or updates."
 sidebar:
   order: 14
 ---
 
 import Shot from '../../../../components/Shot.astro';
 
-Connect Claude Code to a ShipLean instance, approve the connection in your browser, then ask it to research an idea. The agent can create and update work under its own name. You remain in control of whether it gets access.
+Connect Claude Code to a ShipLean instance, approve the connection in your browser, then ask it to research an idea. The agent can create and update work under its own name. You decide whether it gets access.
 
 ## Copy your instance address
 
@@ -25,7 +25,7 @@ In a terminal, replace `<base_url>` with the address from your profile and run:
 claude mcp add --transport http shiplean --scope user <base_url>/mcp
 ```
 
-For example, if the address is `https://planning.example.com`, use `https://planning.example.com/mcp`. `--scope user` saves the server for your user account. This is Claude Code's documented HTTP MCP command form. See [Anthropic's Claude Code MCP guide](https://docs.anthropic.com/en/docs/claude-code/mcp).
+For example, if the address is `https://planning.example.com`, use `https://planning.example.com/mcp`. `--scope user` saves the server for your user account. The command uses the HTTP transport syntax that Claude Code documents. See [Anthropic's Claude Code MCP guide](https://docs.anthropic.com/en/docs/claude-code/mcp).
 
 ## Approve the connection
 
@@ -33,7 +33,7 @@ Start Claude Code in a project directory. When it first contacts ShipLean, it op
 
 <Shot name="guide-first-agent-consent" alt="ShipLean consent page showing the agent identity, requested access and Allow action." />
 
-You can review or revoke active connections from **Your profile → Connected agents**. See [Connect an agent](/agents/connect/) for client setup and [Authentication options](/agents/auth/) for scope and consent details.
+To review or revoke active connections, open **Your profile**, then **Connected agents**. See [Connect an agent](/agents/connect/) for client setup and [Authentication options](/agents/auth/) for scope and consent details.
 
 ## Ask it to research an idea
 
@@ -41,7 +41,7 @@ Give Claude a concrete idea and ask it to capture and research that idea in Ship
 
 > Illustrative prompt: Research whether new team members can find the right project after they sign in. Search for an existing Feature first. If none fits, create one in the appropriate project. Read existing notes, attach your findings and sources, update the Feature with the key facts and decision, then leave a comment and status update. Ask me before changing anything outside that research task.
 
-The text above is an example prompt, not a transcript or a promise of a particular agent response. Claude should reuse an existing Feature when one fits, or create a Feature in a **New** state, then attach findings and update its work item discussion and status.
+The text above is an example prompt. It is not a transcript, and it does not promise a particular response from the agent. Claude should reuse an existing Feature when one fits. Otherwise, it creates a Feature in the **New** state. Then it attaches the findings and updates the work item discussion and status.
 
 <Shot name="guide-first-agent-feature" alt="Feature with research attached and a summary recorded on the work item." />
 

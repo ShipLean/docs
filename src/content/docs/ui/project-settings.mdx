@@ -7,9 +7,9 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-Use project settings to manage details and options shared with everyone in the project. Project admins can edit these settings; members can view them.
+Use project settings to manage details and options shared with everyone in the project. Project admins can edit these settings. Members can view them.
 
-**Address:** `/p/:key/settings/:tab`, where `:key` is the project key and `:tab` is `general`, `states`, `members`, `sprints`, or `integrations`.
+The address is `/p/:key/settings/:tab`, where `:key` is the project key and `:tab` is `general`, `states`, `members`, `sprints`, or `integrations`.
 
 ## Overview
 
@@ -31,22 +31,22 @@ On **States**, choose a work item type and manage its states. You can add or ren
 
 ## Manage members
 
-On **Members**, add people by email, change their project role, or remove their membership. Project admins manage settings and members; other members can plan and edit work. A project must keep at least one admin.
+On **Members**, add people by email, change their project role, or remove their membership. Project admins manage settings and members. Other members can plan and edit work. A project must keep at least one admin.
 
 <Shot name="ui-project-settings-members" alt="Project members list with roles and member controls." />
 
 ## Set sprint forecast options
 
-On **Sprints & forecast**, set the velocity window: how many ended sprints are averaged. Leave the velocity override blank to use the calculated average, or enter a value in points. This tab also links to **All sprints**, where you can change dates for an individual sprint.
+On **Sprints & forecast**, set the velocity window, which is the number of ended sprints to average. Leave the velocity override blank to use the calculated average, or enter a value in points. This tab also links to **All sprints**, where you can change dates for an individual sprint.
 
 <Shot name="ui-project-settings-sprints" alt="Sprint settings with velocity window and optional velocity override." />
 
 ## Connect Jira
 
-On **Integrations**, project admins can save a Jira Cloud or Jira Server/Data Center connection and review import jobs. The token is stored encrypted and is not shown again. The connection is read-only: ShipLean reads from Jira and does not write back.
+On **Integrations**, project admins can save a Jira Cloud or Jira Server/Data Center connection and review import jobs. The token is stored encrypted and is not shown again. The connection is read-only. ShipLean reads from Jira and does not write back.
 
 <Shot name="ui-project-settings-integrations" alt="Project integrations with Jira connection and import job list." />
 
 ## Keyboard shortcut
 
-- **Ctrl+S** (Windows/Linux) or **⌘S** (macOS): save changed settings.
+- **Ctrl+S** on Windows or Linux, or **⌘S** on macOS: saves changed settings.

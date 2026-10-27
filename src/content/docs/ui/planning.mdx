@@ -7,9 +7,9 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-Use planning mode to arrange backlog items into sprint sections and see how their story points fit the available room. ShipLean forecasts in points.
+Use planning mode to arrange backlog items into sprint sections and see how their story points fit the room in each sprint. ShipLean forecasts in points.
 
-**Address:** `/p/:key/backlogs/stories?mode=planning` for the planning view. A sprint's capacity page is `/p/:key/sprints/:sprintId/capacity`.
+The planning view is at `/p/:key/backlogs/stories?mode=planning`. A sprint's capacity page is at `/p/:key/sprints/:sprintId/capacity`.
 
 ## Overview
 
@@ -17,13 +17,13 @@ Use planning mode to arrange backlog items into sprint sections and see how thei
 
 ## Plan work into sprints
 
-1. Open **Backlogs → Stories** and choose **Planning** mode.
+1. Open **Backlogs**, then **Stories**, and choose **Planning** mode.
 2. Drag stories from the backlog into a sprint section, or move them back to the backlog.
 3. Compare each section's committed points with its capacity bar. If no one has entered capacity for a sprint, the forecast uses the project's velocity instead.
 
 <Shot name="ui-planning-forecast" alt="Planning forecast comparing committed story points with sprint room." />
 
-The forecast is a planning aid. It warns when committed points exceed capacity; it does not prevent you from planning more work.
+The forecast is a planning aid. It warns when committed points exceed capacity, but it does not prevent you from planning more work.
 
 ## Enter capacity per person
 
@@ -31,10 +31,10 @@ Open the sprint's **Capacity** view. Enter each member's available capacity in p
 
 <Shot name="ui-planning-capacity" alt="Sprint capacity table with per-person points and a team total compared with committed work." />
 
-When no capacity has been entered, the team forecast uses the project’s calculated velocity or override. Capacity values are points per person, not hours or days.
+When no capacity has been entered, the team forecast uses the project's calculated velocity or override. Capacity values are points per person, not hours or days.
 
 ## Set the velocity window
 
-Open **Settings → Sprints**. Set the number of ended sprints to average. Leave the velocity override blank to use the calculated average, or enter an override in points. Planning uses the override when one is set.
+Open **Settings**, then **Sprints**. Set the number of ended sprints to average. Leave the velocity override blank to use the calculated average, or enter an override in points. Planning uses the override when one is set.
 
 <Shot name="ui-planning-velocity-window" alt="Project sprint settings with the velocity window and optional velocity override." />

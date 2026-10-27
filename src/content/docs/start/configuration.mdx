@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-Set these variables in the ShipLean service environment. Values marked **Not set** have no documented default; leave them out unless you need that option. Keep passwords, tokens, and keys in your deployment's secret store. The examples use placeholders, not working credentials.
+Set these variables in the ShipLean service environment. Values marked **Not set** have no documented default. Leave them out unless you need that option. Keep passwords, tokens, and keys in your deployment's secret store. The examples use placeholders, not working credentials.
 
 ## Database
 
@@ -15,7 +15,7 @@ Connection string for the required PostgreSQL database.
 
 - **Default:** None; required.
 - **Example:** `Host=db;Database=shiplean;Username=shiplean;Password=<database-password>`
-- **Set it when:** Always. Point it at the database used by this ShipLean instance.
+- **Set it when:** Always. Point it at the database that this ShipLean instance uses.
 
 ### `SHIPLEAN_DB_MIGRATE`
 
@@ -23,25 +23,25 @@ Controls whether ShipLean applies its database schema and migrations at startup.
 
 - **Default:** `true`.
 - **Example:** `false`
-- **Set it when:** Set to `false` only when you manage schema changes separately.
+- **Set it when:** Set it to `false` only when you manage schema changes separately.
 
 ## First admin
 
 ### `SHIPLEAN_ADMIN_EMAIL`
 
-Email for the first instance admin. With password sign-in, use it with `SHIPLEAN_ADMIN_PASSWORD`. With an identity proxy, the email alone is enough.
+Email address of the first instance admin. With password sign-in, set it together with `SHIPLEAN_ADMIN_PASSWORD`. With an identity proxy, the email address alone is enough.
 
 - **Default:** Not set.
 - **Example:** `admin@example.com`
-- **Set it when:** You are bootstrapping the first instance admin. Remove it after sign-in when you followed the quick start.
+- **Set it when:** You are creating the first instance admin. If you followed the quick start, remove it after you sign in.
 
 ### `SHIPLEAN_ADMIN_PASSWORD`
 
-Password used when creating or finding the first instance admin with password sign-in. In proxy mode it is ignored, with a warning.
+Password used to create or find the first instance admin when you sign in with a password. In proxy mode, ShipLean ignores it and logs a warning.
 
 - **Default:** Not set.
 - **Example:** `<initial-admin-password>`
-- **Set it when:** You are bootstrapping the first instance admin with email and password sign-in. Do not keep it in the environment after setup.
+- **Set it when:** You are creating the first instance admin with email and password sign-in. Remove it from the environment after setup.
 
 ## Attachments and blob storage
 
@@ -49,57 +49,57 @@ Password used when creating or finding the first instance admin with password si
 
 Folder used for attachments and profile photos when neither blob connection is set.
 
-- **Default:** `data/blobs` below the app folder; the Compose setup uses `/data/blobs` on a named volume.
+- **Default:** `data/blobs` in the app folder. The Compose setup uses `/data/blobs` on a named volume.
 - **Example:** `/data/blobs`
-- **Set it when:** You use folder storage and need to choose its persistent path. For multiple instances, use Postgres or S3 instead.
+- **Set it when:** You use folder storage and need to choose its persistent path. For multiple instances, use PostgreSQL or S3 instead.
 
 ### `SHIPLEAN_BLOB_DB_CONNECTION`
 
-PostgreSQL connection string for storing attachments and profile photos in a database table. It may point to the same database as `SHIPLEAN_DB_CONNECTION` or a separate one. ShipLean creates the table at startup when `SHIPLEAN_DB_MIGRATE` is enabled.
+PostgreSQL connection string for storing attachments and profile photos in a database table. It can point to the same database as `SHIPLEAN_DB_CONNECTION` or to a separate one. ShipLean creates the table at startup when `SHIPLEAN_DB_MIGRATE` is enabled.
 
 - **Default:** Not set.
 - **Example:** `Host=db;Database=shiplean;Username=shiplean;Password=<database-password>`
-- **Set it when:** You want database-backed blobs, especially when multiple instances run or the app has no persistent disk.
+- **Set it when:** You want database-backed storage for attachments and photos, especially when several instances run or the app has no persistent disk.
 
 ### `SHIPLEAN_BLOB_S3_CONNECTION`
 
-Connection settings for an S3 bucket. Separate `name=value` settings with semicolons. `bucket` is required; set `region` or `serviceUrl`; set both `accessKey` and `secretKey`, or leave both out to use the AWS default credentials chain. `forcePathStyle` and `prefix` are optional. The bucket must already exist.
+Connection settings for an S3 bucket. Separate the `name=value` settings with semicolons. `bucket` is required. Set `region` or `serviceUrl`. Set both `accessKey` and `secretKey`, or leave both out to use the AWS default credentials chain. `forcePathStyle` and `prefix` are optional. The bucket must already exist.
 
 - **Default:** Not set.
 - **Example:** `bucket=shiplean;region=ap-southeast-1;prefix=prod/`
-- **Set it when:** You want attachments and photos in AWS S3 or an S3-compatible service such as R2 or RustFS, especially for multiple instances or when app disk is not persistent.
+- **Set it when:** You want attachments and photos in AWS S3 or an S3-compatible service such as R2 or RustFS, especially for multiple instances or when the app disk is not persistent.
 
-ShipLean chooses the first configured store in this order: `SHIPLEAN_BLOB_S3_CONNECTION`, then `SHIPLEAN_BLOB_DB_CONNECTION`, then the folder at `SHIPLEAN_BLOB_ROOT`. Startup logs the selected store and reason with passwords and secret keys omitted. It warns when both connection settings are present. Changing stores does not move existing files; files remain in the old store.
+ShipLean chooses the first configured store in this order: `SHIPLEAN_BLOB_S3_CONNECTION`, then `SHIPLEAN_BLOB_DB_CONNECTION`, then the folder at `SHIPLEAN_BLOB_ROOT`. Startup logs the selected store and the reason, and it omits passwords and secret keys. It logs a warning when both connection settings are present. Changing stores does not move existing files. They stay in the old store.
 
 ### `SHIPLEAN_ATTACHMENT_MAX_BYTES`
 
 Maximum size of one attachment accepted through uploads and imports, in bytes.
 
-- **Default:** `26214400` (25 MiB).
-- **Example:** `52428800` (50 MiB).
-- **Set it when:** You need to allow a different maximum size for one file.
+- **Default:** `26214400`, which is 25 MiB.
+- **Example:** `52428800`, which is 50 MiB.
+- **Set it when:** You need a different per-file maximum.
 
 ### `SHIPLEAN_ATTACHMENT_MAX_ITEM_BYTES`
 
-Maximum total attachment bytes held by one work item, counting live files. Replaced files stop counting, but each file still has to meet `SHIPLEAN_ATTACHMENT_MAX_BYTES`.
+Maximum total size of the attachments on one work item. Only live files count toward it. Replaced files stop counting, but each file must still meet `SHIPLEAN_ATTACHMENT_MAX_BYTES`.
 
-- **Default:** `262144000` (250 MiB).
-- **Example:** `524288000` (500 MiB).
-- **Set it when:** You need a different total attachment allowance per work item.
+- **Default:** `262144000`, which is 250 MiB.
+- **Example:** `524288000`, which is 500 MiB.
+- **Set it when:** You need a different total allowance for each work item.
 
 ## Reverse proxy
 
 ### `SHIPLEAN_TRUSTED_PROXIES`
 
-Comma-separated addresses or CIDRs for reverse proxies whose forwarded client address and scheme ShipLean trusts. The published app trusts loopback peers by default; it does not implicitly trust a container network.
+Comma-separated addresses or CIDR ranges of the reverse proxies that ShipLean trusts for forwarded client addresses and schemes. The published app trusts loopback peers by default. It does not trust a container network unless you list it here.
 
-- **Default:** Loopback peers are trusted. The published app does not implicitly trust a proxy network.
+- **Default:** Loopback peers are trusted. A proxy network is not trusted by default.
 - **Example:** `10.0.0.12`
-- **Set it when:** Your reverse proxy connects from an address outside loopback. Use the address ShipLean sees as the proxy peer. The supplied Caddy Compose example explicitly sets `172.31.251.2/32` for its Caddy container; use the address or CIDR for your own proxy setup.
+- **Set it when:** Your reverse proxy connects from an address outside loopback. Use the address that ShipLean sees as the proxy peer. The supplied Caddy Compose example sets `172.31.251.2/32` for its Caddy container. For your own proxy, use the address or CIDR range that applies to it.
 
 ### `SHIPLEAN_FORWARDED_FOR_HEADER`
 
-Header name containing the original client address when your proxy sets its own forwarded-address header.
+Name of the header that holds the original client address when your proxy uses its own forwarded-address header.
 
 - **Default:** `X-Forwarded-For`.
 - **Example:** `CF-Connecting-IP`
@@ -109,25 +109,25 @@ Header name containing the original client address when your proxy sets its own 
 
 ### `SHIPLEAN_AUTH_PROXY_TOKEN_HEADER`
 
-Enables the recommended identity-proxy sign-in mode and names the request header carrying the proxy's signed JWT. ShipLean verifies the token on every request. Configure `SHIPLEAN_AUTH_PROXY_TOKEN_ISSUER` too.
+Enables the recommended identity-proxy sign-in mode. It names the request header that carries the proxy's signed JWT. ShipLean verifies the token on every request. Also set `SHIPLEAN_AUTH_PROXY_TOKEN_ISSUER`.
 
-- **Default:** Not set; email-and-password sign-in remains active.
+- **Default:** Not set. Email and password sign-in stays active.
 - **Example:** `Cf-Access-Jwt-Assertion`
-- **Set it when:** Your proxy forwards a signed identity token. Common header names are `X-Forwarded-Access-Token` (oauth2-proxy), `Cf-Access-Jwt-Assertion` (Cloudflare Access), and `X-Pomerium-Jwt-Assertion` (Pomerium). Use `Authorization` to read a Bearer token.
+- **Set it when:** Your proxy forwards a signed identity token. Common header names are `X-Forwarded-Access-Token` for oauth2-proxy, `Cf-Access-Jwt-Assertion` for Cloudflare Access, and `X-Pomerium-Jwt-Assertion` for Pomerium. Use `Authorization` to read a Bearer token.
 
 ### `SHIPLEAN_AUTH_PROXY_TOKEN_ISSUER`
 
-Expected `iss` value for the identity token. ShipLean obtains signing keys from the issuer's `/.well-known/openid-configuration` discovery document unless a JWKS URL is set.
+Expected `iss` value of the identity token. ShipLean gets the signing keys from the issuer's `/.well-known/openid-configuration` discovery document, unless you set a JWKS URL.
 
-- **Default:** Not set; required with `SHIPLEAN_AUTH_PROXY_TOKEN_HEADER`.
+- **Default:** Not set. Required with `SHIPLEAN_AUTH_PROXY_TOKEN_HEADER`.
 - **Example:** `https://login.example.com/`
-- **Set it when:** You enable token-based proxy sign-in. Use an absolute HTTPS URL; HTTP is allowed only for loopback.
+- **Set it when:** You enable token-based proxy sign-in. Use an absolute HTTPS URL. HTTP is allowed only for loopback addresses.
 
 ### `SHIPLEAN_AUTH_PROXY_TOKEN_JWKS_URL`
 
-Overrides discovery with an explicit key-set URL for an issuer without a discovery document.
+Sets an explicit key-set URL in place of discovery, for an issuer that has no discovery document.
 
-- **Default:** Not set; discovery is used.
+- **Default:** Not set. Discovery is used.
 - **Example:** `https://team.example.cloudflareaccess.com/cdn-cgi/access/certs`
 - **Set it when:** Your identity provider requires a direct JWKS URL, such as Cloudflare Access. It follows the same URL rule as the issuer.
 
@@ -135,21 +135,21 @@ Overrides discovery with an explicit key-set URL for an issuer without a discove
 
 Expected audience claim in the signed identity token.
 
-- **Default:** Not set; no audience value is configured.
+- **Default:** Not set. No audience value is checked.
 - **Example:** `shiplean.example.com`
-- **Set it when:** You want ShipLean to require a particular value in the token's `aud` claim.
+- **Set it when:** You want ShipLean to require a specific value in the token's `aud` claim.
 
 ### `SHIPLEAN_AUTH_PROXY_EMAIL_CLAIM`
 
-Claim name holding the signed-in person's email address.
+Name of the claim that holds the signed-in person's email address.
 
 - **Default:** `email`.
 - **Example:** `preferred_username`
-- **Set it when:** Your identity provider stores email under a different claim name.
+- **Set it when:** Your identity provider stores the email address under a different claim name.
 
 ### `SHIPLEAN_AUTH_PROXY_NAME_CLAIM`
 
-Claim name holding the person's display name. If the claim is missing, a new user's name is the part of their email before `@`.
+Name of the claim that holds the person's display name. If the claim is missing, a new user's name is the part of their email address before `@`.
 
 - **Default:** `name`.
 - **Example:** `display_name`
@@ -157,15 +157,15 @@ Claim name holding the person's display name. If the claim is missing, a new use
 
 ### `SHIPLEAN_AUTH_PROXY_EMAIL_HEADER`
 
-Enables proxy sign-in using an email header when the proxy sends no signed token. ShipLean trusts this header only from loopback and addresses in `SHIPLEAN_TRUSTED_PROXIES`. Do not set it together with `SHIPLEAN_AUTH_PROXY_TOKEN_HEADER`.
+Enables proxy sign-in with an email header when the proxy sends no signed token. ShipLean trusts this header only from loopback addresses and from addresses in `SHIPLEAN_TRUSTED_PROXIES`. Do not set it together with `SHIPLEAN_AUTH_PROXY_TOKEN_HEADER`.
 
-- **Default:** Not set; plain-header proxy sign-in is off.
+- **Default:** Not set. Plain-header proxy sign-in is off.
 - **Example:** `Remote-Email`
-- **Set it when:** Your proxy provides a trusted email header, such as Authelia's `Remote-Email`, and only the proxy can reach ShipLean. A direct client that can set this header can act as any email.
+- **Set it when:** Your proxy provides a trusted email header, such as Authelia's `Remote-Email`, and only the proxy can reach ShipLean. A direct client that can set this header can sign in as any email address.
 
 ### `SHIPLEAN_AUTH_PROXY_NAME_HEADER`
 
-Optional header containing a display name in plain-header proxy mode.
+Optional header that holds a display name in plain-header proxy mode.
 
 - **Default:** Not set.
 - **Example:** `Remote-Name`
@@ -175,27 +175,27 @@ Optional header containing a display name in plain-header proxy mode.
 
 Destination for the ShipLean sign-out action while proxy sign-in is active.
 
-- **Default:** Not set; the sign-out action is hidden.
+- **Default:** Not set. The sign-out action is hidden.
 - **Example:** `/oauth2/sign_out`
-- **Set it when:** You want sign-out to send the person to the proxy's sign-out route or another HTTP(S) destination.
+- **Set it when:** You want sign-out to send the person to the proxy's sign-out route, or to another HTTP or HTTPS destination.
 
 ## MCP gateway
 
 ### `SHIPLEAN_MCP_GATEWAY_EMAIL_HEADER`
 
-Enables trusted-gateway identity for `/mcp` and names the request header carrying the caller's email. One non-blank email value takes precedence over any bearer token, including a valid ShipLean agent token. If the header is absent, blank, repeated, or not a usable email, ShipLean checks the bearer token as usual; without a valid bearer the request is refused.
+Enables trusted-gateway identity for `/mcp`. It names the request header that carries the caller's email. A non-blank email value in this header takes precedence over any bearer token, including a valid ShipLean agent token. If the header is absent, blank, repeated, or not a usable email, ShipLean checks the bearer token as usual. Without a valid bearer token, the request is refused.
 
-- **Default:** Not set; `/mcp` accepts ShipLean agent bearer tokens and ignores this header.
+- **Default:** Not set. `/mcp` accepts ShipLean agent bearer tokens and ignores this header.
 - **Example:** `x-user-email`
-- **Set it when:** A sidecar, policy proxy, or ingress writes this header and removes any client-supplied copy, and clients cannot reach `/mcp` directly. A client that can set it can act as any email. Project membership still limits board access.
+- **Set it when:** A sidecar, policy proxy, or ingress writes this header and removes any copy that a client supplies, and clients cannot reach `/mcp` directly. A client that can set this header can act as any email address. Project membership still limits board access.
 
 ## GitHub/GitLab integration
 
-Environment integration settings are defaults. Saved settings under **Instance settings → Integrations** override `SHIPLEAN_GITHUB_TOKEN`, `SHIPLEAN_GITLAB_URL`, and `SHIPLEAN_GITLAB_TOKEN`. The GitHub API URL is environment-only. A saved GitLab URL uses its saved token rather than mixing in the environment token. Clearing the saved GitLab URL restores the environment pair. Tokens are sent only to HTTPS API addresses.
+Environment integration settings are defaults. Settings saved in the **Integrations** section of **Instance settings** override `SHIPLEAN_GITHUB_TOKEN`, `SHIPLEAN_GITLAB_URL`, and `SHIPLEAN_GITLAB_TOKEN`. Only the environment sets the GitHub API URL. A saved GitLab URL uses its saved token and never combines with the environment token. Clearing the saved GitLab URL restores the environment pair. Tokens are sent only to HTTPS API addresses.
 
 ### `SHIPLEAN_GITHUB_TOKEN`
 
-GitHub token that lets Feature pull-request and issue links show live titles and states, including for private repositories. Without it, only public repositories can be read.
+GitHub token that lets Feature pull request and issue links show live titles and states, including for private repositories. Without it, ShipLean reads only public repositories.
 
 - **Default:** Not set.
 - **Example:** `<github-read-token>`
@@ -203,7 +203,7 @@ GitHub token that lets Feature pull-request and issue links show live titles and
 
 ### `SHIPLEAN_GITHUB_API_URL`
 
-GitHub API base address. This value is configured by the environment and is not overridden in Instance settings.
+GitHub API base address. Only the environment sets this value. Instance settings cannot override it.
 
 - **Default:** `https://api.github.com`.
 - **Example:** `https://github.example.com/api/v3`
@@ -211,7 +211,7 @@ GitHub API base address. This value is configured by the environment and is not 
 
 ### `SHIPLEAN_GITLAB_URL`
 
-GitLab host used to read merge-request and issue links. Links on other GitLab hosts remain ordinary page links. When unset, GitLab links are not read.
+GitLab host whose merge request and issue links ShipLean reads. Links to other GitLab hosts remain ordinary page links. When this setting is unset, ShipLean does not read GitLab links.
 
 - **Default:** Not set.
 - **Example:** `https://gitlab.example.com`
@@ -219,53 +219,53 @@ GitLab host used to read merge-request and issue links. Links on other GitLab ho
 
 ### `SHIPLEAN_GITLAB_TOKEN`
 
-GitLab token that can read merge requests and issues. It is used only with `SHIPLEAN_GITLAB_URL` and sent only when that URL is HTTPS.
+GitLab token that can read merge requests and issues. ShipLean uses it only with `SHIPLEAN_GITLAB_URL`, and sends it only when that URL is HTTPS.
 
 - **Default:** Not set.
 - **Example:** `<gitlab-read-token>`
-- **Set it when:** You need live link cards from a private GitLab project. A saved GitLab URL in Instance settings uses its matching saved token instead.
+- **Set it when:** You need live link cards from a private GitLab project. A GitLab URL saved in Instance settings uses its own saved token instead.
 
 ## Webhooks
 
 ### `SHIPLEAN_GITHUB_WEBHOOK_SECRET`
 
-Secret expected on GitHub webhook requests. Setting it enables `POST /api/webhooks/github`; otherwise that endpoint returns 404.
+Secret that ShipLean expects on GitHub webhook requests. Setting it enables `POST /api/webhooks/github`. Without it, that endpoint returns 404.
 
-- **Default:** Not set; the endpoint is off.
+- **Default:** Not set. The endpoint is off.
 - **Example:** `<github-webhook-secret>`
-- **Set it when:** You configure the GitHub webhook so pull requests can link to work items, show their state, and close linked items on merge.
+- **Set it when:** You configure the GitHub webhook so that pull requests can link to work items, show their state, and close linked items on merge.
 
 ### `SHIPLEAN_GITLAB_WEBHOOK_SECRET`
 
-Secret expected on GitLab webhook requests. Setting it enables `POST /api/webhooks/gitlab`; otherwise that endpoint returns 404.
+Secret that ShipLean expects on GitLab webhook requests. Setting it enables `POST /api/webhooks/gitlab`. Without it, that endpoint returns 404.
 
-- **Default:** Not set; the endpoint is off.
+- **Default:** Not set. The endpoint is off.
 - **Example:** `<gitlab-webhook-secret>`
-- **Set it when:** You configure the GitLab webhook so merge requests can link to work items, show their state, and close linked items on merge.
+- **Set it when:** You configure the GitLab webhook so that merge requests can link to work items, show their state, and close linked items on merge.
 
-## Multiple instances (Redis)
+## Multiple instances with Redis
 
 ### `SHIPLEAN_REDIS_CONNECTION`
 
-StackExchange.Redis connection string. With multiple ShipLean instances, Redis carries the SignalR backplane plus shared presence and member-removal messages. The load balancer still needs sticky sessions so SignalR negotiate and WebSocket requests reach the same instance. Redis must be reachable when ShipLean starts.
+StackExchange.Redis connection string. With multiple ShipLean instances, Redis carries the SignalR backplane, along with shared presence and member-removal messages. The load balancer still needs sticky sessions, so that SignalR negotiate and WebSocket requests reach the same instance. Redis must be reachable when ShipLean starts.
 
-- **Default:** Not set; real-time state remains in process.
+- **Default:** Not set. Real-time state stays in each process.
 - **Example:** `redis:6379,password=<redis-password>,channelPrefix=shiplean-prod`
-- **Set it when:** You run more than one instance. If deployments share a Redis server, set a different `channelPrefix` for each; the default prefix is `shiplean`.
+- **Set it when:** You run more than one instance. If deployments share a Redis server, set a different `channelPrefix` for each. The default prefix is `shiplean`.
 
-## Logging (Seq)
+## Logging with Seq
 
 ### `SHIPLEAN_SEQ_URL`
 
-Seq server address to receive application logs in addition to the console.
+Address of the Seq server that receives application logs, in addition to the console.
 
-- **Default:** Not set; Seq logging is off.
+- **Default:** Not set. Seq logging is off.
 - **Example:** `http://seq:5341`
 - **Set it when:** You want ShipLean logs sent to your Seq server.
 
 ### `SHIPLEAN_SEQ_API_KEY`
 
-API key used to authenticate ShipLean's Seq log connection.
+API key that ShipLean uses to authenticate its connection to Seq.
 
 - **Default:** Not set.
 - **Example:** `<seq-api-key>`
@@ -273,27 +273,27 @@ API key used to authenticate ShipLean's Seq log connection.
 
 ## OpenTelemetry
 
-ShipLean can export traces, metrics, and logs over OTLP to a collector or backend. Set `OTEL_EXPORTER_OTLP_ENDPOINT` to enable all three signals. Without an endpoint, OpenTelemetry export is off. Console logs and the optional Seq sink continue to work as before.
+ShipLean can export traces, metrics, and logs over OTLP to a collector or backend. Set `OTEL_EXPORTER_OTLP_ENDPOINT` to enable all three signals. Without an endpoint, OpenTelemetry export is off. Console logs and the optional Seq sink keep working as before.
 
 ### `OTEL_EXPORTER_OTLP_ENDPOINT`
 
 OTLP collector address. Setting this variable enables traces, metrics, and logs.
 
-- **Default:** Not set; OTLP export is off.
+- **Default:** Not set. OTLP export is off.
 - **Example:** `https://otel-collector.example.com`
 - **Set it when:** You want ShipLean telemetry sent to an OTLP collector, Grafana Alloy, or another compatible backend.
 
 ### `OTEL_EXPORTER_OTLP_PROTOCOL`
 
-OTLP transport protocol. ShipLean supports `grpc` and `http/protobuf`. With `http/protobuf`, signal paths are appended to the endpoint; for example, logs use `/v1/logs`.
+OTLP transport protocol. ShipLean supports `grpc` and `http/protobuf`. With `http/protobuf`, the exporter appends signal paths to the endpoint. For example, logs use `/v1/logs`.
 
-- **Default:** SDK-dependent; typically `grpc` or `http/protobuf`.
+- **Default:** Depends on the SDK. Usually `grpc` or `http/protobuf`.
 - **Example:** `http/protobuf`
-- **Set it when:** Your collector requires a particular OTLP transport. Choose one it accepts.
+- **Set it when:** Your collector requires a particular transport. Choose one that it accepts.
 
 ### `OTEL_EXPORTER_OTLP_HEADERS`
 
-Comma-separated `key=value` headers sent with telemetry exports. Use this for collector credentials such as an API key.
+Comma-separated `key=value` headers sent with telemetry exports. Use it for collector credentials, such as an API key.
 
 - **Default:** No additional headers.
 - **Example:** `api-key=<collector-api-key>`
@@ -319,17 +319,17 @@ Additional comma-separated `key=value` resource attributes added to telemetry.
 
 ### `SHIPLEAN_JIRA_ALLOW_LOCAL_ENDPOINTS`
 
-Allows Jira import addresses that are local, and permits plain HTTP to any host. HTTP sends the token without encryption.
+Allows local Jira import addresses, and permits plain HTTP to any host. Over HTTP, the token is sent without encryption.
 
-- **Default:** Off (`false`).
+- **Default:** Off, which is `false`.
 - **Example:** `true`
-- **Set it when:** Jira is on your own network and you need to import from a local endpoint. Leave it off otherwise.
+- **Set it when:** Jira runs on your own network and you need to import from a local endpoint. Leave it off otherwise.
 
 ## Search
 
 ### `SHIPLEAN_EMBEDDINGS`
 
-Controls semantic search. When a model is loaded, `on` ranks by meaning as well as words; `off` keeps search lexical.
+Controls semantic search. When a model is loaded, `on` ranks results by meaning as well as by words. `off` keeps search lexical, which means it matches words only.
 
 - **Default:** `on`.
 - **Example:** `off`
@@ -337,11 +337,11 @@ Controls semantic search. When a model is loaded, `on` ranks by meaning as well 
 
 ### `SHIPLEAN_EMBEDDINGS_MODEL_PATH`
 
-Folder containing the embedding model files. The published image sets this to `/app/models/multilingual-e5-small`.
+Folder that contains the embedding model files. The published image sets this to `/app/models/multilingual-e5-small`.
 
 - **Default:** `/app/models/multilingual-e5-small` in the published image.
 - **Example:** `/app/models/multilingual-e5-small`
-- **Set it when:** You run the published image with a model mounted at a different path. An unreadable or missing model leaves search lexical and `/health` reports why.
+- **Set it when:** You run the published image with a model mounted at a different path. An unreadable or missing model leaves search lexical, and `/health` reports the reason.
 
 ### `SHIPLEAN_SEARCH_CHUNK_CHARS`
 
@@ -353,7 +353,7 @@ Length in characters of each text chunk created for indexing.
 
 ### `SHIPLEAN_SEARCH_CHUNK_OVERLAP`
 
-Number of neighbouring characters repeated between indexed text chunks.
+Number of characters that consecutive indexed chunks repeat.
 
 - **Default:** `150`.
 - **Example:** `150`
@@ -361,7 +361,7 @@ Number of neighbouring characters repeated between indexed text chunks.
 
 ### `SHIPLEAN_SEARCH_CUTOFF`
 
-Lowest semantic similarity score, from 0 to 1, accepted as a meaning match.
+Lowest semantic similarity score, from 0 to 1, that counts as a meaning match.
 
 - **Default:** `0.84` for the published embedding model.
 - **Example:** `0.84`
@@ -373,11 +373,11 @@ Maximum number of results kept from each ranked search list before merging.
 
 - **Default:** `100`.
 - **Example:** `100`
-- **Set it when:** You need to change how many candidates are considered from each list.
+- **Set it when:** You need to change how many candidates each list contributes.
 
 ### `SHIPLEAN_SEARCH_RRF_K`
 
-Reciprocal-rank-fusion constant used to merge ranked result lists.
+Reciprocal rank fusion constant that merges ranked result lists.
 
 - **Default:** `60`.
 - **Example:** `60`
@@ -397,7 +397,7 @@ Number of ONNX Runtime intra-op threads used for embedding.
 
 - **Default:** `1`.
 - **Example:** `1`
-- **Set it when:** You need to change embedding thread use on your host.
+- **Set it when:** You need to change how many threads embedding uses on your host.
 
 ### `SHIPLEAN_SEARCH_FIRST_PASS_SECONDS`
 
@@ -423,7 +423,7 @@ Host port published for the ShipLean web app by the Compose setup.
 
 - **Default:** `8080` in the product Compose file.
 - **Example:** `8081`
-- **Set it when:** Host port 8080 is already in use or you want a different local port.
+- **Set it when:** Host port 8080 is already in use, or you want a different local port.
 
 ### `SHIPLEAN_PG_PORT`
 
@@ -431,6 +431,6 @@ Host port published for PostgreSQL by the Compose setup.
 
 - **Default:** `5432` in the product Compose file.
 - **Example:** `5433`
-- **Set it when:** Host port 5432 is already in use or you want a different local port.
+- **Set it when:** Host port 5432 is already in use, or you want a different local port.
 
 The Compose table also has `POSTGRES_PASSWORD`, which sets PostgreSQL's password. It is not a `SHIPLEAN_*` variable.

@@ -12,16 +12,16 @@ ShipLean is a self-hosted planning app for one team. A project contains its memb
 - **Plan in backlogs.** Rank Stories, Features, and Epics. Switch between a list and a tree, filter items, and see points and progress roll up from child Stories and Bugs.
 - **Track work on boards.** Map each work item type's states to columns. Set work-in-progress limits, swimlanes, card fields, styles, and a definition of done.
 - **Plan sprints.** Set capacity per person, use the forecast to fill upcoming sprints, then follow the sprint backlog, burndown, and velocity chart.
-- **Move sprint work on the taskboard.** See the sprint's Stories and Bugs against Task states, grouped by Story or person.
+- **Move sprint work on the taskboard.** See the sprint's Stories and Bugs with their Task states, grouped by Story or by person.
 - **Keep work together.** Work items have fields, Tasks, a Markdown discussion, links, attachments, and revision history.
-- **Configure a project.** Set its permanent 2–4 letter key, working days, members, states for each work item type, and the forecast's velocity window.
+- **Configure a project.** Set its permanent key of two to four letters, its working days, its members, the states for each work item type, and the velocity window that the forecast uses.
 - **Import a Jira project.** Map it into one ShipLean project, review progress and errors, and rerun the import when needed.
 - **Manage the instance.** Admins manage users, one-time passwords, lockouts, project creation, and instance-admin access.
-- **Connect agents over MCP.** Approve an agent in the browser; it can then read and write work items under its own name.
+- **Connect agents over MCP.** Approve an agent in the browser. The agent can then read and write work items under its own name.
 
 ## How work items fit together
 
-Epics hold Features. A Feature can hold smaller Features, Stories, and Bugs. Stories and Bugs hold Tasks. This lets you keep a broad area, its planned outcomes, and the work that implements them in one hierarchy.
+Epics hold Features. A Feature can hold smaller Features, Stories, and Bugs. Stories and Bugs hold Tasks. The hierarchy keeps a broad area, its planned outcomes, and the work that delivers them in one place.
 
 <figure aria-labelledby="work-hierarchy-caption" style="margin: 2rem 0;">
   <svg viewBox="0 0 760 286" role="img" aria-labelledby="work-hierarchy-title work-hierarchy-desc" style="width: 100%; height: auto; color: var(--sl-color-gray-3);">
@@ -54,9 +54,8 @@ Epics hold Features. A Feature can hold smaller Features, Stories, and Bugs. Sto
   <figcaption id="work-hierarchy-caption" style="color: var(--sl-color-gray-2); font-size: 0.9rem; text-align: center;">A Feature can contain another Feature, a Story, or a Bug. Stories and Bugs can each contain Tasks.</figcaption>
 </figure>
 
-Every type has its own states. Each state belongs to one category: **Proposed**, **In Progress**, **Resolved**, **Completed**, or **Removed**. You can choose the states for each type in project settings; boards map columns to those states. The app uses categories for shared behavior, such as recognizing completed work.
+Every type has its own states. Each state belongs to one category: **Proposed**, **In Progress**, **Resolved**, **Completed**, or **Removed**. You choose the states for each type in project settings, and boards map columns to those states. The app uses categories for shared behavior, such as detecting completed work.
 
-Estimates use story points. ShipLean does not hard-delete work: move an item to a Removed state or archive it. Sprints are flat time boxes, with capacity recorded per person.
+Estimates use story points. ShipLean does not hard-delete work. To remove an item, move it to a Removed state or archive it. Sprints are flat time boxes. Each sprint records capacity per person.
 
 For the full model and its design decisions, see [the public issue #1](https://github.com/ShipLean/ShipLean/issues/1).
-

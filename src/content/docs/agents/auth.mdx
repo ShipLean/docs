@@ -7,18 +7,18 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-ShipLean supports two ways to authenticate MCP requests. OAuth is the usual choice when each person connects their own agent. A trusted gateway header is for deployments where a policy proxy has already identified each person.
+ShipLean supports two ways to authenticate MCP requests. Use OAuth when each person connects their own agent. Use a trusted gateway header when a policy proxy has already identified each person.
 
 ## OAuth for an agent
 
-When a client first contacts `/mcp`, ShipLean sends an authorization challenge. The client opens a browser, you sign in, and ShipLean shows a consent page. You can allow or deny the requested scopes.
+When a client first contacts `/mcp`, ShipLean sends an authorization challenge. The client opens a browser. You sign in, and ShipLean shows a consent page where you can allow or deny the requested scopes.
 
-ShipLean's clients are public: they do not keep a client secret. They use the OAuth authorization-code flow with PKCE and the `S256` challenge method. The client identity can come from:
+ShipLean's clients are public, so they do not keep a client secret. They use the OAuth authorization-code flow with PKCE and the `S256` challenge method. The client identity comes from one of two sources:
 
-- a **Client ID Metadata Document**: the client identifier is an HTTPS URL that serves the client's name and redirect addresses. ShipLean can verify the identity and show its host on the consent page;
-- **dynamic client registration**: the client registers its name and redirect addresses with ShipLean. ShipLean labels it unverified.
+- a **Client ID Metadata Document**. The client identifier is an HTTPS URL that serves the client's name and redirect addresses. ShipLean can verify the identity and show its host on the consent page.
+- **Dynamic client registration**. The client registers its name and redirect addresses with ShipLean. ShipLean labels it unverified.
 
-The [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) describes these client registration methods. ShipLean prefers a metadata document when the client provides one and supports dynamic registration as a fallback.
+The [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) describes these client registration methods. ShipLean prefers a metadata document when the client provides one, and it supports dynamic registration as a fallback.
 
 <Shot name="agents-auth-consent" alt="OAuth consent showing the client identity, verification status, scopes, and Allow or Deny controls." />
 
@@ -28,7 +28,7 @@ An access token lasts **1 hour**. A refresh token lasts **90 days from its last 
 
 ### Revoke or reconnect
 
-To revoke one connection, open **Your profile → Connected agents** and choose **Revoke**. The client can also revoke its token through the OAuth revoke endpoint. Its next MCP request is refused.
+To revoke one connection, open **Your profile**, go to **Connected agents**, and choose **Revoke**. The client can also revoke its token through the OAuth revoke endpoint. Its next MCP request is refused.
 
 The following changes also invalidate connected agents:
 
@@ -38,17 +38,17 @@ The following changes also invalidate connected agents:
 - archiving the client;
 - changing the instance base URL.
 
-After a password or base URL change, update the client's server address if needed and authenticate again. For other account changes, reconnect the client after the old authorization has been invalidated.
+After a password or base URL change, update the client's server address if needed, and authenticate again. For other account changes, reconnect the client once the old authorization is invalid.
 
 ## Trusted gateway header
 
-Set `SHIPLEAN_MCP_GATEWAY_EMAIL_HEADER` to the name of a header your trusted gateway sets after it authenticates a person. For example, to use `x-user-email`, configure ShipLean with:
+Set `SHIPLEAN_MCP_GATEWAY_EMAIL_HEADER` to the name of a header that your trusted gateway sets after it authenticates a person. For example, to use `x-user-email`, configure ShipLean with:
 
 ```sh
 SHIPLEAN_MCP_GATEWAY_EMAIL_HEADER=x-user-email
 ```
 
-At the gateway, remove any `x-user-email` value supplied by the incoming client, then set the header to the authenticated person's email on requests forwarded to `/mcp`. For an Nginx-style proxy, the forwarding rule has this shape:
+At the gateway, strip any `x-user-email` value that the incoming client supplies. Then set the header to the authenticated person's email on requests forwarded to `/mcp`. For an Nginx-style proxy, the forwarding rule looks like this:
 
 ```nginx
 location /mcp {
@@ -57,12 +57,12 @@ location /mcp {
 }
 ```
 
-Replace `$authenticated_email` with the variable your gateway sets after authentication. The proxy must overwrite the request header; do not pass through a value supplied by the client.
+Replace `$authenticated_email` with the variable your gateway sets after authentication. The proxy must overwrite the request header. Do not pass through a value the client supplied.
 
-ShipLean finds or creates the user from the email. One usable email header takes precedence over any bearer token, including a valid ShipLean agent token. If the header is absent, blank, repeated, or not a usable email, ShipLean checks the bearer as usual; without a valid bearer the request is refused. The MCP request has read, write, and plan access, but it has no agent identity: edits and comments are attributed to the person. Normal project membership still applies. A person outside a project cannot access it.
+ShipLean finds or creates the user from the email. A usable email header takes precedence over any bearer token, including a valid ShipLean agent token. If the header is absent, blank, repeated, or not a usable email, ShipLean checks the bearer token as usual. Without a valid bearer token, the request is refused. The MCP request has read, write, and plan access. It has no agent identity, so edits and comments are attributed to the person. Normal project membership still applies, and a person outside a project cannot access it.
 
 :::caution[Trust boundary]
-This header is only an identity claim; it does not authenticate itself. Use this mode only when the gateway strips and sets the header and clients cannot reach `/mcp` directly with a header they chose. Keep the ShipLean endpoint on a network the gateway controls.
+This header is only an identity claim. It does not authenticate itself. Use this mode only when the gateway strips and sets the header, and clients cannot reach `/mcp` directly with a header they chose. Keep the ShipLean endpoint on a network the gateway controls.
 :::
 
 ## Compare the options

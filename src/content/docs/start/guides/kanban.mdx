@@ -1,19 +1,19 @@
 ---
 title: "Run Kanban"
-description: "board columns mapped to states, WIP limits, split columns, definition of done, no sprints."
+description: "Map board columns to states, set WIP limits, split columns, and write a definition of done. Kanban does not need sprints."
 sidebar:
   order: 13
 ---
 
 import Shot from '../../../../components/Shot.astro';
 
-Use a board to follow work as it moves through your team's workflow. For Kanban, keep work in the backlog and move cards across the board as their state changes; you do not need to create or plan sprints.
+Use a board to follow work as it moves through your team's workflow. For Kanban, keep work in the backlog and move cards across the board as their state changes. You do not need to create or plan sprints.
 
 ## Map columns to your workflow
 
-Open **Boards → Stories → Settings → Columns**. Rename columns to match the steps your team uses, then map each Story and Bug state to its column. A column can contain more than one state. Make sure every state you use is mapped.
+Open **Boards**, select **Stories**, then open **Settings** and **Columns**. Rename columns to match the steps your team uses, then map each Story and Bug state to its column. A column can contain more than one state. Make sure every state you use is mapped.
 
-The default state names are **New**, **Active**, **Resolved**, **Closed**, and **Removed**. Your project may have different states. Each state also belongs to a workflow category; the board maps named states into columns. Removed work does not appear as a board column.
+The default state names are **New**, **Active**, **Resolved**, **Closed**, and **Removed**. Your project may have different states. Each state also belongs to a workflow category. The board maps the named states into columns. Removed work does not appear as a board column.
 
 <Shot name="guide-kanban-columns" alt="Board column settings showing column names and mapped work-item states." />
 
@@ -25,13 +25,13 @@ Set a WIP limit on a middle column to show when its card count is over the limit
 
 <Shot name="guide-kanban-wip" alt="Board showing a WIP limit and a column over that limit." />
 
-Use split columns when one state needs a clearer handoff. A middle column can be split into **Doing** and **Done** halves. The split does not create another state; both halves represent the states mapped to that column.
+Use split columns when one state needs a clearer handoff. A middle column can be split into **Doing** and **Done** halves. The split does not create another state. Both halves represent the states mapped to that column.
 
 <Shot name="guide-kanban-split" alt="Board settings with a middle column split into Doing and Done halves." />
 
 ## Agree on what done means
 
-Add a definition of done to a column in **Board settings → Columns**. Write the checks the team expects before moving an item on. The text appears on the board as a reminder; it does not automatically validate the work.
+Add a definition of done to a column on the **Columns** page of **Board settings**. Write the checks the team expects before moving an item on. The text appears on the board as a reminder. It does not automatically validate the work.
 
 <Shot name="guide-kanban-dod" alt="Column settings with a written definition of done." />
 

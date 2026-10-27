@@ -5,7 +5,7 @@ sidebar:
   order: 3
 ---
 
-This setup runs the published ShipLean image and PostgreSQL 18. Docker Compose keeps the database and uploaded files in named volumes. It publishes the app on port 8080 and keeps PostgreSQL on the local machine only.
+This setup runs the published ShipLean image and PostgreSQL 18. Docker Compose stores the database and uploaded files in named volumes. It publishes the app on port 8080 and binds PostgreSQL to the local machine only.
 
 ## 1. Download the two files
 
@@ -14,7 +14,7 @@ Create a folder for this deployment, then save these files into it:
 - [docker-compose.yml](https://raw.githubusercontent.com/ShipLean/docs/feat/docs-site/examples/quickstart/docker-compose.yml)
 - [.env](https://raw.githubusercontent.com/ShipLean/docs/feat/docs-site/examples/quickstart/.env)
 
-Open `.env` and set `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` to the email and a strong password you will use for the first instance admin. Use a long random password made of letters and digits for `POSTGRES_PASSWORD`. Keep this file private.
+Open `.env` and set `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` to the email address and a strong password for the first instance admin. Set `POSTGRES_PASSWORD` to a long random password of letters and digits. Keep this file private.
 
 ## 2. Start ShipLean
 
@@ -24,7 +24,7 @@ From that folder, run:
 docker compose up -d
 ```
 
-Open `http://localhost:8080` and sign in with the admin email and password from `.env`. Create your first project from the app. The first administrator is created when no instance admin exists. After you have signed in, remove both `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` from `.env`; they are bootstrap settings, not your ongoing sign-in settings.
+Open `http://localhost:8080` and sign in with the admin email and password from `.env`. Create your first project from the app. The first administrator is created when no instance admin exists. After you sign in, remove both `SHIPLEAN_ADMIN_EMAIL` and `SHIPLEAN_ADMIN_PASSWORD` from `.env`. They only set up the first admin. ShipLean does not use them to sign you in after setup.
 
 ## 3. Check the service
 
@@ -34,7 +34,7 @@ The health endpoint returns the running version:
 curl --fail http://localhost:8080/health
 ```
 
-If the app is not ready yet, check the service logs with `docker compose logs -f shiplean` and retry the health request.
+If the app is not ready yet, read the service logs with `docker compose logs -f shiplean` and run the health request again.
 
 ## Compose file
 
@@ -85,6 +85,6 @@ SHIPLEAN_ADMIN_EMAIL=you@example.com
 SHIPLEAN_ADMIN_PASSWORD=replace-with-a-unique-password
 ```
 
-Set different secret values before starting. Compose reads `.env` automatically. The app and database use named volumes so their data survives container replacement. This example publishes the app directly over HTTP for a local trial. For a public deployment, put a TLS reverse proxy in front of it and review [production setup](/start/production/).
+Use a different value for each secret before you start. Compose reads `.env` automatically. The app and database use named volumes, so their data survives when containers are replaced. This example publishes the app directly over HTTP for a local trial. For a public deployment, put a TLS reverse proxy in front of the app and read [production setup](/start/production/).
 
 Next: [connect an agent](/agents/connect/) or [put ShipLean behind TLS](/start/production/).
