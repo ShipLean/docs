@@ -59,7 +59,7 @@ location /mcp {
 
 Replace `$authenticated_email` with the variable your gateway sets after authentication. The proxy must overwrite the request header; do not pass through a value supplied by the client.
 
-ShipLean finds or creates the user from the email. The MCP request has read, write, and plan access, but it has no agent identity: edits and comments are attributed to the person. Normal project membership still applies. A person outside a project cannot access it.
+ShipLean finds or creates the user from the email. One usable email header takes precedence over any bearer token, including a valid ShipLean agent token. If the header is absent, blank, repeated, or not a usable email, ShipLean checks the bearer as usual; without a valid bearer the request is refused. The MCP request has read, write, and plan access, but it has no agent identity: edits and comments are attributed to the person. Normal project membership still applies. A person outside a project cannot access it.
 
 :::caution[Trust boundary]
 This header is only an identity claim; it does not authenticate itself. Use this mode only when the gateway strips and sets the header and clients cannot reach `/mcp` directly with a header they chose. Keep the ShipLean endpoint on a network the gateway controls.
