@@ -162,6 +162,10 @@ export const sidebar = [
       {
         "label": "Example prompts",
         "link": "/agents/prompts/"
+      },
+      {
+        "label": "Cloud agent integration",
+        "link": "/agents/cloud-agent-integration/"
       }
     ]
   },

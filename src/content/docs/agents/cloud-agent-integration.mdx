@@ -1,0 +1,198 @@
+---
+title: "Cloud agent integration"
+description: "Start a cloud agent from a workflow state, follow its session on the work item, and build a receiver that reports back to ShipLean."
+sidebar:
+  order: 37
+---
+
+Cloud agent integration starts an agent when a work item enters a workflow state that you mark. ShipLean sends the item to a receiver that you run or choose. The agent works in the repository you name, then reports progress back to ShipLean. The item's **Agent** panel shows the session as it runs.
+
+The receiver is outside ShipLean. ShipLean speaks Linear's agent protocol, so any receiver written for Linear's agent API works with it. This page covers the setup, what ShipLean does, and the contract a receiver must follow.
+
+This integration is separate from the MCP connections in [Connect an agent](/agents/connect/). An MCP agent works through your own sign-in and never starts a session by moving an item.
+
+## Who sets it up
+
+- An **instance admin** adds the agent connection in instance settings.
+- A **project admin** chooses the connection, the repository, and the base branch for a project, and marks the states that start an agent.
+- The **receiver operator** runs the service that receives the webhook and calls back.
+
+## Add an agent connection
+
+Instance admins open **Instance settings** and choose the **Agents** tab, at `/instance/agents`. Select **Add connection**, then enter:
+
+- **Name**: up to 80 characters. Shown on the Agent panel and in comments the agent writes.
+- **Receiver URL**: where ShipLean sends the webhook. Use `https`, or `http` on `localhost` only.
+
+ShipLean creates two secrets for the connection:
+
+- a **signing secret**, which the receiver uses to verify each webhook;
+- a **callback token**, which the receiver sends to ShipLean's GraphQL endpoint.
+
+Both secrets appear once, in a dialog. Copy them into the receiver before you close it. ShipLean keeps only a hash of the callback token and cannot show either secret again.
+
+For each connection, you can edit the name and receiver URL, regenerate the signing secret, regenerate the callback token, or archive it. Each regeneration asks you to confirm and gives the new secret or token once. After you regenerate a value, give the new value to the receiver. Archiving stops projects from picking the connection. A project that still points at an archived connection cannot start an agent until you choose another connection.
+
+
+## Set up a project
+
+Project admins open **Project settings**, choose **General**, and find the **Agent** section.
+
+- **Agent connection**: choose one connection, or **None**. A project uses one connection.
+- **Repository URL**: the repository the agent works in.
+- **Base branch**: the branch the session is given as its base.
+
+Start agent needs a connection and a repository URL. Without them, no session starts, and the Agent panel says what is missing.
+
+
+## Flag a state that starts an agent
+
+On **States**, choose a work item type. Select **Starts an agent** on each state that should start a session. The checkbox has the tooltip "Moving an item into this state starts an agent session on it." You can flag a state you add in the same form. Select **Save** to apply the change.
+
+Flagging a state does not start work for existing items. It only affects moves and new items after you save.
+
+## What happens when an item enters a flagged state
+
+When a person moves an item into a flagged state, or creates an item directly in one, ShipLean starts a session:
+
+1. ShipLean records a new session on the item, with the state **Starting**.
+2. ShipLean sends the agent a `created` webhook. The webhook carries the item, its parent, its Feature, its comments, and the repository.
+3. The agent acknowledges the session and reports progress. The panel updates as it does.
+
+Each item can have only one live session. If the item already has a session that is starting, working, or waiting for input, moving the item into a flagged state does not start a second one.
+
+A session starts only for a move that a person made recently. These do not start a session:
+
+- an import, including a Jira import;
+- a webhook from GitHub or GitLab;
+- a move made by an MCP agent, including one that names itself;
+- a bulk change, such as a settings save, a sprint rollover, or a backlog move.
+
+Use **Start agent** on the Agent panel for these cases, or when an expected session never appeared. A start can also be lost if ShipLean restarts at the moment of the move.
+
+Comments from people also reach the agent. When a person comments on an item with a live session, ShipLean sends the agent a `prompted` webhook with the comment. Use this to answer a question the agent asks or to give it more context.
+
+## The Agent panel
+
+The **Agent** panel appears on an item when its project has an agent connection or the item has a session. It sits above the item's discussion and updates live.
+
+The panel shows:
+
+- the connection name and the session state: **Starting**, **Working**, **Needs input**, **Completed**, **Failed**, **Canceled**, or **Stale**;
+- when the session started and when it last did something, or when it ended;
+- links the agent reports, such as pull requests and merge requests;
+- the agent's plan, with each step marked **Pending**, **In progress**, **Completed**, or **Canceled**;
+- an activity log with the agent's actions, thoughts, errors, and comments you sent. A question from the agent is marked **The agent asks**. Reply in a comment on the item to answer it. Lines that the agent has replaced appear greyed.
+
+Earlier sessions for the item stay under **Earlier sessions**. Open one to see its activity.
+
+
+A session becomes **Stale** when it has been silent for 30 minutes while starting or working. A stale session no longer blocks a new start.
+
+## Stop, start again, and retries
+
+While a session is live, the panel shows **Stop**. Select it to ask the agent to stop. The panel shows **Stopping…** until the agent answers. The agent should send a response, and the session then ends as **Canceled**. If the agent does not answer within 10 minutes, ShipLean cancels the session itself and drops any follow-up messages it had not sent yet.
+
+Select **Start agent** when no session is live to start a new one. Use it after a session is stale, canceled, failed, or completed, or when an expected session never appeared.
+
+ShipLean retries a webhook that the receiver does not accept:
+
+- A `created` webhook is retried once, one minute after the first attempt. If the retry fails too, the session becomes **Failed**.
+- A `prompted` webhook is retried after 1 minute, 1 hour, and 6 hours. If all retries fail, that message is marked failed, the session keeps running, and the panel does not change its state.
+
+A delivery counts as accepted only when the receiver answers `200 OK` within 5 seconds. ShipLean does not follow redirects, so any redirect counts as a failure.
+
+## Receiver contract
+
+Build the receiver to these rules. Any receiver that follows Linear's agent API works with ShipLean.
+
+### The webhook ShipLean sends
+
+ShipLean sends each webhook as a `POST` to the receiver URL with a JSON body:
+
+| Header | Value |
+| --- | --- |
+| `Content-Type` | `application/json; charset=utf-8` |
+| `Linear-Event` | `AgentSessionEvent` |
+| `Linear-Delivery` | A unique ID for this delivery. Use it to ignore repeats. |
+| `Linear-Timestamp` | The time ShipLean sent the webhook, in milliseconds since the Unix epoch. |
+| `Linear-Signature` | The lowercase hex HMAC-SHA256 of the exact body bytes, keyed with the connection's signing secret. |
+| `User-Agent` | `Linear-Webhook` |
+
+The body is an `AgentSessionEvent` payload in Linear's format. ShipLean adds two fields before it signs the body: `webhookTimestamp`, in milliseconds, and `webhookId`, which is the connection's ID.
+
+Verify each webhook before you act on it:
+
+1. Read the raw request body, before any JSON parsing or re-serialization.
+2. Compute the HMAC-SHA256 of those bytes with the signing secret, and write it as lowercase hex.
+3. Compare the result with `Linear-Signature` using a constant-time comparison. Reject the request if they differ.
+
+For example, in Node.js:
+
+```js
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+function signatureMatches(rawBody, signatureHeader, signingSecret) {
+  const expected = createHmac('sha256', signingSecret).update(rawBody).digest('hex');
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signatureHeader ?? '');
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+```
+
+Answer `200` once you have accepted the delivery, within 5 seconds. Any other status, a redirect, or no answer counts as a failure, and ShipLean retries it on the schedule above.
+
+ShipLean sends each delivery at least once. If it cannot record a delivery as sent, it sends that delivery again. Keep the `Linear-Delivery` values you have handled, and ignore a repeat.
+
+### The GraphQL endpoint
+
+The agent reports back by sending GraphQL requests to:
+
+```text
+POST https://shiplean.example.com/linear/graphql
+```
+
+Replace the host with your instance's address. Send the connection's callback token in the `Authorization` header, either as the raw token or with the `Bearer` prefix:
+
+```http
+Authorization: Bearer <callback token>
+```
+
+The token is the only credential the endpoint accepts. A request without a valid token gets `401 Unauthorized`, even if a person is signed in to ShipLean in the same browser. The endpoint sits outside `/api`, so a reverse proxy in front of ShipLean must let `/linear/graphql` through without a sign-in check. See [sign-in options](/start/sign-in/#keep-the-backend-private).
+
+A connection can read and write only its own sessions. It can reach a session while the session is live, or for 24 hours after it ended.
+
+The endpoint supports these mutations:
+
+- `agentActivityCreate` records an activity on the session: an action, a thought, an error, a response, or a question. A `response` completes the session, or cancels it when a Stop was requested. An `error` fails it.
+- `agentSessionUpdate` replaces the session's plan, or changes its external links. External links replace the whole list when you send that list. You can also add or remove individual links.
+- `agentSessionUpdateExternalUrl` adds or removes external links without changing the plan.
+- `commentCreate` writes a comment on the item. ShipLean stamps the comment with the connection name. Such a comment never prompts the agent again.
+
+A response or error body is also posted to the item as a comment, stamped with the connection name. Pull request and merge request URLs become links on the item.
+
+Session states follow the agent's last activity:
+
+- a thought or an action means **Working**;
+- a question means **Needs input**;
+- a response means **Completed**, or **Canceled** when a Stop was requested;
+- an error means **Failed**.
+
+An ended session accepts no more activities or updates.
+
+The endpoint enforces these limits:
+
+- a request body of at most 256 KB;
+- at most 50 external URLs on a session;
+- a GraphQL query cost of at most 5,000 and a nesting depth of at most 15;
+- one operation per request. Batching is not supported.
+
+## Limits
+
+- Each project uses one agent connection. An item has at most one live session.
+- Only a move that a person makes starts a session. Imports, webhooks, bulk changes, and MCP agents never start one.
+- An MCP client that sends no name can look like a person to ShipLean. A move it makes into a flagged state can then start a session.
+- ShipLean ignores a move whose change is more than 5 minutes old when it handles the event.
+- A session starts only when the project has a connection and a repository URL.
+- A stale session is not live. It does not block a new start.
+- Secrets appear once. A lost signing secret or callback token needs regenerating, and the receiver must then be updated.
