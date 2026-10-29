@@ -37,7 +37,10 @@ export async function showTeamCapacity(page: Page, ctx: SeedResult): Promise<voi
       response,
       json: {
         ...body, members, defaultDays, holidayCountry: 'AU',
-        holidays: [{ date: day.toISOString().slice(0, 10), name: 'Public holiday' }],
+        holidays: [{
+          date: day.toISOString().slice(0, 10), name: 'Public holiday',
+          label: new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(day).replace(',', ''),
+        }],
         teamTotal: Math.round(members.reduce((sum, m) => sum + m.points, 0) * 100) / 100,
       },
     });

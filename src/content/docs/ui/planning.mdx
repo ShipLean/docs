@@ -29,9 +29,9 @@ The forecast is a planning aid. It warns when committed points exceed capacity, 
 
 Capacity is the team's velocity for the sprint, shared among its members by the days each is available. Open the sprint's **Capacity** view and fill it in.
 
-1. Enter the **Team velocity**, the points the team expects to complete in this sprint. The box starts with the previous sprint's velocity. If no earlier sprint has one, it starts with the project's velocity override, or else its calculated average. ShipLean shows a note when your number differs from the project's velocity.
+1. Enter the **Team velocity**, the points the team expects to complete in this sprint. The box starts with the previous sprint's velocity. If no earlier sprint has one, it starts with the project's velocity override, or else its calculated average. ShipLean compares your number with the project's velocity, and says "No velocity history" when there are no earlier sprints to compare with.
 2. Select **Add member** and choose each person who takes part. The table holds the members you add. Use the remove button on a row to take someone out.
-3. Check **Days available** for each person. It starts at the sprint's default days, shown with a **default** marker. Type a smaller number, in steps of half a day, for someone who is away or part-time. Select **reset** to go back to the default.
+3. Check **Days available** for each person. The box is empty and shows the sprint's default days as its placeholder, with a **default** marker. Type a smaller number, in steps of half a day, for someone who is away or part-time. Select **reset** to go back to the default.
 4. Add an optional **Note**, such as the reason for leave, then select **Save**.
 
 <Shot name="ui-planning-capacity" alt="Sprint capacity table with the team velocity, each member's days available, their capacity in points, and the team total." />
@@ -46,7 +46,7 @@ For example, with a velocity of 40, four people, and 10 working days, someone wh
 
 ShipLean calculates each member's capacity for you and shows it as read-only points. The same number appears in All sprints, the planning forecast, and the sprint end review.
 
-**Copy from previous sprint** copies the previous sprint's members, days, and velocity. **Clear** empties the table. A sprint whose table is empty plans against velocity: the page says "No capacity entered: planning uses velocity" followed by the number.
+**Copy from previous sprint** copies the previous sprint's members, days, and velocity. **Clear** empties the table. A sprint whose table is empty plans against velocity: the page says "No capacity entered: planning uses velocity" followed by the number, and the summary says "No capacity entered".
 
 Days that you leave at the default follow the sprint. When you change the sprint's dates, the project's working days, or its country, or when the holidays change, the default days and each member's capacity update. A number you typed stays as typed, up to the sprint's working days. Sprints that have ended keep the capacity they had, and their Capacity view is read-only.
 
