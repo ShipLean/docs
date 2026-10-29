@@ -1,0 +1,55 @@
+---
+title: "Feature board"
+description: "See a Feature's stories, bugs and tasks together, whatever sprint each is in, and move tasks between states, stories and people."
+sidebar:
+  order: 26
+---
+
+The Feature board is the [Taskboard](/ui/taskboard/) for one Feature instead of one sprint. Its rows are the Feature's Stories and Bugs from every sprint and from the Backlog, and its cards are their tasks. Use it to see how a Feature is going without opening each sprint.
+
+The address is `/p/:key/items/:itemKey/board`, where `:itemKey` is the Feature's key.
+
+## Open the board
+
+Open a Feature, then select **Task board** at the right of the **Stories and bugs** header. The page is called **Feature board**. Select the back arrow at the top to return to the Feature.
+
+The board only opens for a live Feature. An Epic, Story, Bug or Task has no Feature board.
+
+## What the board shows
+
+Each column is a Task state, as on the Taskboard. Removed tasks have no column. The page header adds up the whole Feature: Stories and Bugs closed, points closed, tasks closed, and the sprints the Feature spans.
+
+Each row header is the Taskboard's Story card with a sprint pill after the key. The pill names the sprint. The current sprint is tinted, and a Story or Bug in no sprint shows a dashed **Backlog** pill. A Story with no tasks still has a row, with **No tasks yet** and **+ Task**. Closed Stories and Bugs start collapsed, as on the Taskboard.
+
+There is no sprint filter and no Unparented row. The board holds only tasks that have a Story or Bug under the Feature.
+
+The card fields, styles and tag colours come from the Taskboard's **Settings**. There is no second set of settings.
+
+## A Feature with Features under it
+
+On a parent Feature the board has one section for each Feature in its tree, depth first and indented by depth. Each section starts with its own Stories and Bugs, under **Directly under** the Feature. A section header shows the Feature's key, title and state, how many of its Stories are closed, how many points are closed, and **Open Feature** to go to it. Select the arrow in a section header to collapse the section.
+
+The page header counts the whole tree and says how many Features are under it. A jump chip for each section scrolls to it. A Feature with no Stories or Bugs shows one line instead of a grid.
+
+## Group by people
+
+Choose **People** in **Group by** to see the tasks by assignee. Grouped by people, the board is one grid for the whole tree, with **Unassigned** first, rather than one grid per section. On a tree with more than one Feature, each card shows its Feature and Story above the title. Choose **Stories** to go back to rows by Story.
+
+Your choice is the same one the Taskboard uses, so it is saved for your account and applies to both boards.
+
+## Move a task
+
+Drag a card as on the Taskboard, or focus it and press **Alt+Arrow**. The column sets the task's state. In the Stories view the row sets its parent, and the row can be any Story or Bug under the Feature, including one in another sprint or the Backlog. In the People view the row sets the assignee. **Pick up** works as on the Taskboard.
+
+A move never changes a sprint. A task moved to a Story in another sprint keeps the sprint it had.
+
+If someone else changed the task first, the move is refused, the card goes back and the board reloads.
+
+## Add work
+
+- **+ Task** in a row header adds a task under that Story or Bug. The new task has no sprint of its own, and belongs to a sprint through its parent.
+- **+ Add story or bug** in the toolbar adds one under this Feature in the Backlog, even when other rows are in the current sprint.
+
+## Agents
+
+The `feature_progress` tool of the [MCP server](/agents/tools/) gives an agent the same picture in one call. It lists the Feature's open tasks as well as its open Stories and Bugs, each with the key of its parent, and returns `board_url`, the link to the Feature board, for a Feature.
