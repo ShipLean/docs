@@ -196,10 +196,10 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
       await saveRegistry();
     }
     await checked(await api.patch(`/api/sprints/${registry.sprint}`, { data: sprintData }));
-    const capacity = await json<{ members: { user: { id: string }; points: number; note: string | null }[] }>(api.get(`/api/sprints/${registry.sprint}/capacity`));
-    await checked(await api.put(`/api/sprints/${registry.sprint}/capacity`, { data: { members: [
-      ...capacity.members.filter(m => m.user.id !== me.id).map(m => ({ userId: m.user.id, points: m.points, note: m.note })),
-      { userId: me.id, points: 34, note: 'Leave room for support and review.' },
+    const capacity = await json<{ members: { user: { id: string }; days: number | null; note: string | null }[] }>(api.get(`/api/sprints/${registry.sprint}/capacity`));
+    await checked(await api.put(`/api/sprints/${registry.sprint}/capacity`, { data: { velocity: 34, members: [
+      ...capacity.members.filter(m => m.user.id !== me.id).map(m => ({ userId: m.user.id, days: m.days, note: m.note })),
+      { userId: me.id, days: null, note: 'Leave room for support and review.' },
     ] } }));
 
     const items: Record<string, Item> = {};

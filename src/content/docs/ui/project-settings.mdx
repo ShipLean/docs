@@ -1,6 +1,6 @@
 ---
 title: "Project settings"
-description: "Edit project details, working days, work item states, members, sprint forecasts, and Jira integration."
+description: "Edit project details, working days, public holidays, work item states, members, sprint naming and forecasts, and Jira integration."
 sidebar:
   order: 26
 ---
@@ -19,9 +19,17 @@ Settings tabs share one draft. Select **Save** to apply changes across tabs, or 
 
 ## Edit project details and working days
 
-On **General**, edit the project name or description and choose the working days used for sprint dates and burndown. The project key is read-only after creation. Save your changes from the settings header.
+On **General**, edit the project name or description and choose the working days used for sprint dates, burndown, and capacity. The project key is read-only after creation. Save your changes from the settings header.
 
 <Shot name="ui-project-settings-general" alt="General project settings with project name, permanent key, and working day choices." />
+
+## Choose a country for public holidays
+
+On **General**, the **Public holidays** section has a country list. Choose a country, or **None**, which is the default. Nothing changes for a project until someone picks a country.
+
+ShipLean takes national public holidays for the chosen country from the free Nager.Date service and refreshes them daily, for this year and next year. Regional holidays are not included. Holidays that fall on one of the project's working days lower the default days available in [sprint capacity](/ui/planning/#enter-capacity-per-person). If the server can't reach the service, the section says "Holiday data isn't available on this server." and no holidays apply.
+
+<Shot name="ui-project-settings-holidays" alt="The Public holidays section of General settings with Australia chosen." />
 
 ## Choose an agent for the project
 
@@ -39,9 +47,13 @@ On **Members**, add people by email, change their project role, or remove their 
 
 <Shot name="ui-project-settings-members" alt="Project members list with roles and member controls." />
 
+## Choose how sprints are named
+
+On **Sprints & forecast**, **Sprint naming** has two choices. **Year, quarter and number** suggests names such as `2026 Q4 Sprint 3`. **Number only** suggests names such as `Sprint 129`. New projects start with Year, quarter and number. Existing sprints keep their names. The setting applies to the next sprint you create, in the **New sprint** form, in the New project form, and over MCP. Members who can't edit settings see the choice disabled. See [Sprints](/ui/sprints/#sprint-names) for how the names are worked out.
+
 ## Set sprint forecast options
 
-On **Sprints & forecast**, set the velocity window, which is the number of ended sprints to average. Leave the velocity override blank to use the calculated average, or enter a value in points. This tab also links to **All sprints**, where you can change dates for an individual sprint.
+On **Sprints & forecast**, set the velocity window, which is the number of ended sprints to average. Leave the velocity override blank to use the calculated average, or enter a value in points. This tab also links to **All sprints**, where you can edit the name, dates, and goal of an individual sprint.
 
 <Shot name="ui-project-settings-sprints" alt="Sprint settings with velocity window and optional velocity override." />
 
