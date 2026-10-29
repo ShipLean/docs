@@ -25,6 +25,10 @@ The address is `/p/:key/sprints`, where `:key` is your project key.
 
 By default, the next sprint starts on the first working day after the last sprint and uses the same length. Change the dates here for a one-off sprint. Set the project's regular working days in **Settings**, then **General**.
 
+## Start work in the current sprint
+
+A Story or Bug with no sprint goes into the current sprint when a person moves it from a Proposed state to an In progress state. The move shows a short notice. Items that already have a sprint keep it, and nothing changes when no sprint is running. See also [automations](/ui/board-settings/#set-up-automations) for sending items to an agent on a state change.
+
 ## Review sprint progress and velocity
 
 The sprint list shows dates, status, goal, team capacity, committed points, and completed points. The Velocity chart compares committed and completed points for ended sprints. The project's velocity window controls how many ended sprints are averaged for planning.
