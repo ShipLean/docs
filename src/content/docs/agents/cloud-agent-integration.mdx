@@ -47,7 +47,7 @@ Start agent needs a connection and a repository URL. Without them, no session st
 
 ## Send an item to an agent with a transition
 
-A transition names a state change on a board, such as **New** to **Idea**, and carries a **Send to agent** action. When a person makes that change, ShipLean starts a session on the item.
+A transition names a state change on a board, such as **New** to **Idea**, and carries one **Send to agent** action. A transition has one such action, so the editor offers no second one. When a person makes that change, ShipLean starts a session on the item.
 
 Project admins add transitions in **Automations** in the board's settings, on the Stories board for Stories and Bugs, or on the Features board for Features. See [set up automations](/ui/board-settings/#set-up-automations). Select **Save** to apply them. A new transition does not start work for items that are already in the state. It only affects moves you make after you save.
 
@@ -86,15 +86,15 @@ Creating an item directly in the **To** state does not fire a transition. Neithe
 
 Use **Start agent** on the Agent panel for these cases, or when an expected session never appeared. A start can also be lost if ShipLean restarts at the moment of the move.
 
+Comments from people also reach the agent. When a person comments on an item with a live session, ShipLean sends the agent a `prompted` webhook with the comment. Use this to answer a question the agent asks or to give it more context.
+
 ### Sprints
 
 A Story or Bug that a person moves from a Proposed state to an In progress state goes into the current sprint if it had none. This built-in rule is separate from automations, and it happens in the same move, so an agent that starts on that move finds the item already in its sprint. See [sprints](/ui/sprints/).
 
-Comments from people also reach the agent. When a person comments on an item with a live session, ShipLean sends the agent a `prompted` webhook with the comment. Use this to answer a question the agent asks or to give it more context.
-
 ## The Agent panel
 
-The **Agent** panel appears on an item when its project has an agent connection or the item has a session. It sits above the item's discussion and updates live.
+The **Agent** panel appears on an item when its project has an agent connection or the item has a session. It sits above the item's discussion, or above the log on a Feature, and updates live.
 
 The panel shows:
 
