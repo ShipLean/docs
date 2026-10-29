@@ -115,6 +115,10 @@ export const sidebar = [
         "link": "/ui/taskboard/"
       },
       {
+        "label": "Feature board",
+        "link": "/ui/feature-board/"
+      },
+      {
         "label": "Project settings",
         "link": "/ui/project-settings/"
       },
