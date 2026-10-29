@@ -1,11 +1,11 @@
 ---
 title: "Cloud agent integration"
-description: "Start a cloud agent from a workflow state, follow its session on the work item, and build a receiver that reports back to ShipLean."
+description: "Start a cloud agent from a state transition, follow its session on the work item, and build a receiver that reports back to ShipLean."
 sidebar:
   order: 37
 ---
 
-Cloud agent integration starts an agent when a work item enters a workflow state that you mark. ShipLean sends the item to a receiver that you run or choose. The agent works in the repository you name, then reports progress back to ShipLean. The item's **Agent** panel shows the session as it runs.
+Cloud agent integration starts an agent when a person moves a work item through a state transition that you set up. ShipLean sends the item to a receiver that you run or choose. The agent works in the repository you name, then reports progress back to ShipLean. The item's **Agent** panel shows the session as it runs.
 
 The receiver is outside ShipLean. ShipLean speaks Linear's agent protocol, so any receiver written for Linear's agent API works with it. This page covers the setup, what ShipLean does, and the contract a receiver must follow.
 
@@ -14,7 +14,7 @@ This integration is separate from the MCP connections in [Connect an agent](/age
 ## Who sets it up
 
 - An **instance admin** adds the agent connection in instance settings.
-- A **project admin** chooses the connection, the repository, and the base branch for a project, and marks the states that start an agent.
+- A **project admin** chooses the connection, the repository, and the base branch for a project, and sets up the transitions that send items to an agent.
 - The **receiver operator** runs the service that receives the webhook and calls back.
 
 ## Add an agent connection
@@ -45,23 +45,39 @@ Project admins open **Project settings**, choose **General**, and find the **Age
 Start agent needs a connection and a repository URL. Without them, no session starts, and the Agent panel says what is missing.
 
 
-## Flag a state that starts an agent
+## Send an item to an agent with a transition
 
-On **States**, choose a work item type. Select **Starts an agent** on each state that should start a session. The checkbox has the tooltip "Moving an item into this state starts an agent session on it." You can flag a state you add in the same form. Select **Save** to apply the change.
+A transition names a state change on a board, such as **New** to **Idea**, and carries one **Send to agent** action. A transition has one such action, so the editor offers no second one. When a person makes that change, ShipLean starts a session on the item.
 
-Flagging a state does not start work for existing items. It only affects moves and new items after you save.
+Project admins add transitions in **Automations** in the board's settings, on the Stories board for Stories and Bugs, or on the Features board for Features. See [set up automations](/ui/board-settings/#set-up-automations). Select **Save** to apply them. A new transition does not start work for items that are already in the state. It only affects moves you make after you save.
 
-## What happens when an item enters a flagged state
+### The prompt
 
-When a person moves an item into a flagged state, or creates an item directly in one, ShipLean starts a session:
+Each transition has its own prompt, so one board can send work to the agent in different ways. A move from **New** to **Idea** can ask for a plan, and a move to **Active** can ask for an implementation. The prompt goes to the agent as guidance, together with the item, its parent, its Feature, its comments, and the repository.
+
+### Choose a connection
+
+By default a transition uses the project's agent connection. Choose another connection in the action to send that transition to a different receiver.
+
+### Invalid transitions
+
+If a transition names a state that was removed, the board marks it **Invalid** and it never fires. Delete it, or add a state with the same name back. The transition then works again.
+
+### Which transition runs
+
+A transition fires when its **From** state is the state the item left, or when it is set to **Any state**. If both match, the one with the specific **From** state runs. One move starts at most one session.
+
+## What happens when a transition fires
+
+When a person moves an item through a transition, ShipLean starts a session:
 
 1. ShipLean records a new session on the item, with the state **Starting**.
-2. ShipLean sends the agent a `created` webhook. The webhook carries the item, its parent, its Feature, its comments, and the repository.
+2. ShipLean sends the agent a `created` webhook. The webhook carries the item, its parent, its Feature, its comments, the repository, and the transition's prompt as guidance.
 3. The agent acknowledges the session and reports progress. The panel updates as it does.
 
-Each item can have only one live session. If the item already has a session that is starting, working, or waiting for input, moving the item into a flagged state does not start a second one.
+Each item can have only one live session. If the item already has a session that is starting, working, or waiting for input, a matching move does not start a second one.
 
-A session starts only for a move that a person made recently. These do not start a session:
+Creating an item directly in the **To** state does not fire a transition. Neither do these changes, because a session starts only for a move that a person made recently:
 
 - an import, including a Jira import;
 - a webhook from GitHub or GitLab;
@@ -72,9 +88,13 @@ Use **Start agent** on the Agent panel for these cases, or when an expected sess
 
 Comments from people also reach the agent. When a person comments on an item with a live session, ShipLean sends the agent a `prompted` webhook with the comment. Use this to answer a question the agent asks or to give it more context.
 
+### Sprints
+
+A Story or Bug that a person moves from a Proposed state to an In progress state goes into the current sprint if it had none. This built-in rule is separate from automations, and it happens in the same move, so an agent that starts on that move finds the item already in its sprint. See [sprints](/ui/sprints/).
+
 ## The Agent panel
 
-The **Agent** panel appears on an item when its project has an agent connection or the item has a session. It sits above the item's discussion and updates live.
+The **Agent** panel appears on an item when its project has an agent connection or the item has a session. It sits above the item's discussion, or above the log on a Feature, and updates live.
 
 The panel shows:
 
@@ -190,8 +210,8 @@ The endpoint enforces these limits:
 ## Limits
 
 - Each project uses one agent connection. An item has at most one live session.
-- Only a move that a person makes starts a session. Imports, webhooks, bulk changes, and MCP agents never start one.
-- An MCP client that sends no name can look like a person to ShipLean. A move it makes into a flagged state can then start a session.
+- Only a move that a person makes through a transition starts a session. Creating an item, imports, webhooks, bulk changes, and MCP agents never start one.
+- An MCP client that sends no name can look like a person to ShipLean. A move it makes through a transition can then start a session.
 - ShipLean ignores a move whose change is more than 5 minutes old when it handles the event.
 - A session starts only when the project has a connection and a repository URL.
 - A stale session is not live. It does not block a new start.
