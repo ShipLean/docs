@@ -1,6 +1,6 @@
 ---
 title: "Board settings"
-description: "Map states to columns, and choose WIP limits, card fields, swimlanes, styles, tag colours and roll-up annotations."
+description: "Map states to columns, and choose WIP limits, card fields, swimlanes, styles, tag colours, roll-up annotations and automations."
 sidebar:
   order: 21
 ---
@@ -56,6 +56,22 @@ Add, rename, colour, and reorder lanes. A lane can use criteria or be manual. Cr
 <Shot name="ui-board-settings-reordering" alt="Board settings showing the two card reordering options." />
 
 Choose one of the two options to decide whether moving a card on the board also changes its order in the Stories backlog.
+
+## Set up automations
+
+The **Automations** section is on the Stories and Features boards. The Epics board does not have one. An automation is a **transition**: a change from one state to another that sends the item to an agent.
+
+To add one:
+
+1. Choose **From**, either **Any state** or one state, and **To**, the state the item moves into. On the Stories board, a transition applies to Stories and Bugs. On the Features board, it applies to Features.
+2. Select **Add transition**. ShipLean refuses a transition that repeats one you already have.
+3. In the transition's **Send to agent** action, write the prompt for the agent. The prompt is what the agent is told to do, such as "Draft a plan for this idea."
+4. Optionally choose a connection for the action. Without one, the project's agent connection is used.
+5. Save the board settings.
+
+A transition fires when a person moves an item from its **From** state to its **To** state. If an item matches a transition with a specific **From** state and one with **Any state**, only the specific one runs. Items that are created straight into the **To** state do not fire it. See [cloud agent integration](/agents/cloud-agent-integration/#send-an-item-to-an-agent-with-a-transition) for what the agent receives.
+
+If a state a transition names is removed, the transition stays in the list and is marked **Invalid**. An Invalid transition never fires. Delete it, or add a state with the same name back and the transition becomes valid again.
 
 ## Save or leave settings
 

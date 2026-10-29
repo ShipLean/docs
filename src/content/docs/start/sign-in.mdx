@@ -38,6 +38,7 @@ Configure the proxy to skip its login check for these paths. Each path uses its 
 | `/mcp` | MCP clients authenticate through the MCP OAuth flow. |
 | `/oauth/token`, `/oauth/register`, `/oauth/revoke` | These OAuth endpoints manage agent credentials. |
 | `/.well-known/` | OAuth client discovery and metadata. |
+| `/linear/graphql` | Cloud agent connections call back here with their callback token. See [cloud agent integration](/agents/cloud-agent-integration/#the-graphql-endpoint). |
 | `/api/webhooks/` | GitHub and GitLab verify each delivery with a shared secret. The sender must post JSON. |
 | `/api/uploads/`, `/api/downloads/` | MCP attachment transfer URLs carry their own short-lived credential in the path. |
 

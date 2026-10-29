@@ -23,9 +23,13 @@ On **General**, edit the project name or description and choose the working days
 
 <Shot name="ui-project-settings-general" alt="General project settings with project name, permanent key, and working day choices." />
 
+## Choose an agent for the project
+
+On **General**, the **Agent** section chooses the agent connection, repository URL, and base branch that cloud agents use for this project. Select **None** to turn off cloud agents. See [cloud agent integration](/agents/cloud-agent-integration/#set-up-a-project).
+
 ## Configure states
 
-On **States**, choose a work item type and manage its states. You can add or rename a state, change its category, reorder states, or remove one where allowed. Categories group states as Proposed, In progress, Resolved, Completed, or Removed. ShipLean shows each state's item count and checks whether a state can be removed before you save.
+On **States**, choose a work item type and manage its states. You can add or rename a state, change its category, reorder states, or remove one where allowed. To start an agent when an item changes state, add a transition in the board's **Automations** section. See [board settings](/ui/board-settings/#set-up-automations). If you remove a state that a transition names, the transition is marked Invalid until you add a state with that name back. Categories group states as Proposed, In progress, Resolved, Completed, or Removed. ShipLean shows each state's item count and checks whether a state can be removed before you save.
 
 <Shot name="ui-project-settings-states" alt="State settings for one work item type with categories, item counts, and state controls." />
 
