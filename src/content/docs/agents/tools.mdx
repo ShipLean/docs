@@ -176,9 +176,9 @@ Arguments: `project` (optional) — The project key, such as SHIP. Needed when t
 
 #### `create_sprint` — plan
 
-Create the next sprint. The name continues the last sprint's number, it starts the day after the last one ends and runs for the same length; each can be given instead. The goal is optional.
+Create the next sprint. The name follows the project's naming convention (`2026 Q4 Sprint 3`, or the last sprint's number plus one), it starts the day after the last one ends and runs for the same length; each can be given instead. The goal is optional.
 
-Arguments: `project` (optional) — The project key, such as SHIP. Needed when the user is in more than one project; `name` (optional) — The sprint's name. Defaults to the last name with its number plus one; `start_date` (optional) — First day, yyyy-MM-dd. Defaults to the day after the last sprint ends (today for a first sprint); `end_date` (optional) — Last day, yyyy-MM-dd. Defaults to the same length as the last sprint (14 days for a first sprint); `goal` (optional) — What the sprint is for. Optional.
+Arguments: `project` (optional) — The project key, such as SHIP. Needed when the user is in more than one project; `name` (optional) — The sprint's name. Defaults to the next name under the project's naming convention, such as `2026 Q4 Sprint 3`, or the last number plus one for Number only; `start_date` (optional) — First day, yyyy-MM-dd. Defaults to the day after the last sprint ends (today for a first sprint); `end_date` (optional) — Last day, yyyy-MM-dd. Defaults to the same length as the last sprint (14 days for a first sprint); `goal` (optional) — What the sprint is for. Optional.
 
 ### Status and reporting
 
@@ -196,9 +196,11 @@ Arguments: `item` — The key of the epic or feature, such as SHIP-12.
 
 #### `sprint_status` — read
 
-The stand-up picture for a sprint: goal, dates, days left, points committed, completed and remaining against the team's capacity, the burndown trend, every item by state with who has it, the blocked items (tagged Blocked or waiting on an open blocked-by link) and tasks with no story. Use it for 'how is the sprint going?'.
+The stand-up picture for a sprint: goal, dates, days left, points committed, completed and remaining against the team's capacity (its velocity, working days, and each member's days and points), the burndown trend, every item by state with who has it, the blocked items (tagged Blocked or waiting on an open blocked-by link) and tasks with no story. Use it for 'how is the sprint going?'.
 
 Arguments: `project` (optional) — The project key, such as SHIP. Leave out for the most recent project; `sprint` (optional) — current, next, or a sprint name. Defaults to current.
+
+The capacity part of the answer has the team's total `capacity` in points, the sprint's `velocity`, its `working_days`, and `capacity_members`: for each member, their name, the days that count for them (the default when none was typed) and their capacity in points.
 
 #### `find_work_to_pick_up` — read
 

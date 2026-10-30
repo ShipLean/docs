@@ -11,7 +11,7 @@ ShipLean is a self-hosted planning app for one team. A project contains its memb
 
 - **Plan in backlogs.** Rank Stories, Features, and Epics. Switch between a list and a tree, filter items, and see points and progress roll up from child Stories and Bugs.
 - **Track work on boards.** Map each work item type's states to columns. Set work-in-progress limits, swimlanes, card fields, styles, and a definition of done.
-- **Plan sprints.** Set capacity per person, use the forecast to fill upcoming sprints, then follow the sprint backlog, burndown, and velocity chart.
+- **Plan sprints.** Plan capacity from velocity and days available, use the forecast to fill upcoming sprints, then follow the sprint backlog, burndown, and velocity chart.
 - **Move sprint work on the taskboard.** See the sprint's Stories and Bugs with their Task states, grouped by Story or by person.
 - **Keep work together.** Work items have fields, Tasks, a Markdown discussion, links, attachments, and revision history.
 - **Configure a project.** Set its permanent key of two to four letters, its working days, its members, the states for each work item type, and the velocity window that the forecast uses.
@@ -56,6 +56,6 @@ Epics hold Features. A Feature can hold smaller Features, Stories, and Bugs. Sto
 
 Every type has its own states. Each state belongs to one category: **Proposed**, **In Progress**, **Resolved**, **Completed**, or **Removed**. You choose the states for each type in project settings, and boards map columns to those states. The app uses categories for shared behavior, such as detecting completed work.
 
-Estimates use story points. ShipLean does not hard-delete work. To remove an item, move it to a Removed state or archive it. Sprints are flat time boxes. Each sprint records capacity per person.
+Estimates use story points. ShipLean does not hard-delete work. To remove an item, move it to a Removed state or archive it. Sprints are flat time boxes. Each sprint records a velocity and the days each person is available.
 
 For the full model and its design decisions, see [the public issue #1](https://github.com/ShipLean/ShipLean/issues/1).

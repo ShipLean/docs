@@ -162,8 +162,8 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
       modifiedBoard.columns[1].wipLimit = 9;
       await body(await api.put(`/api/boards/${first.boardId}/settings`, { data: { basedOn: initialBoard, settings: modifiedBoard } }));
       await body(await api.patch(`/api/sprints/${first.sprint}`, { data: { name: 'Changed sprint', goal: 'Changed goal' } }));
-      const changedCapacity = initialCapacity.members.map((m: any) => ({ userId: m.user.id, points: 1, note: 'Changed' }));
-      await body(await api.put(`/api/sprints/${first.sprint}/capacity`, { data: { members: changedCapacity } }));
+      const changedCapacity = initialCapacity.members.map((m: any) => ({ userId: m.user.id, days: 1, note: 'Changed' }));
+      await body(await api.put(`/api/sprints/${first.sprint}/capacity`, { data: { velocity: 10, members: changedCapacity } }));
       const restored = await seedDemo(config.baseUrl, config.admin);
       assert.deepEqual(restored, first);
       assert.deepEqual(await snapshot(), baseline);

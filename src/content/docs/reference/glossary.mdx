@@ -20,8 +20,11 @@ sidebar:
 ## Planning
 
 - **Sprint.** A time-boxed period for planned work. Sprints have dates and capacity. See [sprints](/ui/sprints/).
-- **Capacity.** The amount of work a person or team can take into a sprint, measured in story points. See [planning and capacity](/ui/planning/).
-- **Velocity.** The story points completed per sprint, used to plan future work. See [planning and capacity](/ui/planning/).
+- **Capacity.** The amount of work a person or team can take into a sprint, measured in story points. ShipLean works out a member's capacity from the sprint's velocity, the number of people in its capacity table, and the member's days available out of the sprint's working days. The team's capacity is the sum. See [planning and capacity](/ui/planning/#enter-capacity-per-person).
+- **Velocity.** The story points a team completes per sprint, used to plan future work. For a sprint's capacity, you enter the velocity you expect for that sprint. The project's velocity is the average of recent ended sprints, or an override. See [planning and capacity](/ui/planning/).
+- **Working days.** The days of a sprint that fall on the project's working weekdays. Public holidays are counted in the working days, and are taken off each person's default days available. See [project settings](/ui/project-settings/#edit-project-details-and-working-days).
+- **Days available.** The days a person can work in a sprint. It defaults to the sprint's working days minus public holidays, and you can type a lower number.
+- **Sprint naming.** A project setting for how new sprint names are suggested: year, quarter and number (`2026 Q4 Sprint 3`) or number only (`Sprint 129`). See [Sprints](/ui/sprints/#sprint-names).
 - **Forecast.** An estimate of how much planned work fits in a sprint, based on its capacity and the selected velocity. See [planning and capacity](/ui/planning/).
 - **Swimlane.** A horizontal grouping of cards on a board. For example, a Features board can group work by Epic. See [boards](/ui/boards/).
 - **WIP limit.** A maximum number of cards allowed in a board column. See [board settings](/ui/board-settings/).

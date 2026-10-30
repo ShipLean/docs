@@ -27,11 +27,30 @@ The forecast is a planning aid. It warns when committed points exceed capacity, 
 
 ## Enter capacity per person
 
-Open the sprint's **Capacity** view. Enter each member's available capacity in points for that sprint, and add an optional note such as time away. The team total is compared with committed points and velocity. Select **Save** to keep your entries. You can copy capacity from the previous sprint or clear all entries.
+Capacity is the team's velocity for the sprint, shared among its members by the days each is available. Open the sprint's **Capacity** view and fill it in.
 
-<Shot name="ui-planning-capacity" alt="Sprint capacity table with per-person points and a team total compared with committed work." />
+1. Enter the **Team velocity**, the points the team expects to complete in this sprint. The box starts with the previous sprint's velocity. If no earlier sprint has one, it starts with the project's velocity override, or else its calculated average. ShipLean compares your number with the project's velocity, and says "No velocity history" when there are no earlier sprints to compare with.
+2. Select **Add member** and choose each person who takes part. The table holds the members you add. Use the remove button on a row to take someone out.
+3. Check **Days available** for each person. The box is empty and shows the sprint's default days as its placeholder, with a **default** marker. Type a smaller number, in steps of half a day, for someone who is away or part-time. Select **reset** to go back to the default.
+4. Add an optional **Note**, such as the reason for leave, then select **Save**.
 
-When no capacity has been entered, the team forecast uses the project's calculated velocity or override. Capacity values are points per person, not hours or days.
+<Shot name="ui-planning-capacity" alt="Sprint capacity table with the team velocity, each member's days available, their capacity in points, and the team total." />
+
+The header shows the sprint's **working days**: the days between its dates that fall on the project's working days. It also shows the public holidays among them, for example "10 working days · 1 public holiday (NZ)", and lists their names. The default days available are the working days minus the holidays. If the project has no country, the header says "No public holidays" and links project admins to **Settings**, then **General**, where they can pick one.
+
+Each member's capacity is the velocity divided equally among the people in the table, scaled by the days that person is available out of the sprint's working days:
+
+`capacity = velocity ÷ people × days available ÷ working days`
+
+For example, with a velocity of 40, four people, and 10 working days, someone who is in all 10 days has 10 points and someone away for a week has 5. A public holiday lowers everyone's default days. With one holiday, the default is 9 days, so each person has 9 points. The team total is the sum of the members' capacity, rounded to two decimals, and ShipLean compares it with committed points and velocity. Members at 0 days stay in the table and still count as one of the people the velocity is shared among.
+
+ShipLean calculates each member's capacity for you and shows it as read-only points. The same number appears in All sprints, the planning forecast, and the sprint end review.
+
+**Copy from previous sprint** copies the previous sprint's members, days, and velocity. **Clear** empties the table. A sprint whose table is empty plans against velocity: the page says "No capacity entered: planning uses velocity" followed by the number, and the summary says "No capacity entered".
+
+Days that you leave at the default follow the sprint. When you change the sprint's dates, the project's working days, or its country, or when the holidays change, the default days and each member's capacity update. A number you typed stays as typed, up to the sprint's working days. Sprints that have ended keep the capacity they had, and their Capacity view is read-only.
+
+When no capacity has been entered, the team forecast uses the project's calculated velocity or override. Capacity is still shown in story points. It is not hours.
 
 ## Set the velocity window
 

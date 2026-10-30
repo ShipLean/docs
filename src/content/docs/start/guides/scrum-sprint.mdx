@@ -1,23 +1,25 @@
 ---
 title: "Run a Scrum sprint"
-description: "Set capacity, plan against the forecast, track Tasks on the taskboard, end a sprint and roll over unfinished work, and read velocity."
+description: "Create and edit a sprint, set capacity in days and velocity, plan against the forecast, track Tasks on the taskboard, end a sprint and roll over unfinished work, and read velocity."
 sidebar:
   order: 12
 ---
 
 import Shot from '../../../../components/Shot.astro';
 
-Use a sprint as a time box for selected Stories and Bugs. ShipLean plans in story points. Capacity is also entered in points, not hours or days.
+Use a sprint as a time box for selected Stories and Bugs. ShipLean plans in story points. You plan capacity from the team's velocity and the days each person is available, and ShipLean turns that into points for each person.
 
 ## Set up the sprint and capacity
 
-Create a sprint from **Sprints** with a name and dates. Open the sprint's **Capacity** page and enter each member's available points for this sprint. You can add a note, copy values from the previous sprint, or clear the entries. The team total is the capacity used in planning.
+Create a sprint from **Sprints**. The form suggests a name such as `2026 Q4 Sprint 3` and dates that follow the last sprint. If the dates need to change later, select **Edit sprint** in the sprint header or **Edit** on its row in **All sprints**. You can change a current or future sprint's dates, and the name and goal of any sprint.
+
+Open the sprint's **Capacity** page. Enter the team velocity, add the members who take part, and lower **Days available** for anyone who is away. Each person's default is the sprint's working days minus the public holidays of the country chosen in **Settings**, then **General**. ShipLean shares the velocity among the people in the table by their days and shows each person's capacity in points. You can add a note, copy the previous sprint's table, or clear it. The team total is the capacity used in planning.
 
 <Shot name="guide-scrum-capacity" alt="Sprint capacity page with per-person point entries and a team total." />
 
-If nobody has entered capacity, ShipLean uses the project's calculated velocity or velocity override as the forecast. Set the velocity window and optional override in **Settings**, then **Sprints**. The window is the number of ended sprints included in the calculated average.
+If the table is empty, ShipLean uses the project's calculated velocity or velocity override as the forecast. Set the velocity window and optional override in **Settings**, then **Sprints**. The window is the number of ended sprints included in the calculated average.
 
-See [Sprint planning and capacity](/ui/planning/) for capacity and forecast settings.
+Moving the sprint's dates updates the default days, and typed days stay as you typed them. See [Sprint planning and capacity](/ui/planning/#enter-capacity-per-person) for the calculation and the forecast settings, and [Sprints](/ui/sprints/#sprint-names) for naming.
 
 ## Plan work against the forecast
 

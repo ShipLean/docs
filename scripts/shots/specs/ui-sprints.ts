@@ -13,6 +13,13 @@ export const shots: ShotSpec[] = [
     },
   },
   {
+    name: 'ui-sprints-edit', route: sprints,
+    steps: async (page) => {
+      await page.getByTestId('sprints-list-row-edit').first().click();
+      await page.getByTestId('sprints-edit-sprint').waitFor({ state: 'visible' });
+    },
+  },
+  {
     name: 'ui-sprints-velocity',
     route: sprints,
     steps: async (page, ctx) => {

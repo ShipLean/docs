@@ -1,6 +1,6 @@
 ---
 title: "Sprints"
-description: "Review project sprints, dates, goals, capacity, and velocity, or create the next sprint."
+description: "Review project sprints, dates, goals, capacity, and velocity, create the next sprint, or edit a sprint's name, dates, and goal."
 sidebar:
   order: 22
 ---
@@ -25,6 +25,27 @@ The address is `/p/:key/sprints`, where `:key` is your project key.
 
 By default, the next sprint starts on the first working day after the last sprint and uses the same length. Change the dates here for a one-off sprint. Set the project's regular working days in **Settings**, then **General**.
 
+### Sprint names
+
+ShipLean suggests a name that follows the project's **Sprint naming** setting. A new project uses **Year, quarter and number**, which gives names such as `2026 Q4 Sprint 3`. The quarter is the calendar quarter of the sprint's start date. The number counts sprint lengths from the start of that quarter, so it starts again at 1 each quarter. If that name is taken, ShipLean uses the next free number.
+
+**Number only** gives names such as `Sprint 129`: one more than the highest number the existing sprint names end in. Projects that were created before the setting existed, and projects imported from Jira, keep **Number only**.
+
+While you have not typed a name of your own, the suggestion follows the start and end dates you enter. A name you type stays as you typed it. Change the setting in [project settings](/ui/project-settings/#choose-how-sprints-are-named). Changing it never renames existing sprints. It applies to the next sprint you create.
+
+## Edit a sprint
+
+Any project member can edit a sprint. Select **Edit sprint** in the sprint header, or **Edit** on the sprint's row in **All sprints**. The rail opens with the sprint's name, start and end dates, and goal filled in. Change what you need and select **Save**. ShipLean closes the rail without saving if nothing changed.
+
+- The end date can't be before the start date, and a sprint's dates can't overlap another sprint. The name must be unused.
+- You can move the dates of a current or future sprint. Work already planned in the sprint stays in it.
+- Once a sprint's end date has passed, its dates are locked and the date fields are disabled. You can still change its name and goal.
+- Moving a current sprint's end date to a day in the past is refused with "A sprint can't be moved to end in the past."
+
+<Shot name="ui-sprints-edit" alt="The Edit sprint rail above the sprint list, with the sprint's name, start and end dates, and goal, and Cancel and Save buttons." />
+
+When you change a sprint's dates, the days available to each member in [its capacity](/ui/planning/#enter-capacity-per-person) are recalculated, so a longer sprint gives more default days.
+
 ## Start work in the current sprint
 
 A Story or Bug with no sprint goes into the current sprint when a person moves it from a Proposed state to an In progress state. The move shows a short notice. Items that already have a sprint keep it, and nothing changes when no sprint is running. See also [automations](/ui/board-settings/#set-up-automations) for sending items to an agent on a state change.
@@ -35,4 +56,4 @@ The sprint list shows dates, status, goal, team capacity, committed points, and 
 
 <Shot name="ui-sprints-velocity" alt="Velocity chart comparing committed and completed points across ended sprints." />
 
-Open a sprint from its row, then choose **Capacity** in the sprint navigation to enter each member's capacity in points.
+Open a sprint from its row, then choose **Capacity** in the sprint navigation to plan the team's capacity from its velocity and each member's days available. See [sprint planning and capacity](/ui/planning/#enter-capacity-per-person).
