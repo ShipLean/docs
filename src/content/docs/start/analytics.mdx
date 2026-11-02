@@ -7,7 +7,7 @@ sidebar:
 
 ShipLean can send usage events to Umami or PostHog, so you can see how people and agents use your instance. It is off by default. An instance admin turns it on in **Instance settings**, on the **Analytics** tab.
 
-Events are sent by the ShipLean server, never by the browser. Nothing is added to the pages people load, so there is no cookie banner and no ad-blocker loss, and your content security policy does not change.
+Events are sent by the ShipLean server, never by the browser. ShipLean adds no analytics script or cookie to its pages, so browser ad blockers do not affect it and your content security policy does not change.
 
 ## What is collected
 
@@ -36,8 +36,8 @@ Analytics never slows or fails a request. If your provider is down, events are r
 
 | | Umami | PostHog |
 | --- | --- | --- |
-| Hosting | Self-hosted, free. | PostHog Cloud (US or EU), or self-hosted. |
-| Site key | The website ID, a GUID. | The project API key, which starts with `phc_`. |
+| Hosting | Self-hosted, free. Umami Cloud has not been tested. | PostHog Cloud (US or EU), or self-hosted. |
+| Site key (the field is labelled **Website ID** or **Project API key**) | The website ID, a GUID. | The project token (formerly project API key), which starts with `phc_`. |
 | Filtering by project | The project key is part of each event's path, so every report can be filtered by project. The kind of actor is filterable as a tag. | The project is an event property. |
 | Best for | A small private dashboard on your own server. | Funnels, cohorts, and deeper analysis. |
 
@@ -61,7 +61,7 @@ Your Umami must be reachable from the ShipLean server. It does not need to be re
 
 ## Set up PostHog
 
-1. Create a project in PostHog, and copy its project API key from the project settings. It starts with `phc_`.
+1. Create a project in PostHog, and copy its project token (formerly project API key) from the project settings. It starts with `phc_`.
 2. Choose the host that matches where the project lives:
 
 | Where | Host |
@@ -82,14 +82,14 @@ Only instance admins can open the tab.
 | --- | --- |
 | Provider | **Off**, **Umami**, or **PostHog**. Off clears the host and key. |
 | Host | The address of your provider, such as `https://umami.example.com`. It must start with `http://` or `https://`, and must not contain a query, a fragment, or a user name and password. |
-| Site key | The Umami website ID, or the PostHog project API key. |
-| Send people's names | Off by default. When on, each person's name and email go to the provider along with their id. Agents are never given a name or email. Turn this on only if your privacy policy allows it. |
+| Website ID (Umami) or Project API key (PostHog) | The Umami website ID, or the PostHog project token (formerly project API key). The field is labelled to match the provider you pick. |
+| Send people's names | Off by default. When on, each person's name and email go to the provider along with their id. Agent events never carry the person's name or email. Turning this off stops new names and emails from being sent; it does not remove any the provider already has. Turn this on only if your privacy policy allows it. |
 
 ShipLean checks the host and key when you save. An Umami key must be a GUID, and a PostHog key must start with `phc_`.
 
 ## Test the connection
 
-Select **Send a test event** to send one event to the saved provider and see the result at once. It uses the settings you last saved, so save first. A failure shows the reason, such as a wrong host or a rejected key. If it succeeds, the test event appears in your provider within a few seconds. In Umami, look on the website's Events page.
+Select **Send test event** to send one event to the saved provider and see the result at once. It uses the settings you last saved, so save first. A failure shows the reason, such as an unreachable host or a key the provider refuses. Some providers, PostHog among them, may accept an event even when the key is wrong. A success means the provider accepted the event. Check that it appears; if it doesn't, see Troubleshooting. In Umami, look on the website's Events page.
 
 The test works only when a provider is selected. With the provider off, it reports that analytics is off.
 
