@@ -9,7 +9,7 @@ import Shot from '@/components/Shot.astro';
 
 Instance settings let instance admins manage the ShipLean installation and see projects across it. You need instance-admin access to use these settings.
 
-The address is `/instance/:tab`, where `:tab` is `general`, `users`, `projects`, `integrations`, or `agents`.
+The address is `/instance/:tab`, where `:tab` is `general`, `users`, `projects`, `integrations`, `analytics`, or `agents`.
 
 ## Overview
 
@@ -38,6 +38,10 @@ Open **Projects** to see projects across the instance, their members, and their 
 Open **Integrations** to manage the installation's shared integration settings. The available settings cover GitHub, GitLab, and the allowed hosts used by Jira import. Save changes from this tab.
 
 <Shot name="ui-instance-integrations" alt="Instance-wide GitHub, GitLab, and host allow-list settings." />
+
+## Turn on usage analytics
+
+Open **Analytics** to send usage events to Umami or PostHog. Analytics is off until you choose a provider. Pick the provider, enter its host and site key, and choose whether to send people's names. Then save, and use **Send test event** to check the connection. Events never contain titles, comments, or other free text. See [usage analytics](/start/analytics/) for what is collected, and how to set up each provider.
 
 ## Manage agent connections
 

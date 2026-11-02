@@ -46,6 +46,10 @@ export const sidebar = [
         "link": "/start/integrations/"
       },
       {
+        "label": "Usage analytics",
+        "link": "/start/analytics/"
+      },
+      {
         "label": "Your first project in 10 minutes",
         "link": "/start/guides/first-project/"
       },

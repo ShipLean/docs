@@ -1,0 +1,100 @@
+---
+title: "Usage analytics"
+description: "Send usage events from your instance to Umami or PostHog, and see what is collected and what never is."
+sidebar:
+  order: 10
+---
+
+ShipLean can send usage events to Umami or PostHog, so you can see how people and agents use your instance. It is off by default. An instance admin turns it on in **Instance settings**, on the **Analytics** tab.
+
+Events are sent by the ShipLean server, never by the browser. ShipLean adds no analytics script or cookie to its pages, so browser ad blockers do not affect it and your content security policy does not change.
+
+## What is collected
+
+Each event records that an action happened. It does not record what the action was about.
+
+| What | Details |
+| --- | --- |
+| Events | One event per action, such as capturing work, moving an item, adding a comment, picking up a task, or changing a setting. An action that creates five items is one event. Screen views are events too. |
+| Who | Whether a person or an agent acted, and through the web app or an agent connection. The same action has the same event name either way, so you can compare them. |
+| Project | The project's id and key, when the action touched exactly one project. |
+| Outcome | Whether the action succeeded, failed, or was cancelled, with the error code and how long it took. |
+| Agents | The agent's name and host, as the client reports them, and whether it is verified. |
+| Instance | The ShipLean version and the instance's host name. |
+
+Actions that cover no single project carry no project. These are search, listing projects, sign-in and account actions, profile changes, and instance admin actions.
+
+## What is never collected
+
+- **No free text.** Titles, descriptions, comments, search queries, attachment names, project names, state names, and addresses people type are never sent. Events carry only ids, fixed event names, short fixed values, numbers, and true or false.
+- **No names or emails by default.** A person is identified only by an id. Their name and email are sent only when you turn on **Send people's names**, which is off by default.
+- **No keys in logs.** ShipLean never writes the full site key to its logs.
+
+Analytics never slows or fails a request. If your provider is down, events are retried once and then dropped. Events are held in memory, so a restart loses any that were waiting, and the change you save in the Analytics tab applies within about 30 seconds.
+
+## Choose a provider
+
+| | Umami | PostHog |
+| --- | --- | --- |
+| Hosting | Self-hosted, free. Umami Cloud has not been tested. | PostHog Cloud (US or EU), or self-hosted. |
+| Site key (the field is labelled **Website ID** or **Project API key**) | The website ID, a GUID. | The project token (formerly project API key), which starts with `phc_`. |
+| Filtering by project | The project key is part of each event's path, so every report can be filtered by project. The kind of actor is filterable as a tag. | The project is an event property. |
+| Best for | A small private dashboard on your own server. | Funnels, cohorts, and deeper analysis. |
+
+You can switch providers at any time. Events already sent stay with the old provider.
+
+## Set up Umami
+
+1. Run Umami version 3.4 or newer. Umami's [install guide](https://docs.umami.is/docs/install) covers Docker Compose with a PostgreSQL database.
+2. Set `DISABLE_BOT_CHECK=1` in the Umami server's environment, then restart it. By default Umami filters out traffic it takes for bots. Every ShipLean event comes from a server, so without this setting the events are discarded. The setting is listed in Umami's [environment variables](https://docs.umami.is/docs/environment-variables).
+3. In Umami, add a website and copy its website ID.
+4. Open **Instance settings → Analytics** in ShipLean and fill in the tab as described below.
+
+If you use Docker Compose, add the variable to the `umami` service:
+
+```yaml
+environment:
+  DISABLE_BOT_CHECK: "1"
+```
+
+Your Umami must be reachable from the ShipLean server. It does not need to be reachable from people's browsers.
+
+## Set up PostHog
+
+1. Create a project in PostHog, and copy its project token (formerly project API key) from the project settings. It starts with `phc_`.
+2. Choose the host that matches where the project lives:
+
+| Where | Host |
+| --- | --- |
+| PostHog Cloud, US | `https://us.i.posthog.com` |
+| PostHog Cloud, EU | `https://eu.i.posthog.com` |
+| Self-hosted | Your own PostHog address |
+
+3. Open **Instance settings → Analytics** in ShipLean and fill in the tab as described below. See PostHog's [capture API](https://posthog.com/docs/api/capture) for the hosts.
+
+Use the ingestion host above, not the address of the PostHog web app.
+
+## Fill in the Analytics tab
+
+Only instance admins can open the tab.
+
+| Field | What to enter |
+| --- | --- |
+| Provider | **Off**, **Umami**, or **PostHog**. Off clears the host and key. |
+| Host | The address of your provider, such as `https://umami.example.com`. It must start with `http://` or `https://`, and must not contain a query, a fragment, or a user name and password. |
+| Website ID (Umami) or Project API key (PostHog) | The Umami website ID, or the PostHog project token (formerly project API key). The field is labelled to match the provider you pick. |
+| Send people's names | Off by default. When on, each person's name and email go to the provider along with their id. Agent events never carry the person's name or email. Turning this off stops new names and emails from being sent; it does not remove any the provider already has. Turn this on only if your privacy policy allows it. |
+
+ShipLean checks the host and key when you save. An Umami key must be a GUID, and a PostHog key must start with `phc_`.
+
+## Test the connection
+
+Select **Send test event** to send one event to the saved provider and see the result at once. It uses the settings you last saved, so save first. A failure shows the reason, such as an unreachable host or a key the provider refuses. Some providers, PostHog among them, may accept an event even when the key is wrong. A success means the provider accepted the event. Check that it appears; if it doesn't, see Troubleshooting. In Umami, look on the website's Events page.
+
+The test works only when a provider is selected. With the provider off, it reports that analytics is off.
+
+## Troubleshooting
+
+- **The test succeeds in Umami but nothing shows.** Check that `DISABLE_BOT_CHECK=1` is set on the Umami server and that you restarted it.
+- **The test fails.** Check that the ShipLean server can reach the host, that the address has no path you did not intend, and that the key belongs to the right website or project.
+- **Events arrive late.** ShipLean sends them in small batches, about two seconds after the first one. Umami dates an event when it receives it.
