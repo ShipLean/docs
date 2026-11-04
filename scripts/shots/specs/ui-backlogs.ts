@@ -42,27 +42,11 @@ export const shots: ShotSpec[] = [
     },
   },
   {
-    name: 'ui-backlogs-new-story',
-    route: stories,
-    steps: async (page) => {
-      await page.getByTestId('backlog-new-item').click();
-      await page.getByTestId('backlog-add-row').waitFor({ state: 'visible' });
-    },
-  },
-  {
     name: 'ui-backlogs-new-feature',
     route: features,
     steps: async (page) => {
       await page.getByTestId('backlog-new-item').click();
       await page.getByTestId('backlog-new-feature-title').waitFor({ state: 'visible' });
-    },
-  },
-  {
-    name: 'ui-backlogs-new-epic',
-    route: epics,
-    steps: async (page) => {
-      await page.getByTestId('backlog-new-item').click();
-      await page.getByTestId('backlog-add-row').waitFor({ state: 'visible' });
     },
   },
 ];

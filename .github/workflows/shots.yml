@@ -1,0 +1,41 @@
+name: Capture screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['shots/**']
+
+permissions:
+  contents: read
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SHIPLEAN_IMAGE: ghcr.io/shiplean/shiplean:aa5119e72826ec9d9529dafa33b2e73ce9a37098
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.0'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Write the private configuration
+        run: |
+          umask 077
+          password="$(openssl rand -hex 24)"
+          echo "::add-mask::$password"
+          printf '{"admin":{"email":"docs@example.com","password":"%s"}}' "$password" > "$RUNNER_TEMP/shots.json"
+          chmod 600 "$RUNNER_TEMP/shots.json"
+      - name: Capture
+        run: pnpm shots --config "$RUNNER_TEMP/shots.json"
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shots
+          path: src/assets/shots
+          if-no-files-found: warn
