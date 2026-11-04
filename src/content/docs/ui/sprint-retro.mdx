@@ -11,25 +11,25 @@ The Retro tab of a sprint is where the team records what went well and badly, an
 
 ## The Retro tab
 
-A retrospective is a set of points. Each point has a category (**Went well**, **Went badly**, **Can be improved** or **Not in the plan**), some text, and a theme. People write points here. Agents write theirs with `log_retrospective` when they stop work on a story, and the conductor compiles a Feature retro when the last story closes. Both appear on the tab.
+A retrospective is a set of points. Each point has a category and some text, and it can have a theme. The categories are **Went well**, **Went badly**, **Can be improved** and **Not in the plan**. ShipLean shows each point as a note. People write points here. Agents write theirs with `log_retrospective` when they stop work on a story, and the conductor compiles a Feature retro when the last story closes. Both appear on the tab.
 
-The summary at the top shows four figures. **Finished items with a retro** counts the sprint's finished items that have a retro against all finished items. **Recurring themes** links to Insights. **Points to decide** counts the points still waiting for a decision. **Action items raised** counts the Action items raised from this sprint's points.
+The summary at the top shows four figures. **Finished items with a retro** counts the items that have a retro against the items in Coverage that are not waiting. Features that are still waiting are left out of the total. **Recurring themes** links to Insights. **Points to decide** counts the points still waiting for a decision. **Action items raised** counts the Action items raised from this sprint's points.
 
-Below the summary, the **By category** and **By work item** buttons choose the view, and the tab opens on By category. Two filters sit on the right. **Written by** limits the points to **All**, **Agents** or **People**. **Decision** switches between **All points** and **To decide**, which hides every point that has an Action item or a Not needed reason and also hides Went well points. The view and both filters are part of the page address, so a link to the tab opens the same view.
+Below the summary, the **By category** and **By work item** buttons choose the view, and the tab opens on By category. Two filters sit on the right. **Written by** limits the points to **All**, **Agents** or **People**. The **All points** and **To decide** toggle limits the points by decision. **To decide** hides every point that has an Action item or a Not needed reason. It also hides Went well points. The view and both filters are part of the page address, so a link to the tab opens the same view.
 
-<Shot name="ui-sprint-retro-by-category" alt="Sprint Retro tab on the By category view with four columns, Went well, Went badly, Can be improved and Not in the plan. Points are grouped under theme names, each note shows its work item and author, and the rail is on the right." />
+<Shot name="ui-sprint-retro-by-category" alt="Sprint Retro tab on the By category view with four columns, Went well, Went badly, Can be improved and Not in the plan. Theme names head groups of points, each note shows its work item and author, and the rail is on the right." />
 
 ### By category
 
-The view has four columns, one for each category. A column header shows how many points the column holds. When some still need a decision, it also shows how many are left to decide. Inside a column, points are grouped under their theme, with points that have no theme last under **Unthemed**. A theme that keeps coming up carries a **Recurring** chip.
+The view has four columns, one for each category. A column header shows how many points the column shows after the filters. When some still need a decision, it also shows how many are left to decide, and that count ignores the filters. Inside a column, ShipLean groups points under their theme, with points that have no theme last under **Unthemed**. A theme that keeps coming up carries a **Recurring** chip.
 
-When the sprint has a Feature retro, a **Feature retro** note sits above the columns. It names the Feature, who compiled the retro, and how many story retros it came from. Points from that retro carry a **Feature** chip.
+When the sprint has a Feature retro, a **Feature retro** box sits above the columns. It names the Feature, who compiled the retro, and how many story retros it came from. Inside a column, the Feature's points come first.
 
 ### By work item
 
-The view shows one board for each finished item that has a retro, with a Feature's board first. A sprint-level retro appears as a board marked **Sprint**. Each board has the same four columns, without theme groups. Its header shows the item key and title, who wrote the retro and when, and how many of its points have a decision. A **Rolled over** chip marks a retro that an agent logged before the work was finished. **Open** goes to the item's retro page.
+The view shows one board for each item that has a retro in this sprint, with a Feature's board first. A Feature's board header carries a **Feature** chip. A sprint-level retro appears as a board marked **Sprint**. Each board has the same four columns, without theme groups. Its header shows the item key and title, who wrote the retro and when, and how many of its points have a decision. A **Rolled over** chip marks a retro that an agent logged before the work was finished. **Open** goes to the item's retro page.
 
-A Feature board lists the story retros it was compiled from under the columns. Below the columns, **Raw failure log** is collapsed. Choose it to read the blockers, disproved assumptions and friction exactly as the agent logged them. A board whose retro has no failure log shows no such section.
+Under the columns, a Feature board lists the story retros the conductor compiled it from. Below that, **Raw failure log** is collapsed. Choose it to read the blockers, disproved assumptions and friction exactly as the agent logged them. A board whose retro has no failure log shows no such section.
 
 <Shot name="ui-sprint-retro-by-work-item" alt="Sprint Retro tab on the By work item view with a Feature board first and story boards below. Each board header shows the item key, title, author and decided progress, and the Raw failure log is collapsed under the columns." />
 
@@ -37,35 +37,35 @@ A Feature board lists the story retros it was compiled from under the columns. B
 
 The rail on the right of both views has three sections.
 
-- **Coverage** lists the stories, bugs and Features finished in the sprint. Each has a tick when its retro is logged, **waiting** when the retro is logged once its last story closes, or **missing** when there is none.
-- **Action items** lists the Action items raised from this sprint's points and earlier ones still open. Each shows its key, its state, the sprint it is planned in or **Not planned**, and the sprint it came from.
+- **Coverage** lists the stories, bugs and Action items finished in the sprint, and the Features that had a story finish or roll over from it. A tick means the item has a retro. **missing** means it has none. **waiting** means a Feature's last story is still open.
+- **Action items** lists the Action items raised from this sprint's points. It also lists earlier open Action items whose theme is on one of this sprint's points. Each shows its key, its state, the sprint it is planned in or **Not planned**, and the sprint it came from.
 - **Recurring** lists the themes mentioned in 3 of the last 4 sprints with no change that helped. A strip shows the mentions in each sprint, and a dashed line marks where a fix shipped.
 
 ### A sprint with no points
 
-When nobody has logged anything, the four columns are empty and each still ends with **+ Add**. The By work item view says **Nothing here.** The three rail sections say **Nothing here.** too, except that Coverage lists the finished items as **missing** or **waiting**. The summary counts read zero. Adding the first point creates your retro for the sprint, so there is nothing to set up first.
+When nobody has logged anything, the four columns on By category are empty and each still ends with **+ Add**. The By work item view says **Nothing here.** and has no **+ Add**, so add the first point on By category. In the rail, Action items says **Nothing here.**, Recurring still lists themes that recur from earlier sprints, and Coverage lists the finished items. **Finished items with a retro** reads 0 out of the number of items in Coverage that are not waiting. **Points to decide** and **Action items raised** read zero. Adding the first point creates your retro for the sprint, so there is nothing to set up first.
 
 ## Adding, theming and archiving a point
 
 ### Add a point
 
 1. Open the **Retro** tab of the sprint.
-2. Choose **+ Add** under the last point of the column that fits, such as **Went badly**. Only one editor is open at a time.
+2. Choose **+ Add** under the last point of the column that fits, such as **Went badly**. Each board has one editor open at a time.
 3. Type the point in the box. The **Add** button stays off until the box has text.
 4. For a Went badly point, fill in **Root cause** if you know it. The field is optional.
-5. On the By category view, choose what the point is **About**. The default is **The sprint**, and the list also holds the sprint's items. On the By work item view, the point goes on the board you added it from.
+5. On the By category view, choose what the point is **About**. The default is **The sprint**, and the list also holds the items in Coverage and the items that have a retro in this sprint. On the By work item view, the point goes on the board you added it from.
 6. Choose **Add**.
 
-The note says **Goes on your retro**. ShipLean adds the point to your own retro for that sprint or item, and makes the retro if you have none. You cannot add a point to an agent's retro. A new point has no theme, so it appears under **Unthemed** on the By category view. If your filters would hide the new point, the tab sets them back to **All** and **All points**.
+The note says **Goes on your retro**. ShipLean adds the point to your own retro for that sprint or item, and makes the retro if you have none. You cannot add a point to an agent's retro. By default a new point has no theme, so it appears under **Unthemed** on the By category view. An instance that enables automatic themes can theme the point at once. See [Retrospectives](/ui/retrospectives/). If your filters would hide the new point, the tab sets them back to **All** and **All points**.
 
 <Shot name="ui-sprint-retro-add-point" alt="The Went badly column on the Retro tab with a blank note open, showing the text box, the optional Root cause box, the About list set to The sprint, and the Add and Cancel buttons." />
 
 ### Move a point to another theme
 
-Each note on the By work item view ends with its theme, written as `# Theme name` or `# Unthemed`, with a small arrow. The By category view shows no such line, because the group heading is the theme. To change a theme, switch to By work item.
+On the By work item view, each note shows its theme under the text, written as `# Theme name` or `# Unthemed`, with a small arrow. The By category view shows no such line, because the group heading is the theme. To change a theme, switch to By work item.
 
 1. Choose the theme line on the note.
-2. Type to filter the list, or scroll to the theme you want. Each theme shows how many points it holds.
+2. Type to filter the list, or use the arrow keys to reach the theme you want. Each theme shows how many points it holds.
 3. Choose the theme. To start a new one, type a name that matches none and choose **Add 'name'**.
 
 The point moves at once, whoever wrote it. You can move an agent's point to another theme, but you cannot change its text.
@@ -94,9 +94,9 @@ To mark a point **Not needed**:
 
 The note then shows **Not needed** with the reason, who decided it and when, and the point fades. To change your mind, choose **Undo** on the note, and the point is undecided again.
 
-A point with an Action item shows a pin with the item's type icon, key and state. If the item covers other points, the pin adds `+2 more points` or similar. Choose the pin to open the Action item. A point that has a decision cannot be decided again, so to move it from Not needed to an Action item, choose **Undo** first.
+A point with an Action item shows a pin with the item's type icon, key and state. If the item covers other points, the pin adds `+2 more points` or similar. Choose the pin to open the Action item. You cannot decide a point that has a decision, so to move it from Not needed to an Action item, choose **Undo** first.
 
-To see what is left, choose **To decide** in the **Decision** filter. Each column header also shows how many of its points are waiting.
+To see what is left, choose **To decide** in the **All points** and **To decide** toggle. Each column header also shows how many of its points are waiting.
 
 ## Raising an Action item
 
@@ -111,16 +111,16 @@ The button is most prominent on a **Can be improved** point, where it is a fille
 1. Choose **+ Action item** on the note.
 2. In the **Action item** dialog, keep **New** selected at the top.
 3. Edit the **Title**. It starts as the first 80 characters of the point, and it is required.
-4. Choose a **Type of fix**. The choices are **Skill**, **Guide**, **Test**, **Analyzer**, **Product** and **Other**, each with a hint under it. **Guide** is chosen at first.
+4. Choose a **Type of fix**. The choices are **Skill**, **Guide**, **Test**, **Analyzer**, **Product** and **Other**, each with a hint under it. The dialog starts with **Guide** chosen.
 5. Check the **Theme**. The Action item has one theme, and the dialog starts with the most common theme among the points it covers. Pick another from the list, or pick **No theme**.
-6. Under **Points it covers**, tick or clear points. The point you started from is ticked and listed first, followed by other undecided Can be improved, Went badly and Not in the plan points. The count of selected points sits beside the heading.
+6. Under **Points it covers**, tick or clear points. The dialog ticks the point you started from and lists it first, then lists other undecided Can be improved, Went badly and Not in the plan points. On By category it offers points from the sprint. On By work item it offers points from that board's item and its stories and bugs. The count of selected points sits beside the heading.
 7. Choose **Create action item**. The button stays off until the title is filled in and at least one point is ticked.
 
 <Shot name="ui-sprint-retro-action-item-dialog" alt="The Action item dialog opened from a Can be improved point, with New selected, a title filled in, the six Type of fix cards with Guide chosen, a Theme list, and the Points it covers list with the first point ticked." />
 
 ### How the point and the theme link
 
-The Action item quotes each point it covers and links back to it. Every ticked point counts as decided and shows a pin to the new item, and the new item appears in the **Action items** section of the rail. The theme you chose becomes the Action item's theme. Insights judges whether the Action item helped by watching how often that theme comes up in later sprints.
+The Action item quotes each point it covers and links back to it. Every ticked point counts as decided and shows a pin to the new item, and the new item appears in the **Action items** section of the rail. The theme you chose becomes the Action item's theme. Insights compares how often that theme comes up before and after the Action item closes, and shows whether it helped.
 
 ### Add points to an Action item that exists
 
