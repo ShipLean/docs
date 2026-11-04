@@ -63,8 +63,6 @@ export const shots: ShotSpec[] = [
     steps: async (page) => {
       await page.getByTestId('work-item-link-add').click();
       await page.getByTestId('work-item-link-form').waitFor({ state: 'visible' });
-      // The page content is wider than the main pane, and focusing the form pans the pane sideways.
-      await page.getByTestId('shell-main').evaluate((main) => { main.scrollLeft = 0; });
     },
   },
   {
