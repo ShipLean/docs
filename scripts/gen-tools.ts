@@ -30,14 +30,31 @@ const literalPattern = '"(?:\\\\.|[^"\\\\])*"';
 const termPattern = `(?:${literalPattern}|[A-Za-z_]\\w*(?:\\.[A-Za-z_]\\w*)*)`;
 const expressionPattern = `${termPattern}(?:\\s*\\+\\s*${termPattern})*`;
 const constantSources = new Map<string, string>();
-function resolveExpression(expression: string, context: string): string {
+const constantsByName = new Map<string, Set<string>>();
+function classAt(text: string, index: number): string {
+  const found = [...text.slice(0, index).matchAll(/\b(?:class|record|struct)\s+(\w+)/g)].at(-1);
+  return found ? found[1] : '';
+}
+function resolveExpression(expression: string, context: string, owner: string): string {
   return [...expression.matchAll(new RegExp(termPattern, 'g'))].map((term) => {
     const text = term[0];
     if (text.startsWith('"')) return unescapeCSharp(text.slice(1, -1));
-    const name = text.split('.').at(-1)!;
-    const source = constantSources.get(name);
+    const parts = text.split('.');
+    const name = parts.at(-1)!;
+    const qualifier = parts.length > 1 ? parts.at(-2)! : owner;
+    let cls = qualifier;
+    let source = constantSources.get(`${cls}.${name}`);
+    if (source === undefined) {
+      const sources = constantsByName.get(name);
+      if (sources !== undefined && sources.size > 1) throw new Error(`Constant ${text} in the description of ${context} has ${sources.size} different values and none is in class ${qualifier}`);
+      if (sources !== undefined) {
+        const only = [...constantSources.entries()].find(([key, value]) => key.endsWith(`.${name}`) && value === [...sources][0])!;
+        cls = only[0].slice(0, -name.length - 1);
+        source = only[1];
+      }
+    }
     if (source === undefined) throw new Error(`Unknown constant ${text} in the description of ${context}`);
-    return resolveExpression(source, name);
+    return resolveExpression(source, name, cls);
   }).join('');
 }
 function description(text: string, from: number, context: string): { value: string; next: number } | null {
@@ -45,13 +62,16 @@ function description(text: string, from: number, context: string): { value: stri
   match.lastIndex = from;
   const found = match.exec(text);
   if (!found) return null;
-  return { value: resolveExpression(found[1], context), next: match.lastIndex };
+  return { value: resolveExpression(found[1], context, classAt(text, from)), next: match.lastIndex };
 }
 const sources = new Map<string, string>();
 for (const file of files) {
   const text = await readFile(file, 'utf8');
   sources.set(file, text);
-  for (const match of text.matchAll(new RegExp(`\\bconst\\s+string\\s+(\\w+)\\s*=\\s*(${expressionPattern})\\s*;`, 'g'))) constantSources.set(match[1], match[2]);
+  for (const match of text.matchAll(new RegExp(`\\bconst\\s+string\\s+(\\w+)\\s*=\\s*(${expressionPattern})\\s*;`, 'g'))) {
+    constantSources.set(`${classAt(text, match.index!)}.${match[1]}`, match[2]);
+    constantsByName.set(match[1], (constantsByName.get(match[1]) ?? new Set()).add(match[2]));
+  }
 }
 function paramList(text: string): string[] {
   const found: string[] = [];
@@ -83,7 +103,7 @@ for (const file of files) {
     const methodAt = text.indexOf('public async Task<PromptMessage>', after);
     const open = text.indexOf('{', methodAt);
     const parameters = paramList(text.slice(methodAt, open));
-    prompts.push(`- **\`${match[1]}\`**: ${desc?.value ?? 'Prompt.'}${parameters.length ? ` Arguments: ${parameters.join('; ')}.` : ''}`);
+    prompts.push(`- **\`${match[1]}\`.** ${desc?.value ?? 'Prompt.'}${parameters.length ? ` Arguments: ${parameters.join('; ')}.` : ''}`);
   }
 }
 if (tools.length === 0) throw new Error(`No [McpServerTool] registrations found under ${toolsDir}`);
@@ -95,13 +115,16 @@ const docNames = new Set([...doc.matchAll(/`([a-z][a-z0-9_]+)`/g)].map((match) =
 const docsMissing = names.filter((name) => !docNames.has(name));
 const docsListed = names.filter((name) => docNames.has(name));
 const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and research', 'Planning', 'Sprints', 'Status and reporting', 'Retrospectives', 'Other'];
+function scopeLine(tool: Tool): string {
+  return tool.preview ? `This tool needs ${tool.scope} scope. A preview call uses read scope.` : `This tool needs ${tool.scope} scope.`;
+}
 let generated = `## Tools\n\nThe server currently registers **${tools.length} tools**. Each tool lists its required scope; preview calls use read scope until you apply them.\n`;
 for (const group of groupsInOrder) {
   const inGroup = tools.filter((tool) => tool.area === group);
   if (!inGroup.length) continue;
   generated += `\n### ${group}\n`;
   for (const tool of inGroup) {
-    generated += `\n#### \`${tool.name}\` — ${tool.scope}${tool.preview ? ` (preview: read; apply: ${tool.scope})` : ''}\n\n${tool.description.replaceAll('<', '&lt;').replaceAll('>', '&gt;')}\n`;
+    generated += `\n#### \`${tool.name}\`\n\n${scopeLine(tool)}\n\n${tool.description.replaceAll('<', '&lt;').replaceAll('>', '&gt;')}\n`;
     if (tool.parameters.length) generated += `\nArguments: ${tool.parameters.join('; ')}.\n`;
   }
 }
