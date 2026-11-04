@@ -1,6 +1,6 @@
 ---
 title: "Sign-in options"
-description: "Email and password sign-in with lockout, one-time passwords, a 14-day sliding cookie, and a sign-out-everywhere action. Sign in with Google: creating the Google client, the redirect URI, account linking, and what open signup allows. Identity proxy sign-in in token mode, which is the recommended mode, with examples for oauth2-proxy, Cloudflare Access, and Pomerium. Plain-header mode for Authelia with its trust warning, the sign-out URL, and how the first admin works in proxy mode."
+description: "Email and password sign-in with lockout, one-time passwords, a 14-day sliding cookie, and a sign-out-everywhere action. The Google section covers creating the Google client, the redirect URI, account linking, and what open signup allows. Identity proxy sign-in in token mode, which is the recommended mode, with examples for oauth2-proxy, Cloudflare Access, and Pomerium. Plain-header mode for Authelia with its trust warning, the sign-out URL, and how the first admin works in proxy mode."
 sidebar:
   order: 7
 ---
@@ -27,23 +27,23 @@ With Google sign-in on, the sign-in page shows a **Sign in with Google** button 
 
 ### Open signup
 
-Turning on Google sign-in opens signup. Anyone with a Google account who can reach ShipLean, and whom Google lets use your client, gets a ShipLean user on their first sign-in. You do not add them first.
+Turning on Google sign-in opens signup. Anyone who can reach ShipLean and has a Google account that your client admits gets a ShipLean user on their first sign-in. You do not add them first.
 
-A new user sees no projects until someone adds them. Under the default project creation setting, **Everyone**, they can still create their own projects and become the Admin of each one. They can also look up other users by email address. To stop that, open **General** in the [instance settings](/ui/instance/#set-instance-details-and-project-creation) and choose **Instance admins only** under **Who can create projects**. You can also limit who Google admits, as described in the next section.
+A new user sees no projects until someone adds them. Under the default project creation setting, **Everyone**, they can still create their own projects and become the Admin of each one. They can also look up other users by email address. To stop new users creating projects, open **General** in the [instance settings](/ui/instance/), choose **Instance admins only** under **Who can create projects**, and select **Save**. No setting limits the email lookup. You can also limit who Google admits, as described in the next section.
 
 ### Create the Google client
 
 Do these steps in the Google Cloud console, which Google owns, so its labels can change. The steps follow Google's pages on [managing OAuth clients](https://support.google.com/cloud/answer/15549257) and [managing the app audience](https://support.google.com/cloud/answer/15549945).
 
 1. Open the [Clients page](https://console.developers.google.com/auth/clients) of the Google Auth Platform. Choose or create a Google Cloud project. If Google asks you to register the application for Google Auth first, do that.
-2. In the audience settings, choose **External** to admit any Google account, or **Internal** to admit only members of your Google Cloud organization. While the publishing status is **Testing**, Google admits only the test users you list, up to 100. Choose **Publish app** to move to **In production**, which admits any Google account.
+2. In the [audience settings](https://console.developers.google.com/auth/audience), choose **External** to admit any Google account, or **Internal** to admit only members of your Google Cloud organization. While the publishing status is **Testing**, Google admits only the test users you list, up to 100. Choose **Publish app** to move to **In production**, which admits any Google account.
 3. Select **Create client** and choose the **Web application** application type.
-4. Under **Authorized redirect URIs**, add `<your address>/api/auth/google/callback`. Your address is the instance base URL from **General** in the instance settings. When the base URL is blank, it is the address people use to reach ShipLean. For example, `https://shiplean.example.com/api/auth/google/callback`. Set the base URL when ShipLean is behind a gateway, because the request's own host may not be the public one.
+4. Under **Authorized redirect URIs**, add `<your address>/api/auth/google/callback`. Your address is the instance base URL from **General** in the instance settings. When the base URL is blank, it is the address people use to reach ShipLean. For example, add `https://shiplean.example.com/api/auth/google/callback`. Set the base URL when ShipLean is behind a gateway, because the request's own host may not be the public one.
 5. Select **Create**. Copy the client ID and the client secret. Google shows the full secret only when you create it. If you lose it, add a new secret to the client.
 
-Google requires the redirect URI to match exactly, including the scheme, case and any trailing slash. It must use HTTPS, except for localhost, and it cannot contain a wildcard. A change to the redirect URI can take from 5 minutes to a few hours to apply. A mismatch makes Google show a `redirect_uri_mismatch` error instead of returning to ShipLean.
+Google requires the redirect URI to match exactly, including the scheme, case and any trailing slash. It must use HTTPS, except for localhost, and it cannot contain a wildcard. Its host cannot be a raw IP address, except for localhost. A change to the redirect URI can take from 5 minutes to a few hours to apply. A mismatch makes Google show a `redirect_uri_mismatch` error instead of returning to ShipLean.
 
-ShipLean's sign-in cookies for the Google round trip are always Secure, so Google sign-in works only over HTTPS or on localhost.
+The correlation and nonce cookies that ShipLean sets before it sends the browser to Google are always Secure, so Google sign-in works only over HTTPS or on localhost.
 
 ### Set the two settings
 
@@ -62,20 +62,20 @@ SHIPLEAN_GOOGLE_CLIENT_SECRET=<google-client-secret>
 
 ### How Google accounts link to users
 
-ShipLean asks Google for the `openid`, `profile` and `email` scopes. On a first sign-in, Google must report the email address as verified. An account with an unverified email is refused, and so is a token with no email. An unverified email never links to a user and never creates one.
+ShipLean asks Google for the `openid`, `profile` and `email` scopes. On every sign-in, Google must report the email address as verified. ShipLean refuses an account with an unverified email and a token with no email. ShipLean never links an unverified email to a user and never creates a user from one.
 
 - **A user with that email exists.** ShipLean links the Google account to that user and keeps their password, name, projects and history. Email matching ignores case.
 - **No user has that email.** ShipLean creates a user with the name Google sends. When Google sends no usable name, the name is the part of the email before the `@`.
-- **Later sign-ins.** ShipLean identifies the person by Google's account ID, not the email. If the person changes their email at Google, nothing changes in ShipLean, and ShipLean does not follow the new address.
+- **Later sign-ins.** ShipLean identifies the person by Google's account ID, not the email. If the person changes their email at Google to a new address that Google reports as verified, nothing changes in ShipLean, and ShipLean does not follow the new address.
 
-ShipLean refuses a sign-in when the user is disabled, or when the email already belongs to a user linked to a different Google account. The second case happens when an address changes hands. It needs an instance admin to change the email on the existing user.
+ShipLean refuses a sign-in when the user is disabled, or when the email already belongs to a user linked to a different Google account. The second case happens when Google gives the address to a different account. An instance admin must choose **Change email…** on the existing user in the users list. The Google account then gets a new, separate user, and the old user stays linked to the old Google account.
 
-A linked user's password still works. A password lockout does not stop Google sign-in, and a Google sign-in does not clear the lockout. A one-time password that has not been used ends at the user's first Google sign-in. A user who has Google and no password has no password form in their profile. An admin can give them a password with **Set up sign-in…** in the users list.
+A linked user's password still works. A password lockout does not stop Google sign-in, and a Google sign-in does not clear the lockout. A one-time password that the user has not replaced ends at their next Google sign-in. A user given one must sign in with it and choose a password before using Google again. A user who has Google and no password has no password form in their profile. An admin can give them a password with **Set up sign-in…** in the users list.
 
 ### When Google sign-in does not work
 
 - **Not configured.** The sign-in page shows only the email and password form. The start address `/api/auth/google/start` answers 404.
-- **Google cannot finish.** A cancelled consent screen, an expired sign-in attempt or an unreachable Google returns the person to the sign-in page. The page says "Couldn't finish signing in with Google. Try again."
+- **Google cannot finish.** A cancelled consent screen, an expired sign-in attempt or a failed call from ShipLean to Google after the person returns sends the person back to the sign-in page. The page says "Couldn't finish signing in with Google. Try again."
 - **Google account refused.** The sign-in page says "This Google account can't sign in here. Ask your ShipLean admin." The message is the same for an unverified email, a disabled user and an email linked to another Google account. The server log records which one it was, and never the token or the address.
 
 ## Sign in through an identity proxy
