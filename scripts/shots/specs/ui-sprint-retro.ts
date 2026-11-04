@@ -8,8 +8,8 @@ export const shots: ShotSpec[] = [
     name: 'ui-sprint-retro-by-category',
     route: retro,
     steps: async (page) => {
-      await page.getByTestId('retro-column').first().waitFor({ state: 'visible' });
-      await page.getByTestId('retro-point').first().waitFor({ state: 'visible' });
+      await page.getByTestId('retro-board-column').first().waitFor({ state: 'visible' });
+      await page.getByTestId('retro-note').first().waitFor({ state: 'visible' });
     },
   },
   {
