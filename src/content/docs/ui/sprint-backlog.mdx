@@ -30,10 +30,10 @@ Nothing opens by itself when a sprint ends. Any project member can close a sprin
 1. Open the sprint. **Close sprint** is in the sprint header, on every sprint tab. It shows for a current sprint, or for an ended sprint that nobody has closed. A future sprint and a closed sprint have no button.
 2. Select **Close sprint**. The dialog's title is "Close" followed by the sprint's name. It lists the committed and completed points and each unfinished item.
 3. For each unfinished item, choose where it goes with its menu: **Move to** the next sprint, **Back to top of backlog**, or **Leave in** the sprint. Under **Set all to**, each button applies its choice to every item.
-4. Check the next sprint's total against its team capacity. ShipLean warns when the total is over capacity and still lets you close. If the next sprint has no capacity entered, the callout says so and shows no warning.
+4. Check the next sprint's total against its team capacity. ShipLean warns when the total is over capacity and still lets you close. If the next sprint has no capacity entered, the dialog says so and shows no warning.
 5. Select **Close sprint** to record the decisions, or **Cancel** to leave the sprint open.
 
-ShipLean suggests the next sprint for each item when one exists. Open tasks move with their story, bug, or action item. Completed tasks stay in the ended sprint. When no sprint follows, the menu offers only **Back to top of backlog** and **Leave in** the sprint, and it starts on **Back to top of backlog**. The dialog shows no next sprint total. If nothing is unfinished, the dialog asks you to confirm and has no choices.
+ShipLean suggests the next sprint for each item when one exists. Open tasks move with their story, bug, or [action item](/ui/sprint-retro/#raising-an-action-item). Completed tasks stay in the ended sprint. When no sprint follows, the menu offers only **Back to top of backlog** and **Leave in** the sprint, and it starts on **Back to top of backlog**. The dialog shows no next sprint total. If nothing is unfinished, the dialog asks you to confirm and has no choices.
 
 <Shot name="ui-sprint-backlog-rollover" alt="Close sprint dialog listing unfinished items, each with a menu for where it goes, a Set all to row, the next sprint's total against capacity, and Cancel and Close sprint buttons." />
 
@@ -43,4 +43,4 @@ If ShipLean refuses a close, the dialog stays open and shows the reason. If it c
 
 If a teammate closes the sprint while your dialog is open, the dialog tells you it is closed and there is nothing left to decide.
 
-The closed sprint keeps its committed and completed totals for velocity history. Moving unfinished work does not rewrite those totals.
+An ended sprint keeps its committed and completed totals for velocity history, whether or not anyone closes it. A sprint you close early counts from the next UTC day. Moving unfinished work does not rewrite those totals.
