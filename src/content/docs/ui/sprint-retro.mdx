@@ -13,7 +13,7 @@ The Retro tab of a sprint is where the team records what went well and badly, an
 
 A retrospective is a set of points. Each point has a category and some text, and it can have a theme. The categories are **Went well**, **Went badly**, **Can be improved** and **Not in the plan**. ShipLean shows each point as a note. People write points here. Agents write theirs with `log_retrospective` when they stop work on a story, and the conductor compiles a Feature retro when the last story closes. Both appear on the tab.
 
-The summary at the top shows four figures. **Finished items with a retro** counts the items that have a retro against the items in Coverage that are not waiting. Features that are still waiting are left out of the total. **Recurring themes** links to Insights. **Points to decide** counts the points still waiting for a decision. **Action items raised** counts the Action items raised from this sprint's points.
+The summary at the top shows four figures. **Finished items with a retro** counts the items with a tick in Coverage against the items in Coverage that are not waiting. The total leaves out Features that are still waiting. **Recurring themes** links to Insights. **Points to decide** counts the points still waiting for a decision. **Action items raised** counts the Action items raised from this sprint's points.
 
 Below the summary, the **By category** and **By work item** buttons choose the view, and the tab opens on By category. Two filters sit on the right. **Written by** limits the points to **All**, **Agents** or **People**. The **All points** and **To decide** toggle limits the points by decision. **To decide** hides every point that has an Action item or a Not needed reason. It also hides Went well points. The view and both filters are part of the page address, so a link to the tab opens the same view.
 
@@ -21,15 +21,15 @@ Below the summary, the **By category** and **By work item** buttons choose the v
 
 ### By category
 
-The view has four columns, one for each category. A column header shows how many points the column shows after the filters. When some still need a decision, it also shows how many are left to decide, and that count ignores the filters. Inside a column, ShipLean groups points under their theme, with points that have no theme last under **Unthemed**. A theme that keeps coming up carries a **Recurring** chip.
+The view has four columns, one for each category. A column header gives the number of points left after the filters. When some still need a decision, it also shows how many are left to decide, and that count ignores the filters. Inside a column, ShipLean groups points under their theme, with points that have no theme last under **Unthemed**. A theme that keeps coming up carries a **Recurring** chip.
 
-When the sprint has a Feature retro, a **Feature retro** box sits above the columns. It names the Feature, who compiled the retro, and how many story retros it came from. Inside a column, the Feature's points come first.
+When the sprint has a Feature retro, a **Feature retro** box sits above the columns. It names the Feature, who compiled the retro, and how many story retros it came from. Inside a theme group, the Feature's points come first.
 
 ### By work item
 
 The view shows one board for each item that has a retro in this sprint, with a Feature's board first. A Feature's board header carries a **Feature** chip. A sprint-level retro appears as a board marked **Sprint**. Each board has the same four columns, without theme groups. Its header shows the item key and title, who wrote the retro and when, and how many of its points have a decision. A **Rolled over** chip marks a retro that an agent logged before the work was finished. **Open** goes to the item's retro page.
 
-Under the columns, a Feature board lists the story retros the conductor compiled it from. Below that, **Raw failure log** is collapsed. Choose it to read the blockers, disproved assumptions and friction exactly as the agent logged them. A board whose retro has no failure log shows no such section.
+Under the columns, a Feature board lists the story retros the conductor compiled it from. At the bottom of a board, **Raw failure log** is collapsed. Choose it to read the blockers, disproved assumptions and friction exactly as the agent logged them. A board whose retro has no failure log shows no such section.
 
 <Shot name="ui-sprint-retro-by-work-item" alt="Sprint Retro tab on the By work item view with a Feature board first and story boards below. Each board header shows the item key, title, author and decided progress, and the Raw failure log is collapsed under the columns." />
 
@@ -37,13 +37,13 @@ Under the columns, a Feature board lists the story retros the conductor compiled
 
 The rail on the right of both views has three sections.
 
-- **Coverage** lists the stories, bugs and Action items finished in the sprint, and the Features that had a story finish or roll over from it. A tick means the item has a retro. **missing** means it has none. **waiting** means a Feature's last story is still open.
-- **Action items** lists the Action items raised from this sprint's points. It also lists earlier open Action items whose theme is on one of this sprint's points. Each shows its key, its state, the sprint it is planned in or **Not planned**, and the sprint it came from.
+- **Coverage** lists the stories, bugs and Action items finished in the sprint, and the Features that had a story finish or roll over from it. A tick means the item has a retro. **missing** means it has none. **waiting** means a Feature's last story is still open, and a Feature with an open story shows it even if it has a retro.
+- **Action items** lists the Action items raised from this sprint's points. It also lists other open Action items whose theme is on one of this sprint's points. Each shows its key, its state, the sprint it is planned in or **Not planned**, and the sprint it came from.
 - **Recurring** lists the themes mentioned in 3 of the last 4 sprints with no change that helped. A strip shows the mentions in each sprint, and a dashed line marks where a fix shipped.
 
 ### A sprint with no points
 
-When nobody has logged anything, the four columns on By category are empty and each still ends with **+ Add**. The By work item view says **Nothing here.** and has no **+ Add**, so add the first point on By category. In the rail, Action items says **Nothing here.**, Recurring still lists themes that recur from earlier sprints, and Coverage lists the finished items. **Finished items with a retro** reads 0 out of the number of items in Coverage that are not waiting. **Points to decide** and **Action items raised** read zero. Adding the first point creates your retro for the sprint, so there is nothing to set up first.
+When nobody has logged anything, the four columns on By category are empty and each still ends with **+ Add**. The By work item view says **Nothing here.** and has no **+ Add**, so add the first point on By category. In the rail, Action items says **Nothing here.**, Recurring still lists themes that recur from earlier sprints, and Coverage lists the finished items. Recurring says **Nothing here.** when the project has no history, and Coverage says it when no item finished. **Finished items with a retro** reads 0 out of the number of items in Coverage that are not waiting. **Points to decide** and **Action items raised** read zero. Adding the first point creates your retro for the sprint, so there is nothing to set up first.
 
 ## Adding, theming and archiving a point
 
@@ -96,7 +96,7 @@ The note then shows **Not needed** with the reason, who decided it and when, and
 
 A point with an Action item shows a pin with the item's type icon, key and state. If the item covers other points, the pin adds `+2 more points` or similar. Choose the pin to open the Action item. You cannot decide a point that has a decision, so to move it from Not needed to an Action item, choose **Undo** first.
 
-To see what is left, choose **To decide** in the **All points** and **To decide** toggle. Each column header also shows how many of its points are waiting.
+To see what is left, choose **To decide** on the toggle. Each column header also shows how many of its points are waiting.
 
 ## Raising an Action item
 
