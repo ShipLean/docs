@@ -7,7 +7,7 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-The Retrospectives screen is where you look across all of a project's retrospective points, not only one sprint's. The side menu lists Retrospectives with three entries under it: Search, Features and Insights. For the per-sprint view, see [Sprint retro](/ui/sprint-retro/).
+The Retrospectives screen shows the retrospective points of a whole project across all its sprints. The side menu lists Retrospectives with three entries under it: Search, Features and Insights. For the per-sprint view, see [Sprint retro](/ui/sprint-retro/).
 
 ## Search
 
@@ -92,7 +92,7 @@ The Range list has two groups.
 - **By sprint:** Last 6 sprints (the default), Last 3 sprints and All sprints. Each column is a sprint.
 - **By week:** Last 6 weeks and Last 12 weeks. Each column is a week, Monday to Sunday in UTC. A point belongs to the week it was logged in.
 
-The range sets the columns you see. Status and verdicts are worked out over every sprint or week, not only the ones shown.
+The range sets the columns you see. ShipLean calculates status and verdicts over every sprint or week, including those outside the range.
 
 In sprint mode there is also a **No sprint** column. It counts points from retros with no sprint. These points add to Total but never to Recurring or to a verdict, because they have no time order. Week mode has no such column.
 

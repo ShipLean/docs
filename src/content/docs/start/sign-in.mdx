@@ -43,6 +43,8 @@ Do these steps in the Google Cloud console, which Google owns, so its labels can
 
 Google requires the redirect URI to match exactly, including the scheme, case and any trailing slash. It must use HTTPS, except for localhost, and it cannot contain a wildcard. A change to the redirect URI can take from 5 minutes to a few hours to apply. A mismatch makes Google show a `redirect_uri_mismatch` error instead of returning to ShipLean.
 
+ShipLean's sign-in cookies for the Google round trip are always Secure, so Google sign-in works only over HTTPS or on localhost.
+
 ### Set the two settings
 
 Set both settings on the ShipLean service, then restart it.
