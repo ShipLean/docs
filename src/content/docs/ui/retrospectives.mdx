@@ -5,16 +5,166 @@ sidebar:
   order: 26.5
 ---
 
-The Retrospectives screen is where you look across all of a project's retrospective points, not just one sprint's.
+import Shot from '@/components/Shot.astro';
+
+The Retrospectives screen is where you look across all of a project's retrospective points, not only one sprint's. The side menu lists Retrospectives with three entries under it: Search, Features and Insights. For the per-sprint view, see [Sprint retro](/ui/sprint-retro/).
 
 ## Search
 
-{/* TODO: write this section. */}
+Search lists one row per point, with its category, theme, work item, sprint and author. Select a row to open its retro in the panel beside the table. With no search text the newest points come first. With search text the best matches come first.
+
+<Shot name="ui-retrospectives-search" alt="Retrospectives Search with the search box and filter row above a table of retro points, and one retro open in the panel on the right." />
+
+The search box reads "Search points, root causes and raw logs". It matches:
+
+- the text of a point and its root cause
+- the name of its theme
+- the key and title of the work item the retro belongs to
+- the retro's raw failure log
+
+A row that matched only through the failure log reads "Match in the raw failure log". Typing waits for a short pause before the search runs.
+
+The filters narrow the table. Each one is kept in the address, so you can share a search or go back to the last one.
+
+| Filter | Choices |
+| --- | --- |
+| Sprint | Any sprint, or one of the project's sprints |
+| Category | Went well, Went badly, Can be improved, Not in the plan |
+| Theme | Any theme, or one of the project's themes |
+| Level | Stories, bugs and features; Stories and bugs; Features |
+| Written by | Anyone, Conductors, Sub-agents, People |
+| Decision | Undecided, Actioned, Not needed |
+
+Three checkboxes sit after the lists:
+
+- **No sprint** shows only points from retros that belong to no sprint.
+- **Unthemed** shows only points with no theme.
+- **Recurring themes only** shows only points whose theme is recurring. The rule is the one Insights uses, described under [Insights](#insights).
+
+**Clear** resets the search text and every filter. A counter at the right of the row reads, for example, "12 points in 4 retros". When nothing matches, the table says "No point matches. Try fewer filters."
+
+Changing a filter closes the open retro, because the new result may not contain it.
 
 ## Features and work items
 
-{/* TODO: write this section. */}
+The Features entry in the side menu lists one row per Feature that has retros, then the stories and bugs that have no Feature. A Feature's row counts its own retro together with the retros of its stories and bugs.
+
+<Shot name="ui-retrospectives-features" alt="Retrospectives Features table with one row per Feature, its counts for each category, the number still to decide, a progress bar, and the last retro." />
+
+Each row shows:
+
+- the type icon, key and title, and the item's state
+- Retros, the number of retros
+- a count for each category, in the order Went well, Went badly, Can be improved, Not in the plan
+- To decide, the points that still need a decision
+- Decided, as a bar and a fraction such as 3/5, or "nothing to decide" when only Went well points exist
+- Actions, the number of action items raised
+- Last retro, when the newest retro was written
+
+A Feature whose own retro is not written yet carries a "No Feature retro yet" label. Its stories and bugs may still have retros. Went well points need no decision, so they never count under To decide.
+
+Use the buttons above the table to choose which rows show:
+
+- **All** shows every row.
+- **To decide** shows rows with at least one point to decide.
+- **No Feature retro yet** shows only Features without their own retro.
+
+The "Search Features" box filters rows by key or title. A counter shows how many Features are in view. When no row is left the table says "Nothing here."
+
+Select a title to open that item's retros. The item page has a header with the counts above, an **Open work item** link, and these controls:
+
+- A **Retro** strip to show all retros of the item or one retro, named by its author.
+- A **Points** strip with **All points** and **To decide**.
+- **+ Action item**, which raises an action item from the item's points. See [Raising an Action item](/ui/sprint-retro/#raising-an-action-item).
+
+Below the points the page shows the raw failure log of each retro, collapsed and read-only. On a Feature it also lists the stories and bugs with their own counts. The rail beside the page lists the item's action items, what a Feature's retro was compiled from, and who wrote each retro.
 
 ## Insights
 
-{/* TODO: write this section. */}
+Insights shows what keeps coming up across sprints and whether the changes made in response helped. Three buttons choose the view: **Recurring themes**, **Action items** and **Changes & impact**. A **Range** list next to them sets how far back the columns go. The side menu entry shows a "recurring" chip with the number of recurring themes in the last 6 sprints.
+
+<Shot name="ui-retrospectives-insights-recurring" alt="Retrospectives Insights on the Recurring themes view with a range list, a callout about recurring themes, and a table of themes with mentions per sprint, total and status." />
+
+### Sprint and week modes
+
+The Range list has two groups.
+
+- **By sprint:** Last 6 sprints (the default), Last 3 sprints and All sprints. Each column is a sprint.
+- **By week:** Last 6 weeks and Last 12 weeks. Each column is a week, Monday to Sunday in UTC. A point belongs to the week it was logged in.
+
+The range sets the columns you see. Status and verdicts are worked out over every sprint or week, not only the ones shown.
+
+In sprint mode there is also a **No sprint** column. It counts points from retros with no sprint. These points add to Total but never to Recurring or to a verdict, because they have no time order. Week mode has no such column.
+
+### Recurring themes
+
+The table lists themes for Went badly and Not in the plan points, with the mentions in each column, the Total, the Status, the theme's action items and the verdict of its last change. A mention is one Went badly or Not in the plan point.
+
+A theme's status is one of:
+
+| Status | Meaning |
+| --- | --- |
+| Recurring | Mentioned in 3 of the last 4 sprints, or 3 of the last 6 weeks in week mode, and no closed action item on the theme has helped. |
+| Being addressed | Not recurring, and an action item on the theme is still open. |
+| Resolved | Not recurring, and a closed action item on the theme has the verdict Helped. |
+| Quiet | Not recurring, with no open action item and no fix that helped. |
+
+The week window is 6 weeks whichever range you pick. When any theme is recurring, a callout above the table gives the count.
+
+The last row, **Unthemed**, counts Went badly and Not in the plan points that have no theme. It has no status or verdict and reads "not judged". Its **Give them themes** button opens Search filtered to unthemed points. The row is hidden when there are none.
+
+A **+ Action item** button on a theme row opens the action item dialog with that theme's undecided points. Below the table, **What keeps working** lists the themes of Went well points, with their count and the newest point.
+
+### Action items
+
+The Action items view lists every action item raised from a retro. The columns are Action, Fix, Covers, Theme, Raised, State, Sprint, Pts, Owner and Impact.
+
+<Shot name="ui-retrospectives-insights-actions" alt="Retrospectives Insights on the Action items view with a table of action items, their theme, state, sprint, points, owner and impact verdict." />
+
+- Fix is the type of fix: skill, guide, test, analyzer, product or other.
+- Covers is the number of retro points the action item covers.
+- A recurring theme carries a warning mark next to its name.
+- An open action item with no sprint has a **Pull into** button for the next sprint. Pulling it in is the approval to do the work.
+- Impact shows the verdict once the action item is closed.
+
+**+ Action item** in the header opens the dialog with no points ticked and offers the project's undecided points. With no action items the view says "Nothing here." An action item is a work item type at the same level as stories and bugs; see [Raising an Action item](/ui/sprint-retro/#raising-an-action-item).
+
+### Changes and impact
+
+Changes & impact has a card for each closed action item. A card shows the verdict, the sprint or week the action item was raised and finished, its title and theme, a chart of mentions per sprint or week, and three figures: the average per sprint or week before, the average after, and the change as a percentage. The change is left out when the average before is 0.
+
+<Shot name="ui-retrospectives-insights-impact" alt="Retrospectives Insights on the Changes and impact view with a card per closed action item, each showing a verdict, a bar chart of mentions and the averages before and after." />
+
+The verdict compares two averages of mentions on the action item's theme:
+
+- Before is the average over the columns up to and including the one the action item closed in.
+- After is the average over the later columns that have ended.
+
+| Verdict | When |
+| --- | --- |
+| Helped | After is at most half of before. |
+| Some effect | After is lower than before, but more than half. |
+| No effect | After is the same as before or higher, or before is 0. |
+| Too early | No full sprint or week has ended since the action item closed. |
+
+The current sprint or week is shown but never counted in after. A card with the verdict No effect also quotes the theme's latest mention and any follow-up action item.
+
+### When there is little data
+
+Insights shows only what exists:
+
+- A theme appears once it has at least one counted point or one action item. With none, the table has only its headings.
+- The Unthemed row and the recurring callout are hidden when they would count nothing.
+- The Action items and Changes & impact views say "Nothing here." until an action item exists, or until one is closed.
+- An action item that closed before the project's first sprint has no card and no verdict.
+- A verdict is Too early until a sprint or week has ended after the action item closed.
+
+### Merging themes
+
+An agent can propose merging two themes when it runs Decide what to do. The proposal appears in a "merges proposed by Decide what to do" box above the table, showing the two themes, the number of points, the reason and who proposed it. Nothing merges until a person selects **Merge** or **Keep apart**. A pair that has been answered is not proposed again.
+
+A person can also merge themes without a proposal. **Merge themes…** at the right of the Insights header opens a dialog. Tick the themes to fold in, choose the theme to keep under **Into**, and select **Merge**. The dialog shows the combined number of points before you confirm. A merge moves the points and action items to the kept theme.
+
+### Automatic themes
+
+By default people and agents pick each point's theme. An instance can turn on automatic grouping with `SHIPLEAN_RETRO_AUTO_THEMES`, which is experimental and off by default. See [Configuration](/start/configuration/).
