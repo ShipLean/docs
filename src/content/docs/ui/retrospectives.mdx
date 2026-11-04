@@ -22,24 +22,24 @@ The search box reads "Search points, root causes and raw logs". It matches:
 - the key and title of the work item the retro belongs to
 - the retro's raw failure log
 
-A row that matched only through the failure log reads "Match in the raw failure log". Typing waits for a short pause before the search runs.
+A row that matched only through the failure log reads "Match in the raw failure log". The search runs 300 milliseconds after you stop typing.
 
-The filters narrow the table. Each one is kept in the address, so you can share a search or go back to the last one.
+The filters narrow the table. The page keeps each one in the address, so you can share a search or go back to the last one.
 
 | Filter | Choices |
 | --- | --- |
 | Sprint | Any sprint, or one of the project's sprints |
-| Category | Went well, Went badly, Can be improved, Not in the plan |
+| Category | Any category, Went well, Not in the plan, Went badly, Can be improved |
 | Theme | Any theme, or one of the project's themes |
 | Level | Stories, bugs and features; Stories and bugs; Features |
 | Written by | Anyone, Conductors, Sub-agents, People |
-| Decision | Undecided, Actioned, Not needed |
+| Decision | Any decision, Undecided, Actioned, Not needed |
 
-Three checkboxes sit after the lists:
+Three checkboxes follow the lists:
 
 - **No sprint** shows only points from retros that belong to no sprint.
 - **Unthemed** shows only points with no theme.
-- **Recurring themes only** shows only points whose theme is recurring. The rule is the one Insights uses, described under [Insights](#insights).
+- **Recurring themes only** shows only points whose theme is recurring. Search uses the sprint rule for recurring themes, described under [Insights](#insights), even when Insights is in week mode.
 
 **Clear** resets the search text and every filter. A counter at the right of the row reads, for example, "12 points in 4 retros". When nothing matches, the table says "No point matches. Try fewer filters."
 
@@ -55,13 +55,13 @@ Each row shows:
 
 - the type icon, key and title, and the item's state
 - Retros, the number of retros
-- a count for each category, in the order Went well, Went badly, Can be improved, Not in the plan
+- a count for each category, in the order Went well, Not in the plan, Went badly, Can be improved
 - To decide, the points that still need a decision
 - Decided, as a bar and a fraction such as 3/5, or "nothing to decide" when only Went well points exist
 - Actions, the number of action items raised
 - Last retro, when the newest retro was written
 
-A Feature whose own retro is not written yet carries a "No Feature retro yet" label. Its stories and bugs may still have retros. Went well points need no decision, so they never count under To decide.
+A Feature whose own retro does not exist yet has a "No Feature retro yet" label. Its stories and bugs may still have retros. Went well points need no decision, so they never count under To decide.
 
 Use the buttons above the table to choose which rows show:
 
@@ -71,7 +71,7 @@ Use the buttons above the table to choose which rows show:
 
 The "Search Features" box filters rows by key or title. A counter shows how many Features are in view. When no row is left the table says "Nothing here."
 
-Select a title to open that item's retros. The item page has a header with the counts above, an **Open work item** link, and these controls:
+Select a title to open that item's retros. The item page has a header with the counts To decide, Action items and Decided above, an **Open work item** link, and these controls:
 
 - A **Retro** strip to show all retros of the item or one retro, named by its author.
 - A **Points** strip with **All points** and **To decide**.
@@ -81,7 +81,7 @@ Below the points the page shows the raw failure log of each retro, collapsed and
 
 ## Insights
 
-Insights shows what keeps coming up across sprints and whether the changes made in response helped. Three buttons choose the view: **Recurring themes**, **Action items** and **Changes & impact**. A **Range** list next to them sets how far back the columns go. The side menu entry shows a "recurring" chip with the number of recurring themes in the last 6 sprints.
+Insights shows what keeps coming up across sprints and whether the changes made in response helped. Three buttons choose the view: **Recurring themes**, **Action items** and **Changes & impact**. A **Range** list next to them sets how far back the columns go. While you are inside Retrospectives, the side menu entry shows a "recurring" chip with the number of themes that are mentioned in 3 of the last 4 sprints. The chip is hidden at 0.
 
 <Shot name="ui-retrospectives-insights-recurring" alt="Retrospectives Insights on the Recurring themes view with a range list, a callout about recurring themes, and a table of themes with mentions per sprint, total and status." />
 
@@ -89,8 +89,8 @@ Insights shows what keeps coming up across sprints and whether the changes made 
 
 The Range list has two groups.
 
-- **By sprint:** Last 6 sprints (the default), Last 3 sprints and All sprints. Each column is a sprint.
-- **By week:** Last 6 weeks and Last 12 weeks. Each column is a week, Monday to Sunday in UTC. A point belongs to the week it was logged in.
+- **By sprint** offers Last 6 sprints, which is the default, Last 3 sprints and All sprints. Each column is a sprint.
+- **By week** offers Last 6 weeks and Last 12 weeks. Each column is a week, Monday to Sunday in UTC. A point belongs to the week it was logged in.
 
 The range sets the columns you see. ShipLean calculates status and verdicts over every sprint or week, including those outside the range.
 
@@ -106,12 +106,12 @@ A theme's status is one of:
 | --- | --- |
 | Recurring | Mentioned in 3 of the last 4 sprints, or 3 of the last 6 weeks in week mode, and no closed action item on the theme has helped. |
 | Being addressed | Not recurring, and an action item on the theme is still open. |
-| Resolved | Not recurring, and a closed action item on the theme has the verdict Helped. |
-| Quiet | Not recurring, with no open action item and no fix that helped. |
+| Resolved | Not recurring, no open action item, and a closed action item on the theme has the verdict Helped. |
+| Quiet | Not recurring, with no open action item and no closed action item that helped. |
 
 The week window is 6 weeks whichever range you pick. When any theme is recurring, a callout above the table gives the count.
 
-The last row, **Unthemed**, counts Went badly and Not in the plan points that have no theme. It has no status or verdict and reads "not judged". Its **Give them themes** button opens Search filtered to unthemed points. The row is hidden when there are none.
+The last row, **Unthemed**, counts every point with no theme except Went well points. It has no status or verdict and reads "not judged". Its **Give them themes** button opens Search filtered to unthemed points. Insights hides the row when there are none.
 
 A **+ Action item** button on a theme row opens the action item dialog with that theme's undecided points. Below the table, **What keeps working** lists the themes of Went well points, with their count and the newest point.
 
@@ -121,19 +121,27 @@ The Action items view lists every action item raised from a retro. The columns a
 
 <Shot name="ui-retrospectives-insights-actions" alt="Retrospectives Insights on the Action items view with a table of action items, their theme, state, sprint, points, owner and impact verdict." />
 
-- Fix is the type of fix: skill, guide, test, analyzer, product or other.
+- Fix is the type of fix: Skill, Guide, Test, Analyzer, Product or Other.
 - Covers is the number of retro points the action item covers.
-- A recurring theme carries a warning mark next to its name.
-- An open action item with no sprint has a **Pull into** button for the next sprint. Pulling it in is the approval to do the work.
-- Impact shows the verdict once the action item is closed.
+- A recurring theme has a warning mark next to its name.
+- When the project has a sprint that has not started, an open action item with no sprint has a **Pull into** button for the earliest such sprint. Otherwise the cell shows a dash. Pulling it in is the approval to do the work.
+- Impact shows the verdict once the action item is closed and has a theme. An action item with no theme shows a dash.
 
-**+ Action item** in the header opens the dialog with no points ticked and offers the project's undecided points. With no action items the view says "Nothing here." An action item is a work item type at the same level as stories and bugs; see [Raising an Action item](/ui/sprint-retro/#raising-an-action-item).
+**+ Action item** in the header opens the dialog with no points ticked and offers the project's undecided points. With no action items the view says "Nothing here." An action item is a work item type at the same level as stories and bugs. See [Raising an Action item](/ui/sprint-retro/#raising-an-action-item).
 
-### Changes and impact
+### Changes & impact
 
-Changes & impact has a card for each closed action item. A card shows the verdict, the sprint or week the action item was raised and finished, its title and theme, a chart of mentions per sprint or week, and three figures: the average per sprint or week before, the average after, and the change as a percentage. The change is left out when the average before is 0.
+Changes & impact has a card for each closed action item that has a theme. A card shows:
 
-<Shot name="ui-retrospectives-insights-impact" alt="Retrospectives Insights on the Changes and impact view with a card per closed action item, each showing a verdict, a bar chart of mentions and the averages before and after." />
+- the verdict
+- the sprint the action item was raised in, and the sprint or week it closed in
+- its title and theme
+- a chart of mentions per sprint or week
+- the average per sprint or week before, the average after, and the change as a percentage
+
+The card leaves out the raised sprint when there is none. It also leaves out the change when the average before is 0, and shows a dash for the after average on a Too early card.
+
+<Shot name="ui-retrospectives-insights-impact" alt="Retrospectives Insights on the Changes & impact view with a card per closed action item, each showing a verdict, a bar chart of mentions and the averages before and after." />
 
 The verdict compares two averages of mentions on the action item's theme:
 
@@ -147,24 +155,26 @@ The verdict compares two averages of mentions on the action item's theme:
 | No effect | After is the same as before or higher, or before is 0. |
 | Too early | No full sprint or week has ended since the action item closed. |
 
-The current sprint or week is shown but never counted in after. A card with the verdict No effect also quotes the theme's latest mention and any follow-up action item.
+The card shows the current sprint or week, and after never counts it. A card with the verdict No effect also quotes the theme's latest mention and any follow-up action item.
 
 ### When there is little data
 
-Insights shows only what exists:
+With few points or action items, Insights hides these parts:
 
-- A theme appears once it has at least one counted point or one action item. With none, the table has only its headings.
-- The Unthemed row and the recurring callout are hidden when they would count nothing.
-- The Action items and Changes & impact views say "Nothing here." until an action item exists, or until one is closed.
-- An action item that closed before the project's first sprint has no card and no verdict.
+- A theme appears once it has at least one counted point in the columns shown, or one action item. With none, the table has only its headings, plus the Unthemed row when unthemed points exist.
+- The Unthemed row and the recurring callout do not appear when they would count nothing.
+- The Action items view says "Nothing here." until an action item exists.
+- The Changes & impact view says "Nothing here." until an action item is closed.
+- A closed action item with no theme gets no card and no verdict.
+- In sprint mode, an action item that closed before the project's first sprint has no card and no verdict.
 - A verdict is Too early until a sprint or week has ended after the action item closed.
 
 ### Merging themes
 
-An agent can propose merging two themes when it runs Decide what to do. The proposal appears in a "merges proposed by Decide what to do" box above the table, showing the two themes, the number of points, the reason and who proposed it. Nothing merges until a person selects **Merge** or **Keep apart**. A pair that has been answered is not proposed again.
+An agent can propose merging two themes when it runs Decide what to do. The proposal appears in a "merges proposed by Decide what to do" box above the table, showing the two themes, the number of points, the reason and who proposed it. Two themes merge only when a person selects **Merge**. **Keep apart** leaves both themes as they are. An agent does not propose a pair again once it has a pending proposal or a person has answered it.
 
-A person can also merge themes without a proposal. **Merge themes…** at the right of the Insights header opens a dialog. Tick the themes to fold in, choose the theme to keep under **Into**, and select **Merge**. The dialog shows the combined number of points before you confirm. A merge moves the points and action items to the kept theme.
+A person can also merge themes without a proposal. **Merge themes…** at the right of the Insights header opens a dialog. Tick the themes to merge, choose the theme to keep under **Into**, and select **Merge**. The dialog shows the combined number of points before you confirm. A merge moves the points and action items to the kept theme.
 
 ### Automatic themes
 
-By default people and agents pick each point's theme. An instance can turn on automatic grouping with `SHIPLEAN_RETRO_AUTO_THEMES`, which is experimental and off by default. See [Configuration](/start/configuration/).
+By default people and agents pick each point's theme. An instance can turn on automatic grouping with `SHIPLEAN_RETRO_AUTO_THEMES`, which is experimental and off by default. It also needs a semantic embedder. See [Configuration](/start/configuration/).
