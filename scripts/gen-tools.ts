@@ -44,7 +44,7 @@ function resolveExpression(expression: string, context: string, owner: string): 
     const qualifier = parts.length > 1 ? parts.at(-2)! : owner;
     let cls = qualifier;
     let source = constantSources.get(`${cls}.${name}`);
-    if (source === undefined) {
+    if (source === undefined && parts.length === 1) {
       const sources = constantsByName.get(name);
       if (sources !== undefined && sources.size > 1) throw new Error(`Constant ${text} in the description of ${context} has ${sources.size} different values and none is in class ${qualifier}`);
       if (sources !== undefined) {

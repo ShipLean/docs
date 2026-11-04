@@ -5,7 +5,7 @@ sidebar:
   order: 35
 ---
 
-ShipLean registers these tools on `/mcp`. Start with `list_projects` to find the project key you need. Scope labels use the [read, write, and plan scopes](/agents/scopes/).
+ShipLean registers these tools on `/mcp`. Start with `list_projects` to find the project key you need. Each tool entry says which of the [read, write, and plan scopes](/agents/scopes/) it needs.
 
 The argument summaries below come from the server's tool registrations in the source code. For connection and authentication, see [Connect an agent](/agents/connect/) and [Authentication options](/agents/auth/).
 
@@ -327,7 +327,7 @@ Prompts give the agent a task-oriented starting message; they are separate from 
 
 ## Capacity in sprint status
 
-The capacity part of the `sprint_status` answer has the team's total `capacity` in points, the sprint's `velocity`, its `working_days`, and `capacity_members`. The list `capacity_members` covers only members who have a capacity entry. A member with no entry is absent. Each listed member has a name, the days that count for them, and their capacity in points. If nobody typed days for a member, their days are the sprint's default. `days` is null on an old points-only sprint, and `capacity` is null when no member has an entry.
+The capacity part of the `sprint_status` answer has the team's total `capacity` in points, the sprint's `velocity`, its `working_days`, and `capacity_members`. The list `capacity_members` covers only members who have a capacity entry. A member with no entry is absent. Each listed member has a name, the days that count for them, and their capacity in points. If nobody typed days for a member, their days are the sprint's default. `days` is null on a sprint with no stored velocity, and `capacity` is null when no member has an entry.
 
 ## Previews and applying changes
 
