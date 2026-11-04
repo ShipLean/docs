@@ -90,7 +90,8 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
       assert.equal(baseline.length, 48);
       assert.equal(baseline.filter(i => i.type === 'bug').length, 2);
       assert.equal(baseline.filter(i => i.type === 'task').length, 4);
-      assert.ok(baseline.filter(i => i.type === 'story').every(i => i.points !== null));
+      // One story has no points, so the Before you plan strip shows a count.
+      assert.equal(baseline.filter(i => i.type === 'story' && i.points === null).length, 1);
       assert.equal(baseline.filter(i => i.type === 'story' && i.sprint === first.sprint).length, 10);
       assert.equal(initialBoard.swimlanes.length, 2);
       assert.ok(initialBoard.columns.some((c: any) => c.wipLimit && c.split));

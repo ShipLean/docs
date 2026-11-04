@@ -1,7 +1,8 @@
 import type { SeedResult, ShotSpec } from '../types';
 
-// The Foundations sprint holds the retro points; its Retro tab is the one the docs describe.
-const retro = (ctx: SeedResult) => `/p/DEMO/sprints/${ctx.recentSprint}/retro`;
+// The current sprint's Retro tab. Its stories finish inside its dates, so Coverage lists them. A sprint that has ended
+// would show Coverage empty, because the seed finishes its stories today, after the sprint's end date.
+const retro = (ctx: SeedResult) => `/p/DEMO/sprints/${ctx.sprint}/retro`;
 
 export const shots: ShotSpec[] = [
   {

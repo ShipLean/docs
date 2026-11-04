@@ -38,7 +38,7 @@ interface Registry {
 type SprintName = 'current' | 'future' | 'recent' | 'older';
 interface Fixture {
   name: string; type: ItemType; title: string; parent?: string; category: Category;
-  points?: number; sprint?: boolean | SprintName; priority?: number; goal?: string; status?: string; description?: string;
+  points?: number; noCriteria?: boolean; sprint?: boolean | SprintName; priority?: number; goal?: string; status?: string; description?: string;
 }
 
 const epics: Fixture[] = ['Onboarding', 'Planning', 'Team collaboration'].map((title, i) => ({
@@ -81,6 +81,10 @@ const stories: Fixture[] = storyTitles.map((title, i) => ({
   category: categories[i % categories.length], points: [3, 5, 2, 1, 3][i % 5],
   sprint: i < 10, priority: i % 7 === 0 ? 1 : 2,
 }));
+// Two stories below the pull line that the Before you plan checks flag: story-14 has no points, story-15 no acceptance criteria.
+// Both rank after the sixth backlog row, so the pull line's 13 + 8 = 21 / 22 does not move.
+delete stories[13].points;
+stories[14].noCriteria = true;
 const extras: Fixture[] = [
   { name: 'bug-1', type: 'bug', title: 'Keep the project key when validation fails', parent: 'feature-1', category: 'inProgress', points: 2, sprint: true, priority: 1 },
   { name: 'bug-2', type: 'bug', title: 'Show an empty capacity row clearly', parent: 'feature-3', category: 'proposed', points: 1, sprint: true },
@@ -132,6 +136,11 @@ const retroPoints: PointFixture[] = [
   { name: 'done-1-badly', item: 'done-1', category: 'wentBadly', theme: themeCriteria, text: 'The template list changed halfway through the story.', rootCause: 'The criteria did not name the templates.' },
   { name: 'done-1-improve', item: 'done-1', category: 'improve', text: 'List the templates in the acceptance criteria.' },
   { name: 'done-2-well', item: 'done-2', category: 'wentWell', text: 'The Features board answered the first question we asked.' },
+  // story-4 and story-8 finish in First steps today, inside its dates, so the current sprint's Coverage lists them with a retro.
+  // A sprint that has ended cannot do this: a state change is stamped when REST writes it, which is after the sprint's end date.
+  { name: 'story-4-well', item: 'story-4', category: 'wentWell', text: 'The next action was easy to find once the board showed it.' },
+  { name: 'story-4-badly', item: 'story-4', category: 'wentBadly', text: 'Keyboard access was checked after the story closed.', rootCause: 'The check was a Task nobody picked up.' },
+  { name: 'story-8-improve', item: 'story-8', category: 'improve', text: 'Enter capacity before choosing stories.' },
   { name: 'feature-1-improve', item: 'feature-1', category: 'improve', text: 'Keep the research next to the Feature.' },
 ];
 // The Action item is raised from the review points and closed in the older sprint. The open one covers two criteria points.
@@ -314,7 +323,7 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
         changes.goal = { value: fixture.goal };
         changes.statusLine = { value: fixture.status ?? (fixture.category === 'completed' ? 'Delivered. The team can see its progress.' : 'Ready for the next research and planning session.') };
       }
-      if (fixture.type === 'story') changes.acceptanceCriteria = { value: [
+      if (fixture.type === 'story') changes.acceptanceCriteria = { value: fixture.noCriteria ? [] : [
         { text: 'A new member can complete the step without help.', done: fixture.category === 'completed' },
         { text: 'The next action is clear.', done: fixture.category === 'completed' },
       ] };
