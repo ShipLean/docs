@@ -33,6 +33,10 @@ You can also use [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflar
 
 In **Instance settings**, set the base URL to the public HTTPS address that people and agents use to reach ShipLean. Agents' MCP tokens are bound to this URL. Changing it invalidates that audience. It disconnects every agent, and each agent must connect again.
 
+This also gives MCP attachment upload and download links a usable public origin. A gateway that connects to an internal name such as `shiplean.default.svc` does not, by itself, tell ShipLean the public address. If you leave the base URL blank, the gateway must connect from an address listed in `SHIPLEAN_TRUSTED_PROXIES` **and** forward the external host in `X-Forwarded-Host` and scheme in `X-Forwarded-Proto`. The forwarded host must not be cluster-local. Do not trust arbitrary peers or forwarded headers.
+
+When the only available host is `*.svc` or `*.svc.cluster.local`, `GET /health` reports `publicOrigin: "unknown: set base_url"`, and **Instance settings → General** shows the same warning. ShipLean logs one warning per process identifying a missing forwarded host, an untrusted proxy peer, or a cluster-local forwarded host. MCP `attach_file` without `base64` and `read_attachment` when a download URL is needed refuse to return an unusable link; an inline `base64` upload is still available. The `open_url` tool can still use the cluster-local host until the base URL is configured. See [attachment transfer URLs](/agents/tools/#attachment-transfer-urls).
+
 ## Back up data
 
 Back up PostgreSQL and the blob store. Work item data and settings are in PostgreSQL. Attachments and profile photos are in the configured blob store. By default, that is the `/data/blobs` volume. Otherwise, it is the PostgreSQL or S3 store that the configuration selects. A database backup alone does not include files stored in the blob folder or the S3 bucket.

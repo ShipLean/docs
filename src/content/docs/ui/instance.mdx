@@ -19,6 +19,8 @@ The address is `/instance/:tab`, where `:tab` is `general`, `users`, `projects`,
 
 Open **General** to edit the instance name and base URL. Choose whether everyone or only instance admins may create projects. Save the changes when finished. The base URL is used to form agent connection addresses. Changing it disconnects existing agents, which must connect again.
 
+For a gateway that reaches ShipLean through a `*.svc` cluster address, set the base URL to the public HTTPS origin. Otherwise, if ShipLean cannot derive a public origin from a trusted proxy, General shows `unknown: set base_url` (also reported as `publicOrigin` by `GET /health`). Without a public origin, MCP attachment upload/download URLs are refused instead of pointing to the cluster address. See [production gateway setup](/start/production/#set-the-instance-url).
+
 <Shot name="ui-instance-general" alt="General instance settings with name, base URL, and project creation choices." />
 
 ## Manage users
