@@ -250,6 +250,14 @@ Some larger writes first return a preview and an opaque `plan` value. Review the
 
   If the only available host is cluster-local, `attach_file` without `base64` refuses to issue an upload URL, and `read_attachment` refuses when it needs to issue a download URL (non-Markdown or Markdown over 200 KB). Neither tool returns a URL that an external agent cannot reach. To upload, send the file inline as `base64` instead, or configure the public instance base URL. For downloads, configure the public base URL or correctly forwarded public host. `open_url` may still point to the cluster host until the base URL is set. See [production gateway setup](/start/production/#set-the-instance-url).
 
+## Tool result contents
+
+Every completed tool call, including errors, returns text blocks in `content`: a short summary first, a Markdown representation for `get_brief` and `planning_guide` when applicable, and a JSON representation last. The same JSON object is also available in `structuredContent`.
+
+For example, a preview's `plan` token or a work item's key is in the JSON block even when the summary mentions only the next action. Clients that expose only `content` can read the complete result there; clients that expose both fields may display duplicate information. If an agent sees only the summary because its client hides or truncates the other blocks, it should tell the person that the tool response is incomplete, not search for or guess the missing output. The complete JSON must be available before applying a preview that requires a `plan` token.
+
+Tool errors follow the same content layout and carry `isError: true` with an error object in `structuredContent`. HTTP authorization failures such as a missing scope are separate from tool results.
+
 ## Request limits and errors
 
 The `/mcp` body cap is `4 × ceil(file_limit / 3) + 64 KiB`. It fits one base64-encoded attachment and the JSON-RPC envelope. With the default 25 MiB file limit, the cap is **35,018,072 bytes**, which is about **33.4 MiB**. Kestrel's usual 30,000,000-byte request limit is raised for `/mcp` to match. A base64 `attach_file` can include a file up to the configured per-file attachment limit. The 200 KB limit for reading Markdown inline has not changed. Larger Markdown returns metadata and a short-lived download URL.
