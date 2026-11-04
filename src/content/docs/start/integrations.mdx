@@ -76,9 +76,17 @@ GitLab's menu and fields are documented in [Configure webhooks](https://docs.git
 
 ## Link and complete work from requests
 
-Put a work item key in the pull or merge request title or its source branch. ShipLean checks the title and the source branch. Titles must use an uppercase key of two to four letters and digits, such as `SHIP-123`. Branch keys can use any case, such as `feature/ship-123-search`.
+Put a work item key in the pull or merge request title, its source branch, or the first line of its description. Titles must use an uppercase key of two to four letters and digits, such as `SHIP-123`. Branch keys can use any case, such as `feature/ship-123-search`.
 
-Only existing Stories, Tasks, and Bugs are linked. Features and Epics are ignored. The link card shows whether the request is open, merged, or closed. ShipLean does not create work items from webhook payloads.
+To name many items, or the items of a Feature, start the description with a `ShipLean IDs:` line:
+
+```text
+ShipLean IDs: SHIP-12, SHIP-13, SHIP-20
+```
+
+Only the first non-blank line of the description counts, and it must start with `ShipLean IDs:`. Keys use uppercase letters, and any separator works. A key further down the description links nothing. On GitHub this is the pull request description, and on GitLab it is the merge request description.
+
+Stories, Tasks, and Bugs link by their own key. A key that matches no item in ShipLean is skipped without an error, as are Epics. A Feature's key links nothing from the title or branch. In the `ShipLean IDs:` line, a Feature's key links every Story and Bug directly under it, as they are when the event arrives. A merge then completes them, including any that still have open Tasks. ShipLean does not link the Feature or its Tasks. One event links at most 100 items, and the next event for the request links the rest. The link card shows whether the request is open, merged, or closed. ShipLean does not create work items from webhook payloads.
 
 An item moves to its type's first Completed state when all pull or merge requests linked to it are merged or closed, and at least one has merged. A close without a merge does not complete an item on its own. If an item has several linked requests, one that is still open, or one with no event yet, keeps the item open. Reopening a request updates its card but does not reopen a completed work item.
 
