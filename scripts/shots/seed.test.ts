@@ -142,7 +142,7 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
       // The same theme carries wentBadly points in both past sprints, which makes it recurring with the current sprint's point.
       const themes = (sprint: any[]) => new Set(sprint.filter(p => p.category === 'wentBadly').map(p => p.theme?.name));
       assert.ok(themes(older).has('Unclear acceptance criteria') && themes(recent).has('Unclear acceptance criteria'));
-      assert.ok(all.some((p: any) => p.category !== 'wentWell' && !p.decision && !p.notNeeded && !p.action), 'one point is still to decide');
+      assert.ok(all.some((p: any) => p.category !== 'wentWell' && p.decision === 'undecided'), 'one point is still to decide');
       assert.ok(all.some((p: any) => p.action));
       assert.equal(first.actionItems.length, 2);
       const closedAction = await getItem(first.actionItems[0]);

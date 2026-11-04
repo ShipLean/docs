@@ -7,6 +7,8 @@ import type { SeedResult } from './types.ts';
 // remain untouched. Screenshot steps must leave the registry attachment in place.
 // The API keeps revisions/history and upload replacement metadata; derived time
 // labels continue to age. Restoration covers editable state, not historical data.
+// Retro points and Action items are made once and recorded in the registry. A reseed does not
+// restore them, and a crash between creating one and saving the registry can leave a duplicate.
 const registryName = 'demo-fixture.json';
 const anchorSlug = 'guide-new-members';
 const fixtureTag = 'docs-demo';
@@ -30,7 +32,7 @@ interface Registry {
   version: 1; items: Record<string, string>; sprint?: string; boardColumns?: Record<string, string>;
   /** Sprint ids by fixture name: future, recent, older. Created once; a closed sprint cannot be reopened. */
   sprints?: Record<string, string>;
-  /** Retro points, Action items and decisions by fixture name, so reseeding never duplicates them. */
+  /** Retro points, Action items and decisions by fixture name. A crash between a POST and the registry write can leave a duplicate, and a reseed does not restore a point or an Action item. */
   retro?: Record<string, string>;
 }
 type SprintName = 'current' | 'future' | 'recent' | 'older';
@@ -264,17 +266,22 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
     registry.retro ??= {};
     const sprintIds = registry.sprints;
     const knownSprints = await json<{ id: string; name: string }[]>(api.get(`${projectPath}/sprints`));
-    for (const key of ['older', 'recent', 'future'] as const) {
+    const ensureSprint = async (key: 'older' | 'recent' | 'future') => {
       const f = sprintFixtures[key];
       // Past sprints keep their dates; the future one follows the capture day so it never overlaps First steps.
       sprintIds[key] ??= knownSprints.find(s => s.name === f.name)?.id
         ?? (await json<{ id: string }>(api.post(`${projectPath}/sprints`, { data: { name: f.name, startDate: day(f.start), endDate: day(f.end), goal: f.goal } }))).id;
       await saveRegistry();
-    }
+    };
     const sprintOf = (name: SprintName | boolean | undefined) => name === true || name === 'current' ? registry.sprint! : name ? sprintIds[name] : null;
     // Move the future sprint first: First steps may move later on a reseed, and the two must not overlap.
+    await ensureSprint('future');
     await checked(await api.patch(`/api/sprints/${sprintIds.future}`, { data: { name: sprintFixtures.future.name, startDate: day(12), endDate: day(25), goal: sprintFixtures.future.goal } }));
     await checked(await api.patch(`/api/sprints/${registry.sprint}`, { data: sprintData }));
+    // Create the past sprints only after First steps has moved, or an instance seeded on an earlier day
+    // fails with "Sprints cannot overlap". A sprint that already exists keeps its dates.
+    await ensureSprint('older');
+    await ensureSprint('recent');
     const setCapacity = async (sprintId: string, velocity: number, note: string) => {
       const capacity = await json<{ members: { user: { id: string }; days: number | null; note: string | null }[] }>(api.get(`/api/sprints/${sprintId}/capacity`));
       await checked(await api.put(`/api/sprints/${sprintId}/capacity`, { data: { velocity, members: [
@@ -348,6 +355,9 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
       }
     }
     // Retro data. REST writes every point as the signed-in person: there is no route that writes an agent's retro.
+    // Points and Action items have no natural key to find again. If the process stops between a POST and
+    // saveRegistry, the next seed creates a second copy. A reseed also does not restore a point or an Action item
+    // that a capture step edited or removed, because the ledger only records that it was made.
     const ledger = registry.retro;
     const pointIds: Record<string, string> = {};
     for (const point of retroPoints) {
@@ -377,19 +387,20 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
       }
       registry.items[action.name] = ledger[action.name];
       if (!ledger[`placed:${action.name}`]) {
-      // The retro route makes the item in New with no parent or sprint. Place it, then close it in the sprint it belongs to.
-      const created = await json<Item>(api.get(`/api/work-items/${ledger[action.name]}`));
-      const placed = await json<{ id: string }>(api.patch(`/api/work-items/${created.id}`, { data: { expectedRevision: created.revision, changes: {
-        parent: { value: items[action.parent].id }, sprint: { value: sprintOf(action.sprint) }, points: { value: action.estimate },
-        assignee: { value: me.id }, priority: { value: 2 },
-        tags: { value: [fixtureTag, 'process'] }, state: { value: state('action', 'proposed') },
-      } } }));
-      const current = await json<Item>(api.get(`/api/work-items/${placed.id}`));
-      await checked(await api.patch(`/api/work-items/${current.id}`, { data: { expectedRevision: current.revision, changes: {
-        state: { value: state('action', action.closed ? 'completed' : 'inProgress') },
-      } } }));
-      ledger[`placed:${action.name}`] = 'done';
-      await saveRegistry();
+        // The retro route makes the item in New with no parent or sprint. Place it, then close it in the sprint it belongs to.
+        // The placed: ledger entry means a later seed skips this block, so it does not put back edits to the item.
+        const created = await json<Item>(api.get(`/api/work-items/${ledger[action.name]}`));
+        const placed = await json<{ id: string }>(api.patch(`/api/work-items/${created.id}`, { data: { expectedRevision: created.revision, changes: {
+          parent: { value: items[action.parent].id }, sprint: { value: sprintOf(action.sprint) }, points: { value: action.estimate },
+          assignee: { value: me.id }, priority: { value: 2 },
+          tags: { value: [fixtureTag, 'process'] }, state: { value: state('action', 'proposed') },
+        } } }));
+        const current = await json<Item>(api.get(`/api/work-items/${placed.id}`));
+        await checked(await api.patch(`/api/work-items/${current.id}`, { data: { expectedRevision: current.revision, changes: {
+          state: { value: state('action', action.closed ? 'completed' : 'inProgress') },
+        } } }));
+        ledger[`placed:${action.name}`] = 'done';
+        await saveRegistry();
       }
       items[action.name] = await json<Item>(api.get(`/api/work-items/${ledger[action.name]}`));
     }
