@@ -71,7 +71,7 @@ Use the buttons above the table to choose which rows show:
 
 The "Search Features" box filters rows by key or title. A counter shows how many Features are in view. When no row is left the table says "Nothing here."
 
-Select a title to open that item's retros. The item page has a header with the counts To decide, Action items and Decided above, an **Open work item** link, and these controls:
+Select a title to open that item's retros. The item page has a header with the counts To decide, Action items and Decided, an **Open work item** link, and these controls:
 
 - A **Retro** strip to show all retros of the item or one retro, named by its author.
 - A **Points** strip with **All points** and **To decide**.
@@ -81,7 +81,7 @@ Below the points the page shows the raw failure log of each retro, collapsed and
 
 ## Insights
 
-Insights shows what keeps coming up across sprints and whether the changes made in response helped. Three buttons choose the view: **Recurring themes**, **Action items** and **Changes & impact**. A **Range** list next to them sets how far back the columns go. While you are inside Retrospectives, the side menu entry shows a "recurring" chip with the number of themes that are mentioned in 3 of the last 4 sprints. The chip is hidden at 0.
+Insights shows what keeps coming up across sprints and whether the changes made in response helped. Three buttons choose the view: **Recurring themes**, **Action items** and **Changes & impact**. A **Range** list next to them sets how far back the columns go. While you are inside Retrospectives, the Insights entry in the side menu shows a chip such as "4 recurring", the number of themes that are Recurring by the sprint rule. With none, the chip does not appear.
 
 <Shot name="ui-retrospectives-insights-recurring" alt="Retrospectives Insights on the Recurring themes view with a range list, a callout about recurring themes, and a table of themes with mentions per sprint, total and status." />
 
@@ -124,7 +124,7 @@ The Action items view lists every action item raised from a retro. The columns a
 - Fix is the type of fix: Skill, Guide, Test, Analyzer, Product or Other.
 - Covers is the number of retro points the action item covers.
 - A recurring theme has a warning mark next to its name.
-- When the project has a sprint that has not started, an open action item with no sprint has a **Pull into** button for the earliest such sprint. Otherwise the cell shows a dash. Pulling it in is the approval to do the work.
+- When the project has a sprint that has not started, an open action item with no sprint has a **Pull into** button for the earliest such sprint. With no such sprint, the Sprint cell shows a dash. Pulling it in is the approval to do the work.
 - Impact shows the verdict once the action item is closed and has a theme. An action item with no theme shows a dash.
 
 **+ Action item** in the header opens the dialog with no points ticked and offers the project's undecided points. With no action items the view says "Nothing here." An action item is a work item type at the same level as stories and bugs. See [Raising an Action item](/ui/sprint-retro/#raising-an-action-item).
@@ -134,12 +134,12 @@ The Action items view lists every action item raised from a retro. The columns a
 Changes & impact has a card for each closed action item that has a theme. A card shows:
 
 - the verdict
-- the sprint the action item was raised in, and the sprint or week it closed in
+- the sprint the action item was raised in, and the sprint or week it closed in, or "done before" the first column when it closed earlier
 - its title and theme
 - a chart of mentions per sprint or week
 - the average per sprint or week before, the average after, and the change as a percentage
 
-The card leaves out the raised sprint when there is none. It also leaves out the change when the average before is 0, and shows a dash for the after average on a Too early card.
+The card leaves out the raised sprint when there is none. It also leaves out the change when the average before is 0 or the verdict is Too early, and shows a dash for the after average on a Too early card.
 
 <Shot name="ui-retrospectives-insights-impact" alt="Retrospectives Insights on the Changes & impact view with a card per closed action item, each showing a verdict, a bar chart of mentions and the averages before and after." />
 
@@ -155,13 +155,13 @@ The verdict compares two averages of mentions on the action item's theme:
 | No effect | After is the same as before or higher, or before is 0. |
 | Too early | No full sprint or week has ended since the action item closed. |
 
-The card shows the current sprint or week, and after never counts it. A card with the verdict No effect also quotes the theme's latest mention and any follow-up action item.
+The card shows the current sprint or week, and the After average never counts it. A card with the verdict No effect also quotes the theme's latest mention and any follow-up action item.
 
 ### When there is little data
 
-With few points or action items, Insights hides these parts:
+What Insights shows with few points or action items:
 
-- A theme appears once it has at least one counted point in the columns shown, or one action item. With none, the table has only its headings, plus the Unthemed row when unthemed points exist.
+- A theme appears once it has at least one counted point in the columns shown, or one action item. With none, the table has only its headings, plus the Unthemed row when it counts any points.
 - The Unthemed row and the recurring callout do not appear when they would count nothing.
 - The Action items view says "Nothing here." until an action item exists.
 - The Changes & impact view says "Nothing here." until an action item is closed.
@@ -171,7 +171,7 @@ With few points or action items, Insights hides these parts:
 
 ### Merging themes
 
-An agent can propose merging two themes when it runs Decide what to do. The proposal appears in a "merges proposed by Decide what to do" box above the table, showing the two themes, the number of points, the reason and who proposed it. Two themes merge only when a person selects **Merge**. **Keep apart** leaves both themes as they are. An agent does not propose a pair again once it has a pending proposal or a person has answered it.
+An agent can propose merging two themes when it runs Decide what to do. The proposal appears in a "merges proposed by Decide what to do" box above the table, showing the two themes, the number of points, the reason and who proposed it. Two themes merge only when a person selects **Merge**. **Keep apart** leaves both themes as they are. ShipLean keeps one proposal for each pair of themes, so it ignores a repeat once the pair has a pending or answered proposal.
 
 A person can also merge themes without a proposal. **Merge themes…** at the right of the Insights header opens a dialog. Tick the themes to merge, choose the theme to keep under **Into**, and select **Merge**. The dialog shows the combined number of points before you confirm. A merge moves the points and action items to the kept theme.
 
