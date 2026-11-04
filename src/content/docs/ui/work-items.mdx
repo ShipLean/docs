@@ -21,7 +21,7 @@ Open an item from a backlog, board or link to see its fields, description, child
 
 ## Edit fields and the description
 
-Edit the title and choose **Save** when you are ready. The fields strip has State, Assignee, Points, Priority, Parent and Tags. Stories, Bugs and Tasks also have a Sprint field. A Story has an Acceptance criteria checklist. A Bug has Severity and Repro steps. Priority describes when you want to fix a Bug. Severity describes how much it affects people.
+Edit the title and choose **Save** when you are ready. The fields strip has State, Assignee, Points, Priority, Parent and Tags. Stories, Bugs, Action items and Tasks also have a Sprint field. A Story has an Acceptance criteria checklist. A Bug has Severity and Repro steps. Priority describes when you want to fix a Bug. Severity describes how much it affects people.
 
 Choose a value from a field menu, or edit the title or Markdown section. A changed-field list appears beside the Save status. Choose **Save** to write those draft changes as a revision, or **Discard** to restore the last saved values. If you leave with an unsaved draft, ShipLean asks whether to stay or leave.
 
@@ -29,9 +29,31 @@ For Description or Repro steps, choose **Edit** to open the Markdown toolbar. Us
 
 <Shot name="ui-work-items-markdown" alt="Markdown description open in the editor with its formatting toolbar." />
 
+## Action items
+
+An Action item is a work item raised from retrospective points. It sits at the same level as a Story or Bug and can go in a sprint. Its points count toward sprint committed and completed figures, burndown, velocity and forecast. Its parent is a Feature or none. It has four states: New, Active, Closed and Removed, with no Resolved state.
+
+An Action item raised from retro points starts in New with no sprint. Pulling it into a sprint is the approval to work on it. An Action item created with **+ Add story or bug** on the Taskboard goes into that Taskboard's sprint. On a Feature board it goes under the Feature with no sprint. To raise one from retro points, see [Raising an action item](/ui/sprint-retro/#raising-an-action-item). Action items are not a Jira import target.
+
+An Action item page has a **Why this exists** section. It quotes each retro point the item covers, with a link back to the point. It has a theme menu and a **Type of fix** menu, and **+ Add points** adds more points to the item. An Action item made without retro points has no such section.
+
+<Shot name="ui-work-items-action-item" alt="An Action item's page with the Why this exists section quoting its retro points, a theme menu, a Type of fix menu and the + Add points button." />
+
+## Read the retrospective
+
+The **Retrospectives** section appears on a Story, Bug, Action item or Feature that has at least one retro. On a Story, Bug or Action item it sits below the description and above Tasks. On a Feature it sits after the Stories and bugs. A Task has no such section. An item with no retro shows no section and no empty message. The section is read-only.
+
+Each row is one retro, newest first. A row shows the author and, under **Logged**, when the retro was logged. It also shows a count for each of Went well, Not in the plan, Went badly and Can be improved. The **To decide** column counts the points that still need a decision. The **Decided** column shows how many of those points have a decision, as a bar and a count, or "nothing to decide" when the retro has no such points. A retro from an agent shows the agent's name, and an unfinished retro shows "partial" beside the author. If ShipLean cannot load the retros, the section shows an error message.
+
+Choose a row to open the item's page under [Retrospectives](/ui/retrospectives/), filtered to that retro, where you read its points and decide them. **All retros for this item** opens the same page without the filter. Agents add retros with `log_retrospective`. See [Finishing and learning](/work/done/).
+
+<Shot name="ui-work-items-retrospective" alt="The Retrospectives section of a Story with one retro row. The row shows the author, when it was logged, one point each under Went badly and Can be improved, two points to decide and a decided count of 0 of 2." />
+
 ## Add and update tasks
 
 Use the **Tasks** section on a Story or Bug to break the work into child Tasks. Choose **+ Task**, enter a title, and add it. A Task is its own work item. Its state control saves immediately. Choose the title or key to open its full details. The count shows how many child Tasks are complete.
+
+An Action item with no Tasks shows no Tasks section. One that has Tasks lists them, with no **+ Task** button. To add a Task under an Action item, pull the Action item into a sprint first, then use **+ Task** on its row in the [Taskboard](/ui/taskboard/). An Action item with a Feature parent also has a row with **+ Task** on the [Feature board](/ui/feature-board/), with no sprint needed.
 
 <Shot name="ui-work-items-task-form" alt="Task section with the add-task form open." />
 
@@ -47,7 +69,7 @@ Use **Links** to add a relationship to another work item or a URL. Add, edit, or
 
 Feature links use a separate section. That section saves immediately and can show GitHub or GitLab issue, pull-request, or merge-request details. See [Features and the Feature editor](/ui/features/).
 
-<Shot name="ui-work-items-link-form" alt="Work item link form for relating another item or adding a URL." />
+<Shot name="ui-work-items-link-form" alt="Link form on a Story with a Related link type menu, a work item key field, and Add link and Cancel buttons." />
 
 ## Attach files and read history
 

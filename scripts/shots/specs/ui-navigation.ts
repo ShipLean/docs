@@ -6,7 +6,14 @@ export const shots: ShotSpec[] = [
   {
     name: 'ui-navigation-quicksearch',
     route: project,
-    steps: async (page) => {
+    steps: async (page, ctx) => {
+      // Recent items are saved in this browser when an item opens, so open two before returning.
+      for (const key of [ctx.stories[0], ctx.stories[1]]) {
+        await page.goto(new URL(`/p/${ctx.projectKey}/items/${key}`, page.url()).href);
+        await page.getByTestId('work-item-title').waitFor({ state: 'visible' });
+      }
+      await page.goto(new URL(`/p/${ctx.projectKey}/backlogs/stories`, page.url()).href);
+      await page.getByTestId('shell-main').waitFor({ state: 'visible' });
       await page.keyboard.press(process.platform === 'darwin' ? 'Meta+P' : 'Control+P');
       await page.getByTestId('quick-search-dialog').waitFor({ state: 'visible' });
       await page.getByTestId('quick-search-input').waitFor({ state: 'visible' });

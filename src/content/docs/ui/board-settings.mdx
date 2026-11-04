@@ -7,7 +7,7 @@ sidebar:
 
 import Shot from '../../../components/Shot.astro';
 
-Board settings control how one level's board is organized and how its cards look. Open **Settings** on the board, choose a section, and save when you are ready. Your edits stay as a draft until you save.
+Board settings control how one level's board is organized and how its cards look. Open **Board settings** on the board, choose a section, and save when you are ready. Your edits stay as a draft until you save.
 
 The address is `/p/:key/boards/:level?settings=:section`, where `level` is `stories`, `features`, or `epics`.
 
@@ -15,7 +15,7 @@ The address is `/p/:key/boards/:level?settings=:section`, where `level` is `stor
 
 <Shot name="ui-board-settings-columns" alt="Board settings showing columns, state mappings, WIP limits, split columns and definitions of done." />
 
-Rename columns and map each work-item type's states to them. A column can map different states for Stories, Bugs, Features, and Epics. Make sure every state used by the board is mapped.
+Rename columns and map each work-item type's states to them. A column can map different states for Stories, Bugs, Action items, Features, and Epics. An Action item has no Resolved state. To raise one, see [Raising an action item](/ui/sprint-retro/#raising-an-action-item). Make sure every state used by the board is mapped.
 
 Set a WIP limit on a middle column. The board shows when the column's card count is over the limit. The first and last columns cannot have a limit. Split a middle column into **Doing** and **Done** sub-columns to tell work in progress from work finished in that state.
 
@@ -25,7 +25,7 @@ Add a definition of done to a column so the team can see what must be true befor
 
 <Shot name="ui-board-settings-fields" alt="Board settings showing card fields and a preview card." />
 
-Choose whether cards show their key, assignee, tags, and story points. You can also show empty fields and add extra fields such as the parent, priority, or who changed the item. The preview shows how your choices affect a card.
+On the Stories board, the card fields have a tab for each of User Story, Bug and Action item. Choose whether cards show their key, assignee, tags, and story points. You can also show empty fields and add extra fields such as the parent, priority, or who changed the item. The preview shows how your choices affect a card.
 
 ## Add style rules
 
@@ -63,8 +63,8 @@ The **Automations** section is on the Stories and Features boards. The Epics boa
 
 To add one:
 
-1. Choose **From**, either **Any state** or one state, and **To**, the state the item moves into. On the Stories board, a transition applies to Stories and Bugs. On the Features board, it applies to Features.
-2. Select **Add transition**. ShipLean refuses a transition that repeats one you already have.
+1. On the Stories board, choose **Type** first: Story, Bug or Action item. The transition applies only to that type. Then choose **From**, either **Any state** or one state, and **To**, the state the item moves into. The Features board has no Type menu, and its transitions apply to Features.
+2. Select **+ Add transition**. ShipLean refuses a transition that repeats one you already have.
 3. In the transition's **Send to agent** action, write the prompt for the agent. The prompt is what the agent is told to do, such as "Draft a plan for this idea."
 4. Optionally choose a connection for the action. Without one, the project's agent connection is used.
 5. Save the board settings.

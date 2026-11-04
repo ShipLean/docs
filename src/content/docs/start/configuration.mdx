@@ -179,6 +179,24 @@ Destination for the ShipLean sign-out action while proxy sign-in is active.
 - **Example:** `/oauth2/sign_out`
 - **Set it when:** You want sign-out to send the person to the proxy's sign-out route, or to another HTTP or HTTPS destination.
 
+## Sign-in with Google
+
+### `SHIPLEAN_GOOGLE_CLIENT_ID`
+
+This is the client ID of a Google OAuth web client. Setting it together with `SHIPLEAN_GOOGLE_CLIENT_SECRET` adds a **Sign in with Google** button to the sign-in page. Anyone with a Google account that the client allows can then create a user by signing in. See [Sign in with Google](/start/sign-in/#sign-in-with-google) for the account rules and the client setup.
+
+- **Default:** Not set. The button is off.
+- **Example:** `<client-id>.apps.googleusercontent.com`
+- **Set it when:** You want people to sign in with Google. Set both Google settings or neither, because ShipLean refuses to start with only one. Do not set them with an identity proxy, because ShipLean also refuses to start with both.
+
+### `SHIPLEAN_GOOGLE_CLIENT_SECRET`
+
+This is the client secret of the same Google OAuth client. This setting is a secret. Keep it in your deployment's secret store, and do not put it in a file under version control.
+
+- **Default:** Not set.
+- **Example:** `<google-client-secret>`
+- **Set it when:** You set `SHIPLEAN_GOOGLE_CLIENT_ID`.
+
 ## MCP gateway
 
 ### `SHIPLEAN_MCP_GATEWAY_EMAIL_HEADER`
@@ -193,21 +211,21 @@ Enables trusted-gateway identity for `/mcp`. It names the request header that ca
 
 ### `SHIPLEAN_HOLIDAYS_API_URL`
 
-Base address of the Nager.Date API used to load national public holidays once a day for countries selected in [project settings](/ui/project-settings/#choose-a-country-for-public-holidays). ShipLean loads this year and next year; regional holidays are not included.
+This is the base address of the Nager.Date API. ShipLean uses it once a day to load national public holidays for the countries selected in [project settings](/ui/project-settings/#choose-a-country-for-public-holidays). ShipLean loads this year and next year; regional holidays are not included.
 
 - **Default:** `https://date.nager.at/api/v3`.
 - **Example:** `https://date.nager.at/api/v3`
-- **Set it when:** You need to use a compatible mirror. Set it to an empty string to disable the feed on an offline instance: no country options or holiday records are loaded.
+- **Set it when:** You need to use a compatible mirror. To disable the feed on an offline instance, set it to an empty string. ShipLean then loads no country options and no holiday records.
 
 ## Retrospective themes
 
 ### `SHIPLEAN_RETRO_AUTO_THEMES`
 
-Experimental semantic grouping of retrospective points into themes. It only runs when an embedding model is loaded (see `SHIPLEAN_EMBEDDINGS`), and its clustering quality on the bundled model is not yet reliable.
+This setting turns on experimental semantic grouping of retrospective points into themes. It only runs when an embedding model is loaded, as set by `SHIPLEAN_EMBEDDINGS`. On the bundled model, a 33-point test set produced 15 themes where 7 were expected, with 34% precision and 23% recall. These numbers are why the setting is off by default.
 
 - **Default:** `off`.
 - **Example:** `on`
-- **Set it when:** You deliberately want to evaluate experimental automatic themes. Leave `off` to use themes supplied by people or agents.
+- **Set it when:** You want to evaluate experimental automatic themes. Leave `off` to use themes supplied by people or agents.
 
 ## GitHub/GitLab integration
 

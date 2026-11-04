@@ -13,7 +13,7 @@ Project screens use `/p/:key/...`, where the key is the project key. The profile
 
 ## Overview
 
-<Shot name="ui-navigation-overview" alt="ShipLean navigation with a project selected, section links, breadcrumbs, and the account menu." />
+<Shot name="ui-navigation-overview" alt="ShipLean navigation with a project selected, section links, breadcrumbs, and the account button." />
 
 ## Switch projects
 
@@ -29,11 +29,17 @@ Press **Ctrl+P** on Windows or Linux, or **⌘P** on macOS. You can also select 
 
 Type to search work items, sprints, and projects. Results from the open project come first in each group. Use **↑** and **↓** to move through results, **Enter** to open the selected result, and **Esc** to close Quick search and return focus to its opener. With an empty search, Quick search shows the five most recently opened items saved in this browser, followed by actions. If a search fails, choose **Retry**. Previous results remain visible while a new search runs.
 
-Selecting a work item opens its item modal where supported. It opens the full page on backlog or install-level screens, or when the item belongs to another project. A sprint opens its taskboard, and a project opens its backlog. Quick search actions can open the current project's Backlogs, Boards, or Sprints, switch the theme, or start a new Epic, Feature, Story, or Bug. New-item actions open the matching backlog with its create control active and the type selected. Tasks are created from their parent item.
+Selecting a work item opens its item modal where supported. It opens the full page on backlog or install-level screens, or when the item belongs to another project. A sprint opens its taskboard, and a project opens its backlog. Quick search actions can open the current project's Backlogs, Boards, or Sprints, switch the theme, or start a new Epic, Feature, Story, Bug, or [Action item](/ui/sprint-retro/#raising-an-action-item). The new-item actions appear as **Create epic**, **Create feature**, **Create story**, **Create bug**, and **Create action item**. New-item actions open the matching backlog with its create control active and the type selected. Tasks are created from their parent item.
+
+To find an item by its key, type the whole key, part of it, or only its number. Typing `435` lists SHIP-435 first, and `IP-43` or `ship435` also match it. When your text has a digit, Quick search marks it where it appears in a key. A word with no digit, such as `ship`, searches text, so it does not list every item in the project. If nothing matches, Quick search shows **Nothing matches** followed by your text, and says it searched titles, descriptions, comments, and attachments in your projects.
 
 ## Use the side menu and breadcrumbs
 
-Select **Backlogs**, **Boards**, **Sprints**, **Jira import**, or **Settings** to move through the current project's screens. The available project links appear when you have a project selected. Breadcrumbs show the current project or ShipLean, then the screen you are viewing.
+Select **Backlogs**, **Boards**, **Sprints**, **Retrospectives**, **Jira import**, or **Settings** to move through the current project's screens. The available project links appear when you have a project selected. Breadcrumbs show the current project or ShipLean, then the screen you are viewing.
+
+**Backlogs** opens the Stories backlog, and **Boards** opens the Stories board. While you are in either section, a submenu below it lists **Epics**, **Features**, and **Stories**. Choose one to open that level's backlog or board.
+
+**Sprints** lists the project's sprints, and while you are in that section its submenu lists the current sprint, if there is one, and **All sprints**. **Retrospectives** opens the retrospective search, and while you are in that section its submenu lists **Search**, **Features**, and **Insights**. When a theme is recurring, the Insights entry shows the count. See [Retrospectives](/ui/retrospectives/).
 
 <Shot name="ui-navigation-account-menu" alt="The account menu open with profile and sign-out options." />
 
@@ -49,3 +55,11 @@ The top bar also shows breadcrumbs for the current location. On narrower screens
 
 - **Ctrl+P** on Windows or Linux, or **⌘P** on macOS: opens Quick search. When Quick search is already open, selects its search text.
 - **↑** and **↓**: move through Quick search results. **Enter** opens the selected result, and **Esc** closes it.
+- **J** and **K**: move the focus down and up the rows of a Stories backlog.
+- **X**: selects the focused row.
+- **N**: adds an item below the focused row.
+- **/**: searches.
+- **?**: lists every key.
+- **M**: with rows selected, labels each sprint on the action bar with its number. Next, press a sprint number to move the selection to that sprint, or **T** or **B** to move it to the top or bottom.
+
+The list keys work in List and Planning modes on Stories while a row has focus. See [Backlogs](/ui/backlogs/).

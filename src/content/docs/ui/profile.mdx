@@ -17,13 +17,13 @@ The profile is at `/profile`. The sign-in page is `/login`.
 
 ## Change your profile details
 
-In the identity section, edit your name, choose an avatar colour, or upload or remove a profile photo. Save your changes when the save controls appear. Your email appears on your profile, but you cannot edit it there.
+In the identity section, edit your name, choose an avatar colour, or upload or remove a profile photo. Save your changes when the save controls appear. Your email appears on your profile, but you cannot edit it there. An instance admin changes your email with **Change email…** in the users list, and an instance admin changes their own the same way on their own row.
 
 <Shot name="ui-profile-identity" alt="Profile identity settings with name, avatar appearance, and photo controls." />
 
 ## Change your password and appearance
 
-Use the account section to change your password and manage signed-in sessions. You can sign out other sessions to end them. In the appearance section, choose a theme and density. ShipLean saves the selection to your account.
+Use the account section to change your password and manage signed-in sessions. If you sign in only with Google and have no password, the account section has no password form, because the form asks for a current password you do not have. The sessions and appearance sections still appear. An instance admin can give you a password with **Set up sign-in…** in the users list, and an admin with no password uses it on their own row. You can sign out other sessions to end them. In the appearance section, choose a theme and density. ShipLean saves the selection to your account.
 
 <Shot name="ui-profile-appearance" alt="Account appearance settings with theme and density choices." />
 
@@ -38,5 +38,7 @@ The MCP address shown in the profile is the one to give an agent. It ends with `
 ## Sign in
 
 Enter your email and password on `/login`. If an administrator gave you a one-time password, ShipLean asks you to choose a new password before continuing. The session cookie renews as you use ShipLean. It expires after 14 days without activity. You can also sign out other sessions from your profile.
+
+If your instance turns on Google sign-in, the page also has a **Sign in with Google** button. See [Sign-in options](/start/sign-in/#sign-in-with-google) for how Google accounts link to ShipLean users.
 
 If your organization uses an identity proxy, the proxy handles sign-in. Your administrator configures how you sign in.

@@ -12,6 +12,11 @@ services:
       SHIPLEAN_ADMIN_EMAIL: ${SHIPLEAN_ADMIN_EMAIL:?Set SHIPLEAN_ADMIN_EMAIL}
       SHIPLEAN_ADMIN_PASSWORD: ${SHIPLEAN_ADMIN_PASSWORD:?Set SHIPLEAN_ADMIN_PASSWORD}
       SHIPLEAN_BLOB_ROOT: /data/blobs
+      # Setting both turns on Sign in with Google: the button, /api/auth/google/start and open signup.
+      # The defaults are placeholders that nothing can sign in with, so the sign-in capture shows the button.
+      # The app refuses to start with only one of the two set, so override both or neither.
+      SHIPLEAN_GOOGLE_CLIENT_ID: ${SHIPLEAN_GOOGLE_CLIENT_ID:-shots-placeholder.example.invalid}
+      SHIPLEAN_GOOGLE_CLIENT_SECRET: ${SHIPLEAN_GOOGLE_CLIENT_SECRET:-placeholder-not-a-secret}
     volumes:
       - blobs:/data/blobs
   postgres:

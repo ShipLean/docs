@@ -59,6 +59,21 @@ async function loadSeed(): Promise<SeedDemo> {
   return module.seedDemo;
 }
 
+async function shotTags(): Promise<Set<string>> {
+  const tags = new Set<string>();
+  const walk = async (dir: string): Promise<void> => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const path = resolve(dir, entry.name);
+      if (entry.isDirectory()) await walk(path);
+      else if (/\.mdx?$/.test(entry.name)) {
+        for (const match of (await readFile(path, 'utf8')).matchAll(/<Shot\s[^>]*?\bname="([^"]+)"/g)) tags.add(match[1]);
+      }
+    }
+  };
+  await walk(resolve(here, '../../src/content/docs'));
+  return tags;
+}
+
 async function loadShots(page?: string): Promise<ShotSpec[]> {
   const files = (await readdir(resolve(here, 'specs'))).filter((f) => f.endsWith('.ts')).sort();
   if (page && (!/^[a-zA-Z0-9_-]+$/.test(page) || !files.includes(`${page}.ts`))) {
@@ -222,24 +237,26 @@ export async function main(args = process.argv.slice(2)) {
       } finally { await authContext.close(); }
     }
     await mkdir(output, { recursive: true });
+    const failed: string[] = [];
     for (const shot of shots) {
       for (const theme of ['light', 'dark'] as const) {
         console.log(`Capturing ${shot.name} (${theme}).`);
         if (abort.signal.aborted) throw new RunnerError('Screenshot capture interrupted.');
-        const ctx = seedDemo ? await seedDemo(baseUrl, admin as Admin) : undefined;
-        const context = await browser.newContext({ storageState: authState, viewport, deviceScaleFactor: 1, colorScheme: theme, timezoneId: 'UTC', locale: 'en-US', reducedMotion: 'reduce' });
+        let context: BrowserContext | undefined;
         try {
+          const ctx = seedDemo ? await seedDemo(baseUrl, admin as Admin) : undefined;
+          context = await browser.newContext({ storageState: shot.public ? undefined : authState, viewport, deviceScaleFactor: 1, colorScheme: theme, timezoneId: 'UTC', locale: 'en-US', reducedMotion: 'reduce' });
           const page = await context.newPage();
           page.setDefaultTimeout(30_000);
           await page.clock.setFixedTime(captureTime);
-          if (!sample) {
+          if (!sample && !shot.public) {
             await page.goto(applicationUrl(baseUrl, '/profile'));
             await themeControl(page, theme);
           }
           // Public login has no theme control; it follows the emulated OS preference.
           const route = typeof shot.route === 'function' ? shot.route(ctx!) : shot.route;
           await page.goto(applicationUrl(baseUrl, route));
-          if (sample) await page.getByRole('button', { name: 'Sign in', exact: true }).waitFor({ state: 'visible' });
+          if (sample || shot.public) await page.getByRole('button', { name: 'Sign in', exact: true }).waitFor({ state: 'visible' });
           else {
             await page.getByTestId('shell-main').waitFor({ state: 'visible' });
             await page.waitForFunction((value) => document.documentElement.dataset.theme === value, theme);
@@ -250,8 +267,21 @@ export async function main(args = process.argv.slice(2)) {
           const webp = await encodeShot(png, theme);
           await writeFile(resolve(output, `${shot.name}-${theme}.webp`), webp);
           console.log(`${shot.name}-${theme}.webp: ${webp.byteLength} bytes, 1440x900`);
-        } finally { await context.close(); }
+        } catch (error) {
+          if (abort.signal.aborted) throw error;
+          // Keep going so one broken spec does not hide the others. The first 4 lines of a spec
+          // or seed error are printed. The first seedDemo call signs in, and it runs inside this block.
+          failed.push(`${shot.name} (${theme})`);
+          console.log(`FAILED ${shot.name} (${theme}): ${String((error as Error)?.message ?? error).split('\n').slice(0, 4).join(' | ').slice(0, 400)}`);
+        } finally { await context?.close(); }
       }
+    }
+    if (failed.length) throw new RunnerError(`${failed.length} captures failed: ${failed.join(', ')}`);
+    if (!values['--page'] && !sample) {
+      // A tag without a capture would keep its old checked-out image and still build, so fail the run.
+      const captured = new Set(shots.map((s) => s.name));
+      const missing = [...await shotTags()].filter((name) => !captured.has(name)).sort();
+      if (missing.length) throw new RunnerError(`${missing.length} Shot tags have no capture: ${missing.join(', ')}`);
     }
   } finally {
     process.removeListener('SIGINT', stop);
