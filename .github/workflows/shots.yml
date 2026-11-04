@@ -31,10 +31,7 @@ jobs:
           printf '{"admin":{"email":"docs@example.com","password":"%s"}}' "$password" > "$RUNNER_TEMP/shots.json"
           chmod 600 "$RUNNER_TEMP/shots.json"
       - name: Capture
-        env:
-          # Dummy values that only turn the Sign in with Google button on. Nothing signs in with them.
-          SHIPLEAN_GOOGLE_CLIENT_ID: shots-placeholder.example.invalid
-          SHIPLEAN_GOOGLE_CLIENT_SECRET: placeholder-not-a-secret
+        # The Google placeholder values are the defaults in scripts/shots/docker-compose.yml.
         run: pnpm shots --config "$RUNNER_TEMP/shots.json"
       - name: Upload screenshots
         if: always()
@@ -43,3 +40,48 @@ jobs:
           name: shots
           path: src/assets/shots
           if-no-files-found: warn
+  seed-test:
+    # Runs the seed integration test on its own stack, so it cannot change the images the capture job takes.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SHIPLEAN_IMAGE: ghcr.io/shiplean/shiplean:aa5119e72826ec9d9529dafa33b2e73ce9a37098
+      COMPOSE_PROJECT_NAME: shiplean-seed-test
+      SHIPLEAN_SHOTS_PORT: '18081'
+      SHIPLEAN_ADMIN_EMAIL: docs@example.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.0'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate the disposable passwords
+        run: |
+          umask 077
+          admin="$(openssl rand -hex 24)"
+          database="$(openssl rand -hex 24)"
+          echo "::add-mask::$admin"
+          echo "::add-mask::$database"
+          echo "SHIPLEAN_ADMIN_PASSWORD=$admin" >> "$GITHUB_ENV"
+          echo "POSTGRES_PASSWORD=$database" >> "$GITHUB_ENV"
+          printf '{"baseUrl":"http://127.0.0.1:18081","admin":{"email":"docs@example.com","password":"%s"}}' "$admin" > "$RUNNER_TEMP/seed-runtime.json"
+          chmod 600 "$RUNNER_TEMP/seed-runtime.json"
+      - name: Start the stack
+        run: |
+          docker compose -f scripts/shots/docker-compose.yml up -d --wait --wait-timeout 120
+          # The app service has no healthcheck, so --wait does not cover it.
+          for i in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:18081/health > /dev/null && exit 0
+            sleep 2
+          done
+          echo "ShipLean did not answer GET /health within 120 seconds."
+          exit 1
+      - name: Seed test
+        env:
+          SHIPLEAN_SEED_RUNTIME_FILE: ${{ runner.temp }}/seed-runtime.json
+        run: timeout 300 pnpm test:seed
+      - name: Remove the stack
+        if: always()
+        run: docker compose -f scripts/shots/docker-compose.yml down --volumes --remove-orphans
