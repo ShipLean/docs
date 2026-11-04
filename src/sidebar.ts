@@ -115,12 +115,20 @@ export const sidebar = [
         "link": "/ui/sprint-backlog/"
       },
       {
+        "label": "Sprint retro",
+        "link": "/ui/sprint-retro/"
+      },
+      {
         "label": "Taskboard",
         "link": "/ui/taskboard/"
       },
       {
         "label": "Feature board",
         "link": "/ui/feature-board/"
+      },
+      {
+        "label": "Retrospectives",
+        "link": "/ui/retrospectives/"
       },
       {
         "label": "Project settings",
