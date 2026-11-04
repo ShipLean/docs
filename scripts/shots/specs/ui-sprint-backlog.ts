@@ -17,6 +17,9 @@ export const shots: ShotSpec[] = [
       await page.getByTestId('sprints-close-sprint').click();
       await page.getByTestId('sprints-end-apply').waitFor({ state: 'visible' });
       await page.getByTestId('sprints-end-row').first().waitFor({ state: 'visible' });
+      // The next sprint's total sits under the rows, below the dialog's visible part.
+      await page.getByTestId('sprints-end-after').scrollIntoViewIfNeeded();
+      await page.getByTestId('sprints-end-after').waitFor({ state: 'visible' });
     },
   },
 ];
