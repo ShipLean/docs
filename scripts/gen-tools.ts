@@ -15,7 +15,7 @@ const mcpDoc = resolve(product, 'docs/mcp.md');
 type Tool = { name: string; scope: string; preview: boolean; area: string; description: string; parameters: string[] };
 const groups: Record<string, string> = {
   Orient: 'Finding work', Capture: 'Capturing and editing', Attach: 'Capturing and editing', Links: 'Capturing and editing',
-  Feature: 'Features and research', Planning: 'Planning', Sprint: 'Sprints', Backlog: 'Sprints', Status: 'Status and reporting', Work: 'Status and reporting',
+  Feature: 'Features and research', Planning: 'Planning', Sprint: 'Sprints', Backlog: 'Sprints', Status: 'Status and reporting', Work: 'Status and reporting', Retros: 'Retrospectives',
 };
 const files = (await (await import('node:fs/promises')).readdir(toolsDir, { recursive: true, withFileTypes: true }))
   .filter((entry) => entry.isFile() && entry.name.endsWith('.cs'))
@@ -26,14 +26,32 @@ const prompts: string[] = [];
 function unescapeCSharp(value: string): string {
   return value.replaceAll('\\"', '"').replaceAll('\\n', ' ').replaceAll('\\r', '').replaceAll('\\\\', '\\');
 }
-function description(text: string, from: number): { value: string; next: number } | null {
-  const literal = '"(?:\\\\.|[^"\\\\])*"';
-  const match = new RegExp(`\\[Description\\(((${literal})(?:\\s*\\+\\s*${literal})*)\\)\\]`, 'g');
+const literalPattern = '"(?:\\\\.|[^"\\\\])*"';
+const termPattern = `(?:${literalPattern}|[A-Za-z_]\\w*(?:\\.[A-Za-z_]\\w*)*)`;
+const expressionPattern = `${termPattern}(?:\\s*\\+\\s*${termPattern})*`;
+const constantSources = new Map<string, string>();
+function resolveExpression(expression: string, context: string): string {
+  return [...expression.matchAll(new RegExp(termPattern, 'g'))].map((term) => {
+    const text = term[0];
+    if (text.startsWith('"')) return unescapeCSharp(text.slice(1, -1));
+    const name = text.split('.').at(-1)!;
+    const source = constantSources.get(name);
+    if (source === undefined) throw new Error(`Unknown constant ${text} in the description of ${context}`);
+    return resolveExpression(source, name);
+  }).join('');
+}
+function description(text: string, from: number, context: string): { value: string; next: number } | null {
+  const match = new RegExp(`\\s*\\[Description\\((${expressionPattern})\\)\\]`, 'y');
   match.lastIndex = from;
   const found = match.exec(text);
   if (!found) return null;
-  const value = [...found[1].matchAll(/"((?:\\.|[^"\\])*)"/g)].map((part) => unescapeCSharp(part[1])).join(' ');
-  return { value, next: match.lastIndex };
+  return { value: resolveExpression(found[1], context), next: match.lastIndex };
+}
+const sources = new Map<string, string>();
+for (const file of files) {
+  const text = await readFile(file, 'utf8');
+  sources.set(file, text);
+  for (const match of text.matchAll(new RegExp(`\\bconst\\s+string\\s+(\\w+)\\s*=\\s*(${expressionPattern})\\s*;`, 'g'))) constantSources.set(match[1], match[2]);
 }
 function paramList(text: string): string[] {
   const found: string[] = [];
@@ -41,18 +59,18 @@ function paramList(text: string): string[] {
   for (const match of text.matchAll(re)) {
     const name = match[2];
     const optional = match[3] !== undefined || text.slice(Math.max(0, (match.index ?? 0) - 80), match.index).includes('?');
-    found.push(`\`${name}\`${optional ? ' (optional)' : ''} — ${unescapeCSharp(match[1]).replace(/[.;]$/, '')}`);
+    found.push(`\`${name}\`${optional ? ' (optional)' : ''}: ${unescapeCSharp(match[1]).replace(/[.;]$/, '')}`);
   }
   return found;
 }
 
 for (const file of files) {
-  const text = await readFile(file, 'utf8');
+  const text = sources.get(file)!;
   for (const match of text.matchAll(/\[McpServerTool\(Name\s*=\s*"([^"]+)"\)\s*,\s*McpScope\(McpScopes\.(Read|Write|Plan)([^)]*)\)\]/g)) {
     const name = match[1];
     const scope = match[2].toLowerCase();
     const after = match.index! + match[0].length;
-    const desc = description(text, after);
+    const desc = description(text, after, name);
     const methodAt = text.indexOf('public async Task<CallToolResult>', after);
     if (!desc?.value || methodAt < 0) throw new Error(`Missing public description or method for ${name} in ${file}`);
     const open = text.indexOf('{', methodAt);
@@ -61,11 +79,11 @@ for (const file of files) {
   }
   for (const match of text.matchAll(/\[McpServerPrompt\(Name\s*=\s*"([^"]+)"\)\]/g)) {
     const after = match.index! + match[0].length;
-    const desc = description(text, after);
+    const desc = description(text, after, match[1]);
     const methodAt = text.indexOf('public async Task<PromptMessage>', after);
     const open = text.indexOf('{', methodAt);
     const parameters = paramList(text.slice(methodAt, open));
-    prompts.push(`- **\`${match[1]}\`** — ${desc?.value ?? 'Prompt.'}${parameters.length ? ` Arguments: ${parameters.join('; ')}.` : ''}`);
+    prompts.push(`- **\`${match[1]}\`**: ${desc?.value ?? 'Prompt.'}${parameters.length ? ` Arguments: ${parameters.join('; ')}.` : ''}`);
   }
 }
 if (tools.length === 0) throw new Error(`No [McpServerTool] registrations found under ${toolsDir}`);
@@ -76,7 +94,7 @@ const doc = await readFile(mcpDoc, 'utf8');
 const docNames = new Set([...doc.matchAll(/`([a-z][a-z0-9_]+)`/g)].map((match) => match[1]));
 const docsMissing = names.filter((name) => !docNames.has(name));
 const docsListed = names.filter((name) => docNames.has(name));
-const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and research', 'Planning', 'Sprints', 'Status and reporting', 'Other'];
+const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and research', 'Planning', 'Sprints', 'Status and reporting', 'Retrospectives', 'Other'];
 let generated = `## Tools\n\nThe server currently registers **${tools.length} tools**. Each tool lists its required scope; preview calls use read scope until you apply them.\n`;
 for (const group of groupsInOrder) {
   const inGroup = tools.filter((tool) => tool.area === group);
