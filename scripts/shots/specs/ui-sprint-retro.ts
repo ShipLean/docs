@@ -28,6 +28,8 @@ export const shots: ShotSpec[] = [
       const column = page.locator('[data-testid="retro-board-column"][data-category="wentBadly"]');
       await column.getByTestId('retro-board-add').click();
       await column.getByTestId('retro-board-add-text').waitFor({ state: 'visible' });
+      // The open editor is taller than the room left under the notes, so bring its buttons into view.
+      await column.getByTestId('retro-board-add-save').scrollIntoViewIfNeeded();
     },
   },
   {
