@@ -1,6 +1,6 @@
 ---
 title: "Finishing and learning"
-description: "Complete a Feature, log its retrospective, and carry the lessons into future plans."
+description: "Complete a Feature, log its retrospective, and use its lessons in later plans."
 sidebar:
   order: 44
 ---
@@ -20,25 +20,25 @@ The default workflow has no separate Blocked or Parked states. It uses the state
 ## Finish the Feature
 
 1. Check that the agreed Stories and Tasks are complete and that the result meets the Feature's goal.
-2. Log the Feature's retrospective with `log_retrospective` on the Feature. Set `compiled_from` to the keys of the Stories you compile it from. Put points under `went_well`, `went_badly` with a `root_cause` for each, `improve`, and `not_in_plan`. The agent on each Story has already logged its own retro on that Story.
+2. Log the Feature's retrospective with `log_retrospective` on the Feature. Set `compiled_from` to the keys of the Stories you compile it from. Put points under `went_well`, `went_badly` with a `root_cause` for each, `improve`, and `not_in_plan`. ShipLean skips a Story in `compiled_from` that has no retro and returns a warning.
 3. Move the Feature to its Completed state, and update the status line with the outcome.
 
 For a captured plan, review `plan_status` for the task timeline and review rounds before you log the retrospective.
 
 ## Log a retrospective
 
-Call `log_retrospective` on the work item when you stop work on it, whether the work is done or not. Set `partial` to true when the work is unfinished. A second call from the same agent on the same item adds points to that retro.
+Call `log_retrospective` on a Story, Bug, Action item or Feature when you stop work on it, whether the work is done or not. A Task or Epic returns a validation error, so when you work on a Task, log on its parent Story. Set `partial` to true when the work is unfinished. A second call from the same agent on the same item adds points to that retro.
 
 - A sub-agent logs on its Story when it stops.
-- The conductor logs on the Feature when the last Story closes. ShipLean records a retro with `compiled_from`, or on a Feature, as the conductor's.
+- The conductor logs on the Feature when the last Story closes. ShipLean gives a retro the conductor role when it has `compiled_from` or is on a Feature.
 - Include a raw `failure_log` with `blockers`, `assumptions_disproved` and `friction`. ShipLean stores it as you wrote it.
 
-People read the points on the sprint's Retro tab, and under Retrospectives, then decide what to do about each one. See [Sprint retro](/ui/sprint-retro/) and [Retrospectives](/ui/retrospectives/). A point that needs a change becomes an Action item. See [Raising an action item](/ui/sprint-retro/#raising-an-action-item).
+People read the points on the sprint's Retro tab, and under Retrospectives, then decide each point except Went well points. See [Sprint retro](/ui/sprint-retro/) and [Retrospectives](/ui/retrospectives/). For a point that needs a change, someone raises an Action item, and one Action item can cover many points. See [Raising an action item](/ui/sprint-retro/#raising-an-action-item).
 
 ## Carry lessons forward
 
-When you plan later work, call `planning_guide` with the project key. It returns lessons from that project's retrospectives. These are the **What to change next time** section of each Markdown run retro, then the `improve` points of the three newest conductor retros on live Features. Apply the relevant lessons to the new plan, and say which ones you used.
+When you plan later work, call `planning_guide` with the project key. It returns lessons from that project's retrospectives. These are the **What to change next time** sections of the three newest retros that have one, taken from retro files and `Retro · ` comments on live Features, then the `improve` points of the three newest conductor retros on live Features. Apply the relevant lessons to the new plan, and say which ones you used.
 
-A Markdown run retro is a separate record of the whole run, with its budget, timeline and constraint breaks. A Feature can hold one in a file named `retro-<yyyy-mm-dd>-<topic>.md`. It does not replace the points logged with `log_retrospective`.
+A Markdown run retro is a separate record of the whole run, with its budget, timeline and constraint breaks. The file for one on a Feature is named `retro-<yyyy-mm-dd>-<topic>.md`. It does not replace the points logged with `log_retrospective`.
 
 Next: [Fit this flow to Scrum or Kanban](/work/cadence/).
