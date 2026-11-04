@@ -7,7 +7,7 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-Use a backlog to find, shape and order work in a project. Open **Backlogs** in the side menu, then choose **Epics**, **Features** or **Stories** under it. The levels appear under Backlogs while you are in a backlog. **Backlogs** itself opens Stories.
+Use a backlog to find, shape and order work in a project. Open **Backlogs** in the side menu, then choose **Epics**, **Features** or **Stories** under it. The levels appear under Backlogs while you are on a backlog, a work item, an attachment or a Feature board. **Backlogs** itself opens Stories.
 
 ## Address
 
@@ -37,11 +37,11 @@ On Stories, choose **List** for a flat ranked list, **Tree** to see Stories, Bug
 
 ## Add work at the top
 
-Choose **+ New work item** on Stories, then choose **User Story**, **Bug** or **Action item**, enter a title and press **Enter** or **Add**. The new item appears first in the backlog. Press **Esc** to close the empty row. An Action item sits at the same level as a Story or Bug, counts toward sprint points, and has the states New, Active, Closed and Removed. See [Sprint retro](/ui/sprint-retro/#raising-an-action-item) for how to raise one from a retro point.
+Choose **+ New work item** on Stories, then choose **User Story**, **Bug** or **Action item**, enter a title and press **Enter** or **Add**. The new item appears first in the backlog. Press **Esc** to close the empty row. An Action item is at the same level as a Story or Bug, counts toward sprint points, and has the states New, Active, Closed and Removed. See [Sprint retro](/ui/sprint-retro/#raising-an-action-item) for how to raise one from a retro point.
 
 On the Features level, choose **+ New Feature** to open the Feature form. Set its title and, if useful, an Epic, slug, goal, starting state and status line. Choose **Create Feature** to open the new item. On Epics, **+ New work item** opens an inline row for a title.
 
-Quick search can also start an Epic, Feature, Story, or Bug. Its action opens the matching backlog with the new-item control open and the type already selected. Stories open in List mode. A Feature opens the New Feature form. Epics, Stories, Bugs and Action items open the inline row. A task is created from its parent item.
+Quick search can also start an Epic, Feature, Story, Bug or Action item. Its action opens the matching backlog with the new-item control open and the type already selected. Stories open in List mode. A Feature opens the New Feature form. Epics, Stories, Bugs and Action items open the inline row. A task is created from its parent item.
 
 <Shot name="ui-backlogs-new-feature" alt="New Feature form with its title, Epic, slug, goal, starting state, and status line." />
 
@@ -55,14 +55,14 @@ Filtering turns off moving in List and Tree modes, because a filtered position i
 
 Choose **Add many** in the toolbar of List or Planning mode to create several items at once. You can also paste two or more lines into the title box of a new-item row, which opens the same dialog. One pasted line stays a normal paste.
 
-1. Paste or type one line per item into the box. An indented line becomes a Task under the line above it. Start a line with `bug:` to make a Bug. End it with `(3 pts)`, or add a second column after a tab or two spaces, to set points. A leading `-` or `*` is dropped.
-2. Check the grid under the box. Change a row's type or title, correct its points, or remove the row. A row shows `Looks like KEY: title` when an existing item has the same title, and the row stays in the list. Points must be a number.
-3. Under **Put them**, choose where the items go. The options are the top or bottom of the backlog, below the focused row when one has focus, and each future sprint. The items keep the order you pasted.
+1. Paste or type one line per item into the box. An indented line becomes a Task under the line above it. Start a line with `bug:` to make a Bug. End it with `(3 pts)`, or add a second column after a tab or two spaces, to set points. ShipLean drops a leading `-` or `*`.
+2. Check the grid under the box. Change a row's type or title, correct its points, or remove the row. A row shows `Looks like KEY: title` when an open Story or Bug has a similar title, and the row stays in the list. Points must be a number.
+3. Under **Put them**, choose where the items go. The options are the top or bottom of the backlog, and below the focused row when one has focus. Planning mode also lists every future sprint. List mode lists only the future sprints that already hold a row. The items keep the order you pasted.
 4. Choose **Add**. The button names the count, for example **Add 3 items and 2 tasks**. A toast reports how many items were added and the first key.
 
-**Keep as one item** creates a single item from the first line and puts the whole pasted text in its description. Nothing is created until you choose **Add** or **Keep as one item**.
+**Keep as one item** creates a single item from the first line and puts the whole pasted text in its description. ShipLean creates nothing until you choose **Add** or **Keep as one item**.
 
-A single request takes at most 100 rows, counting Tasks. Over 100, the dialog says how many rows you have and that 100 is the most at once, and **Add** stays disabled until you remove rows. If the server refuses the request, the dialog shows its message and creates nothing.
+A single request takes at most 100 rows, counting Tasks. Over 100, the dialog says how many rows you have and that 100 is the most at once. **Add** stays disabled until you remove rows. If the server refuses the request, the dialog shows its message and creates nothing.
 
 <Shot name="ui-backlogs-add-many" alt="Add many dialog with pasted lines, a review grid showing type, title and points per row, a duplicate warning on one row, and the Put them menu." />
 
@@ -70,14 +70,14 @@ A single request takes at most 100 rows, counting Tasks. Over 100, the dialog sa
 
 Press **N** with a row focused to open an add row directly below it. Type a title and press **Enter**. The next row goes under the one you just made, so a typed list keeps its order. Press **Esc** to close the row. The type and parent you pick stay until the row closes.
 
-In Planning mode, **+ Add** in a sprint's header opens an add row that puts new items at the top of that sprint. A closed sprint section opens first. Both are off while a filter or search is on, because rank is relative to rows you cannot see.
+In Planning mode, **+ Add** in a sprint's header opens an add row that puts new items at the top of that sprint. A collapsed sprint section opens first. Both are off while a filter or search is on, because rank is relative to rows you cannot see.
 
 ## Select many items
 
-In List and Planning modes, each row has a checkbox in the first column. The header checkbox selects every shown row, or clears the selection when all are selected. Rows in a collapsed sprint section are not shown, so it leaves them out.
+In List and Planning modes, each row has a checkbox in the first column. The checkbox appears when you hover the row, focus it or select any row. The header checkbox selects every shown row, or clears the selection when all are selected. Rows in a collapsed sprint section are not shown, so it leaves them out.
 
 - Hold **Ctrl** or **Cmd** and click a row to add it to the selection or remove it.
-- Hold **Shift** and click a row to select the range from your last click.
+- Hold **Shift** and click a row to select the range from the last row you selected.
 - Press **X** on a focused row to toggle it.
 - A plain click only moves focus, so a stray click never loses a selection.
 
@@ -87,12 +87,12 @@ Press **Esc** to clear the selection.
 
 When at least one row is selected, an action bar sticks to the bottom of the backlog. With nothing selected, the bar does not appear. The bar shows how many rows are selected, their points, and how many are not estimated.
 
-- **Move to** has a button for each sprint that is not past, with the points the sprint would hold after the move, for example `13 + 8 = 21 / 22`. A sprint over capacity shows how far over, and the move still goes ahead. **Top** and **Bottom** move the selection to the top or bottom of the list, or of the backlog in Planning mode.
-- **Set** opens a menu for **Points**, **State**, **Parent** or **Tag**. Points takes a number, and leaving it empty clears the estimate. State lists the states of the selected types, without Removed. A row whose type has no state of that name is left out, and the toast says so. Parent offers only the parents that every selected type can have. Tag adds the tag and keeps the others.
+- **Move to** has a button for each sprint that is not past, with the points the sprint would hold after the move, for example `13 + 8 = 21 / 22`. A sprint over capacity shows how far over, and the move still goes ahead. **Top** and **Bottom** move the selection to the top or bottom of the list. In Planning mode they move it to the top or bottom of the backlog and take each row out of its sprint.
+- Under **Set**, **Points**, **State**, **Parent** and **Tag** each open a menu. **Points** takes a number, and leaving it empty clears the estimate. **State** lists the states of the selected types, without Removed. A row whose type has no state of that name is left out, and the toast says so. **Parent** offers only the parents that every selected type can have. **Tag** adds the tag and keeps the others.
 - **Remove** moves each row to its Removed state. It does not delete anything.
-- **Clear** drops the selection.
+- **Clear** clears the selection.
 
-A move or Remove clears the selection when it finishes. Set keeps it, so you can set another field.
+A move or Remove clears the selection. If the action fails, the selection comes back, and rows a teammate changed stay selected. Set keeps the selection, so you can set another field.
 
 You can act on at most 100 rows at once. With more selected, the bar says to select 100 rows or fewer, and its actions are disabled.
 
@@ -100,23 +100,23 @@ You can act on at most 100 rows at once. With more selected, the bar says to sel
 
 ### Undo
 
-After each action a toast names what happened, for example `3 moved to Sprint 25`, with an **Undo** button. It stays for about nine seconds. Undo puts the rows back as they were. Only the latest action can be undone.
+After each action a toast names what happened, for example `3 moved to Sprint 25`, with an **Undo** button. It stays for about nine seconds. Undo puts the rows back as they were. You can undo only the latest action.
 
-If a teammate changed a row while the action ran, the bar leaves that row out. A banner says `KEY wasn't included` and who changed it. Choose **Include it anyway** to apply your action to those rows, or **Leave it** to keep their change. Undo also leaves out a row that changed since the action, and never overwrites it.
+If a teammate changed a row while the action ran, ShipLean leaves that row out. A banner says `KEY wasn't included` and who changed it. Choose **Include it anyway** to apply your action to those rows, or **Leave it** to keep their change. Undo also leaves out a row that changed since the action, and never overwrites it.
 
 ### Drag a selection
 
-Drag one of two or more selected rows to move the whole selection. The rows dim, and a badge shows the count, for example `3 items`. In List mode, drop it where it should rank. In Planning mode, drop it on a sprint section, which shows what the sprint would hold. Dragging is off while a filter or search is on. The action bar's Move to still works.
+Drag one of two or more selected rows to move the whole selection. The rows dim, and a badge shows the count, for example `3 items`. In List mode, drop it where it should rank. In Planning mode, drop it on a sprint section, which shows what the sprint would hold. You can also drop it on a row to set its place, or on the Backlog section. Dragging is off while a filter or search is on. The action bar's Move to still works.
 
 ## Estimate in the row
 
-Click a row's points, or press a digit key on a focused row, to edit the estimate in place. A digit starts the field with that number. **Enter** saves and opens the next row's field. **Tab** saves and leaves. **Esc** cancels. An empty field clears the estimate. The value is a number from 0 to 9999.99 with up to two decimals. An invalid value stays in the field and nothing is sent. An unestimated row shows a `?`. If a teammate changed the row, a banner offers to use your value or keep theirs. Tree mode shows points read-only.
+Click a row's points, or press a digit key on a focused row, to edit the estimate in place. A digit starts the field with that number. **Enter** saves and opens the next row's field. **Tab** saves and leaves the field. **Esc** cancels. An empty field clears the estimate. The value is a number from 0 to 9999.99 with up to two decimals. An invalid value stays in the field, and ShipLean sends nothing. An unestimated row shows a `?`. If a teammate changed the row, a banner offers to use your value or keep theirs. Tree mode shows points read-only.
 
 ## Search and collapse
 
 Type in **Search this list** in the toolbar, or press **/** on the list, to narrow the rows. Search matches the key and title, ignores case, and covers the rows already loaded. When nothing matches, the list shows `Nothing matches "text"`. Press **Esc** in the box to clear it and return to the list.
 
-In Planning mode, a search opens the sprint sections that have hits, and sections cannot be toggled until you clear it. A banner says dragging is off while a search is on. Without a search, use the toggle at the left of a sprint's header to collapse or expand its section. The running sprint starts collapsed until you change a section. Your choice is saved for your account. In Tree mode, the arrow beside a group collapses it.
+In Planning mode, a search opens the sprint sections that have matches. You can't toggle sections until you clear it. A banner says dragging is off while a search is on. Without a search, use the toggle at the left of a sprint's header to collapse or expand its section. The running sprint starts collapsed until you change a section. ShipLean saves your choice for your account. In Tree mode, the arrow beside a group collapses it.
 
 ## Filter the backlog
 
@@ -136,13 +136,13 @@ Choose **Columns** to show or hide optional columns. Your choice is saved for yo
 
 ## Read roll-ups
 
-Features and Epics show their own estimate and, when available, the sum of points below them. ShipLean shows a warning when the rolled-up sum is more than a quarter above the item's own estimate. Progress counts the completed Stories and Bugs beneath the row, including those under nested Features. It shows the completed share and count. The Epic table also shows the number of Features under each Epic.
+Features and Epics show their own estimate and, when available, the sum of points below them. ShipLean shows a warning when the rolled-up sum is more than a quarter above the item's own estimate. Progress counts the completed Stories, Bugs and Action items beneath the row, including those under nested Features. It shows the completed share and count. The Epic table also shows the number of Features under each Epic.
 
 In Tree mode, collapsed groups show their point and completion roll-ups. In Planning mode, sprint sections show committed points and capacity. The forecast line marks the estimated cutoff at the current velocity. Use **Forecast** to hide or show that line.
 
 ## Options and shortcuts
 
-Choose **Keys** (or press **?**) to list the keys for the list. They work in List and Planning modes while a row has focus, and never while you type in a field.
+Choose **Keys** or press **?** to list the keys. They work in List and Planning modes while a row has focus, and never while you type in a field.
 
 | Key | Action |
 | --- | --- |
@@ -157,7 +157,7 @@ Choose **Keys** (or press **?**) to list the keys for the list. They work in Lis
 | **/** | Search this list |
 | **?** | Show the keys |
 
-Press **M** and the action bar labels each sprint with its number. Any other key cancels. **M** does nothing when no row is selected.
+Press **M** and the action bar labels each sprint with its number. Any other key cancels. With no row selected, the next key you press cancels the chord.
 
 <Shot name="ui-backlogs-keys" alt="Keyboard, on the list dialog listing the keys for moving, selecting, estimating, adding, moving to a sprint and searching." />
 
