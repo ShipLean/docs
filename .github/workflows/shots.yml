@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      SHIPLEAN_IMAGE: ghcr.io/shiplean/shiplean:aa5119e72826ec9d9529dafa33b2e73ce9a37098
+      SHIPLEAN_IMAGE: ghcr.io/shiplean/shiplean:77090f2778a3ad61f9b7a74d73588f472cd0d070
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      SHIPLEAN_IMAGE: ghcr.io/shiplean/shiplean:aa5119e72826ec9d9529dafa33b2e73ce9a37098
+      SHIPLEAN_IMAGE: ghcr.io/shiplean/shiplean:77090f2778a3ad61f9b7a74d73588f472cd0d070
       COMPOSE_PROJECT_NAME: shiplean-seed-test
       SHIPLEAN_SHOTS_PORT: '18081'
       SHIPLEAN_ADMIN_EMAIL: docs@example.com

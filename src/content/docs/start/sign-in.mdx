@@ -68,14 +68,14 @@ ShipLean asks Google for the `openid`, `profile` and `email` scopes. On every si
 - **No user has that email.** ShipLean creates a user with the name Google sends. When Google sends no usable name, the name is the part of the email before the `@`.
 - **Later sign-ins.** ShipLean identifies the person by Google's account ID, not the email. If the person changes their email at Google to a new address that Google reports as verified, ShipLean does not follow the new address.
 
-ShipLean refuses a sign-in when the user is disabled, or when the email already belongs to a user linked to a different Google account. The second case happens when Google gives the address to a different account. An instance admin must choose **Change email…** on the existing user in the users list. The Google account then gets a new, separate user, and the old user stays linked to the old Google account.
+ShipLean refuses a sign-in when the user is disabled, or when the email already belongs to a user linked to a different Google account. The second case happens when Google gives the address to a different account. An instance admin must choose **Change email…** on the existing user in the users list. When the existing user is the only instance admin, they choose it on their own row. The Google account then gets a new, separate user, and the old user stays linked to the old Google account.
 
-A linked user's password still works. A password lockout does not stop Google sign-in, and a Google sign-in does not clear the lockout. A one-time password that the user has not replaced ends at their next Google sign-in. To keep the password, sign in with it and choose a new one before using Google. A user who has Google and no password has no password form in their profile. An admin can give them a password with **Set up sign-in…** in the users list.
+A linked user's password still works. A password lockout does not stop Google sign-in, and a Google sign-in does not clear the lockout. A one-time password ends at any Google sign-in while the user still has to replace it. To keep the password, sign in with it and choose a new one before using Google. A user who has Google and no password has no password form in their profile. An admin can give them a password with **Set up sign-in…** in the users list. An admin who signs in only with Google uses it on their own row.
 
 ### When Google sign-in does not work
 
 - **Not configured.** The sign-in page shows only the email and password form. The start address `/api/auth/google/start` answers 404.
-- **Google cannot finish.** A cancelled consent screen, an expired sign-in attempt or a failed call from ShipLean to Google after the person returns sends the person back to the sign-in page. The page says "Couldn't finish signing in with Google. Try again."
+- **Google cannot finish.** A cancelled consent screen, an expired sign-in attempt, a failed call from ShipLean to Google after the person returns, or a failure to fetch Google's configuration when sign-in starts sends the person back to the sign-in page. The page says "Couldn't finish signing in with Google. Try again."
 - **Google account refused.** The sign-in page says "This Google account can't sign in here. Ask your ShipLean admin." The message is the same for an unverified email, a disabled user and an email linked to another Google account. The server log records which one it was, and never the token or the address.
 
 ## Sign in through an identity proxy
