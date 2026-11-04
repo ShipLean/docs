@@ -26,10 +26,17 @@ interface Item {
 interface Project { id: string; key: string; nextItemNumber: number }
 interface State { id: string; type: ItemType; category: string; order: number }
 interface Attachment { id: string; name: string; downloadUrl: string }
-interface Registry { version: 1; items: Record<string, string>; sprint?: string; boardColumns?: Record<string, string> }
+interface Registry {
+  version: 1; items: Record<string, string>; sprint?: string; boardColumns?: Record<string, string>;
+  /** Sprint ids by fixture name: future, recent, older. Created once; a closed sprint cannot be reopened. */
+  sprints?: Record<string, string>;
+  /** Retro points, Action items and decisions by fixture name, so reseeding never duplicates them. */
+  retro?: Record<string, string>;
+}
+type SprintName = 'current' | 'future' | 'recent' | 'older';
 interface Fixture {
   name: string; type: ItemType; title: string; parent?: string; category: Category;
-  points?: number; sprint?: boolean; priority?: number; goal?: string; status?: string; description?: string;
+  points?: number; sprint?: boolean | SprintName; priority?: number; goal?: string; status?: string; description?: string;
 }
 
 const epics: Fixture[] = ['Onboarding', 'Planning', 'Team collaboration'].map((title, i) => ({
@@ -80,7 +87,59 @@ const extras: Fixture[] = [
   { name: 'task-3', type: 'task', title: 'Check keyboard access to the next action', parent: 'story-4', category: 'proposed', sprint: true },
   { name: 'task-4', type: 'task', title: 'Try the sprint plan with sample estimates', parent: 'story-10', category: 'proposed', sprint: true },
 ];
-const fixtures = [...epics, ...features, ...stories, ...extras];
+// Appended after every older fixture so existing DEMO keys stay as they were.
+// The backlog rows rank above the older unsprinted stories (see rankNames), so the
+// first five total 8 points and the sixth has 2. The pull line and the Close sprint
+// dialog's next-sprint total depend on them.
+const backlogRows: Fixture[] = [
+  ['Show the project key while it is typed', 2], ['Explain why a key cannot change', 1],
+  ['Offer a sample first story', 2], ['Show the next action after the first story', 1],
+  ['Let a teammate skip the tour', 2], ['Remember the last project opened', 2],
+].map(([title, points], i) => ({
+  name: `row-${i + 1}`, type: 'story', title: title as string, parent: i < 4 ? 'feature-4' : 'feature-1',
+  category: 'proposed', points: points as number, priority: 2,
+}));
+// 13 points already in the future sprint.
+const futureStories: Fixture[] = [
+  ['Invite a teammate by email', 5], ['Show pending invitations', 5], ['Resend an invitation', 3],
+].map(([title, points], i) => ({
+  name: `next-${i + 1}`, type: 'story', title: title as string, parent: 'feature-2',
+  category: 'proposed', points: points as number, sprint: 'future',
+}));
+// Finished in the most recent past sprint; they carry item-level retro points.
+const retroStories: Fixture[] = [
+  { name: 'done-1', type: 'story', title: 'Choose a project template', parent: 'feature-1', category: 'completed', points: 3, sprint: 'recent' },
+  { name: 'done-2', type: 'story', title: 'Show progress on the Features board', parent: 'feature-6', category: 'completed', points: 2, sprint: 'recent' },
+];
+const fixtures = [...epics, ...features, ...stories, ...extras, ...backlogRows, ...futureStories, ...retroStories];
+
+interface PointFixture { name: string; category: 'wentWell' | 'wentBadly' | 'improve' | 'notInPlan'; text: string; theme?: string; rootCause?: string; sprint?: SprintName; item?: string }
+const themeCriteria = 'Unclear acceptance criteria';
+const themeReviews = 'Slow reviews';
+const retroPoints: PointFixture[] = [
+  { name: 'older-well', sprint: 'older', category: 'wentWell', text: 'Pairing on the first project flow unblocked us quickly.' },
+  { name: 'older-criteria', sprint: 'older', category: 'wentBadly', theme: themeCriteria, text: 'Stories started before the acceptance criteria were agreed.', rootCause: 'Refinement was skipped when the sprint filled up.' },
+  { name: 'older-review-1', sprint: 'older', category: 'wentBadly', theme: themeReviews, text: 'Pull requests waited two days for a first review.', rootCause: 'One person reviewed everything.' },
+  { name: 'older-review-2', sprint: 'older', category: 'notInPlan', theme: themeReviews, text: 'Review requests arrived during the planning meeting.' },
+  { name: 'older-review-3', sprint: 'older', category: 'improve', theme: themeReviews, text: 'Agree a review rota at planning.' },
+  { name: 'recent-well', sprint: 'recent', category: 'wentWell', text: 'The Stories board made blockers visible.' },
+  { name: 'recent-criteria', sprint: 'recent', category: 'wentBadly', theme: themeCriteria, text: 'Two stories were reworked after the acceptance criteria changed.', rootCause: 'The criteria were written after the work began.' },
+  { name: 'recent-invites', sprint: 'recent', category: 'notInPlan', theme: 'Invitation wording', text: 'The invitation email needed a new template.' },
+  { name: 'recent-open', sprint: 'recent', category: 'improve', theme: themeCriteria, text: 'Write acceptance criteria in refinement, not during the sprint.' },
+  { name: 'current-criteria', sprint: 'current', category: 'wentBadly', theme: themeCriteria, text: 'Estimates were missing at the start of planning.', rootCause: 'The criteria were still open.' },
+  { name: 'done-1-badly', item: 'done-1', category: 'wentBadly', theme: themeCriteria, text: 'The template list changed halfway through the story.', rootCause: 'The criteria did not name the templates.' },
+  { name: 'done-1-improve', item: 'done-1', category: 'improve', text: 'List the templates in the acceptance criteria.' },
+  { name: 'done-2-well', item: 'done-2', category: 'wentWell', text: 'The Features board answered the first question we asked.' },
+  { name: 'feature-1-improve', item: 'feature-1', category: 'improve', text: 'Keep the research next to the Feature.' },
+];
+// The Action item is raised from the review points and closed in the older sprint. The open one covers two criteria points.
+// recent-open stays undecided.
+const retroActions = [
+  { name: 'action-closed', title: 'Set up a review rota', fixType: 'guide', points: ['older-review-1', 'older-review-2', 'older-review-3'], theme: themeReviews, parent: 'feature-4', sprint: 'older' as SprintName, closed: true, estimate: 3 },
+  { name: 'action-open', title: 'Agree acceptance criteria in refinement', fixType: 'skill', points: ['older-criteria', 'recent-criteria'], theme: themeCriteria, parent: 'feature-1', sprint: undefined, closed: false, estimate: 2 },
+];
+// Rank order: the backlog rows sit before the older stories; everything else keeps its place.
+const rankNames = [...epics, ...features, ...backlogRows, ...stories, ...extras, ...futureStories, ...retroStories].map(f => f.name);
 const attachments = [
   { fixture: 'feature-1', name: 'first-project-research.md', content: '# First-project research\n\n## Findings\n\nA new member needs a clear project key, a small first story and an obvious next action.\n\n## Decision\n\nStart with project creation, then introduce an Epic, a Feature and its first stories. Keep the next action visible.\n\n## Next\n\nTry the guide with a new teammate and record where they hesitate.\n' },
   { fixture: 'feature-1', name: 'first-project-plan.md', content: '# First-project plan\n\n1. Create the project and explain its key.\n2. Add the team’s area as an Epic.\n3. Capture a Feature with a clear goal.\n4. Add and estimate the first stories.\n5. Choose the next action on the board.\n\nSuccess means a new member can create their first project and find the next action.\n' },
@@ -195,12 +254,36 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
         ?? (await json<{ id: string }>(api.post(`${projectPath}/sprints`, { data: sprintData }))).id;
       await saveRegistry();
     }
+    const day = (offset: number) => new Date(Date.parse(captureDay + 'T00:00:00Z') + offset * 86400000).toISOString().slice(0, 10);
+    const sprintFixtures: Record<'future' | 'recent' | 'older', { name: string; start: number; end: number; goal: string }> = {
+      future: { name: 'Invite and join', start: 12, end: 25, goal: 'Let invited teammates join the right project.' },
+      recent: { name: 'Foundations', start: -14, end: -1, goal: 'Lay the groundwork for the first-project guide.' },
+      older: { name: 'Discovery', start: -28, end: -15, goal: 'Learn where new members get stuck.' },
+    };
+    registry.sprints ??= {};
+    registry.retro ??= {};
+    const sprintIds = registry.sprints;
+    const knownSprints = await json<{ id: string; name: string }[]>(api.get(`${projectPath}/sprints`));
+    for (const key of ['older', 'recent', 'future'] as const) {
+      const f = sprintFixtures[key];
+      // Past sprints keep their dates; the future one follows the capture day so it never overlaps First steps.
+      sprintIds[key] ??= knownSprints.find(s => s.name === f.name)?.id
+        ?? (await json<{ id: string }>(api.post(`${projectPath}/sprints`, { data: { name: f.name, startDate: day(f.start), endDate: day(f.end), goal: f.goal } }))).id;
+      await saveRegistry();
+    }
+    const sprintOf = (name: SprintName | boolean | undefined) => name === true || name === 'current' ? registry.sprint! : name ? sprintIds[name] : null;
+    // Move the future sprint first: First steps may move later on a reseed, and the two must not overlap.
+    await checked(await api.patch(`/api/sprints/${sprintIds.future}`, { data: { name: sprintFixtures.future.name, startDate: day(12), endDate: day(25), goal: sprintFixtures.future.goal } }));
     await checked(await api.patch(`/api/sprints/${registry.sprint}`, { data: sprintData }));
-    const capacity = await json<{ members: { user: { id: string }; days: number | null; note: string | null }[] }>(api.get(`/api/sprints/${registry.sprint}/capacity`));
-    await checked(await api.put(`/api/sprints/${registry.sprint}/capacity`, { data: { velocity: 34, members: [
-      ...capacity.members.filter(m => m.user.id !== me.id).map(m => ({ userId: m.user.id, days: m.days, note: m.note })),
-      { userId: me.id, days: null, note: 'Leave room for support and review.' },
-    ] } }));
+    const setCapacity = async (sprintId: string, velocity: number, note: string) => {
+      const capacity = await json<{ members: { user: { id: string }; days: number | null; note: string | null }[] }>(api.get(`/api/sprints/${sprintId}/capacity`));
+      await checked(await api.put(`/api/sprints/${sprintId}/capacity`, { data: { velocity, members: [
+        ...capacity.members.filter(m => m.user.id !== me.id).map(m => ({ userId: m.user.id, days: m.days, note: m.note })),
+        { userId: me.id, days: null, note },
+      ] } }));
+    };
+    await setCapacity(registry.sprint!, 34, 'Leave room for support and review.');
+    await setCapacity(sprintIds.future, 22, 'Keep a margin for support.');
 
     const items: Record<string, Item> = {};
     for (const fixture of fixtures) {
@@ -219,7 +302,7 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
         priority: { value: fixture.priority ?? 2 }, points: { value: fixture.points ?? null },
         tags: { value: [fixtureTag, fixture.type === 'bug' ? 'quality' : 'onboarding'] },
       };
-      if (['story', 'bug', 'task'].includes(fixture.type)) changes.sprint = { value: fixture.sprint ? registry.sprint : null };
+      if (['story', 'bug', 'task'].includes(fixture.type)) changes.sprint = { value: sprintOf(fixture.sprint) };
       if (fixture.type === 'feature') {
         changes.goal = { value: fixture.goal };
         changes.statusLine = { value: fixture.status ?? (fixture.category === 'completed' ? 'Delivered. The team can see its progress.' : 'Ready for the next research and planning session.') };
@@ -236,7 +319,7 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
         ? await json<{ id: string }>(api.patch(`/api/work-items/${existing.id}`, { data: { expectedRevision: existing.revision, changes } }))
         : await json<{ id: string }>(api.post('/api/work-items', { data: {
           projectId: project.id, type: fixture.type, title: fixture.title, parentId: parent,
-          sprintId: fixture.sprint ? registry.sprint : null, changes,
+          sprintId: sprintOf(fixture.sprint), changes,
           ...(fixture.type === 'feature' ? { slug: fixture.name === 'feature-1' ? anchorSlug : `demo-${fixture.name}`, startedOn: captureDay } : {}),
         } }));
       registry.items[fixture.name] = written.id;
@@ -262,6 +345,60 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
         if (!item.links.some(l => l.workItemId === items[link.to].id && l.type === link.type)) {
           await checked(await api.post(`/api/work-items/${item.id}/work-item-links`, { data: { targetKey: items[link.to].key, type: link.type } }));
         }
+      }
+    }
+    // Retro data. REST writes every point as the signed-in person: there is no route that writes an agent's retro.
+    const ledger = registry.retro;
+    const pointIds: Record<string, string> = {};
+    for (const point of retroPoints) {
+      if (!ledger[point.name]) {
+        const target = point.item ? { workItemId: items[point.item].id, sprintId: null } : { workItemId: null, sprintId: sprintOf(point.sprint) };
+        ledger[point.name] = (await json<{ id: string }>(api.post(`${projectPath}/retros/points`, { data: {
+          retroId: null, ...target, category: point.category, text: point.text,
+          rootCause: point.rootCause ?? null, themeId: null, themeName: point.theme ?? null,
+        } }))).id;
+        await saveRegistry();
+      }
+      pointIds[point.name] = ledger[point.name];
+    }
+    // A point that needs no action, so the Retro tab shows a decided progress below 100%.
+    if (!ledger['not-needed:recent-invites']) {
+      await checked(await api.post(`/api/retros/points/${pointIds['recent-invites']}/not-needed`, { data: { reason: 'The template is already planned.' } }));
+      ledger['not-needed:recent-invites'] = 'done';
+      await saveRegistry();
+    }
+    for (const action of retroActions) {
+      if (!ledger[action.name]) {
+        const made = await json<{ action: { workItemId: string } }>(api.post(`${projectPath}/retros/actions`, { data: {
+          title: action.title, fixType: action.fixType, pointIds: action.points.map(n => pointIds[n]), themeId: null, themeName: action.theme,
+        } }));
+        ledger[action.name] = made.action.workItemId;
+        await saveRegistry();
+      }
+      registry.items[action.name] = ledger[action.name];
+      if (!ledger[`placed:${action.name}`]) {
+      // The retro route makes the item in New with no parent or sprint. Place it, then close it in the sprint it belongs to.
+      const created = await json<Item>(api.get(`/api/work-items/${ledger[action.name]}`));
+      const placed = await json<{ id: string }>(api.patch(`/api/work-items/${created.id}`, { data: { expectedRevision: created.revision, changes: {
+        parent: { value: items[action.parent].id }, sprint: { value: sprintOf(action.sprint) }, points: { value: action.estimate },
+        assignee: { value: me.id }, priority: { value: 2 },
+        tags: { value: [fixtureTag, 'process'] }, state: { value: state('action', 'proposed') },
+      } } }));
+      const current = await json<Item>(api.get(`/api/work-items/${placed.id}`));
+      await checked(await api.patch(`/api/work-items/${current.id}`, { data: { expectedRevision: current.revision, changes: {
+        state: { value: state('action', action.closed ? 'completed' : 'inProgress') },
+      } } }));
+      ledger[`placed:${action.name}`] = 'done';
+      await saveRegistry();
+      }
+      items[action.name] = await json<Item>(api.get(`/api/work-items/${ledger[action.name]}`));
+    }
+    await saveRegistry();
+    // Close the two past sprints (rolling over nothing: everything in them is finished). A closed sprint cannot be reopened.
+    const sprintList = await json<{ id: string; rolloverStatus: string | null }[]>(api.get(`${projectPath}/sprints`));
+    for (const key of ['older', 'recent'] as const) {
+      if (sprintList.find(s => s.id === sprintIds[key])?.rolloverStatus?.toLowerCase() !== 'decided') {
+        await checked(await api.post(`/api/sprints/${sprintIds[key]}/rollover`, { data: { moves: [] } }));
       }
     }
     const boards = await json<{ id: string; level: string }[]>(api.get(`${projectPath}/boards`));
@@ -300,10 +437,11 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
     await checked(await api.put(`/api/boards/${board.id}/settings`, { data: { basedOn: loaded.settings, settings } }));
     // Restore board placement and both backlog/column ordering after mutating shots.
     const ranked = await json<Item[]>(api.get(`${projectPath}/work-items`));
-    const orderedIds = fixtures.map(f => items[f.name].id);
+    const orderedNames = [...rankNames, ...retroActions.map(a => a.name)];
+    const orderedIds = orderedNames.map(n => items[n].id);
     if (ranked.filter(i => managedIds.has(i.id)).some((item, index) => item.id !== orderedIds[index])) {
-      for (const fixture of fixtures) {
-        const item = await json<Item>(api.get(`/api/work-items/${items[fixture.name].id}`));
+      for (const name of orderedNames) {
+        const item = await json<Item>(api.get(`/api/work-items/${items[name].id}`));
         await checked(await api.post(`/api/work-items/${item.id}/reorder`, { data: { expectedRevision: item.revision, beforeItemId: null } }));
       }
     }
@@ -318,7 +456,10 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
     return {
       projectKey: 'DEMO', projectId: project.id,
       epics: epics.map(f => items[f.name].key), features: features.map(f => items[f.name].key),
-      stories: stories.map(f => items[f.name].key), sprint: registry.sprint, boardId: board.id,
+      stories: stories.map(f => items[f.name].key), sprint: registry.sprint!, boardId: board.id,
+      futureSprint: sprintIds.future, recentSprint: sprintIds.recent, olderSprint: sprintIds.older,
+      backlogRows: backlogRows.map(f => items[f.name].key), futureStories: futureStories.map(f => items[f.name].key),
+      retroStories: retroStories.map(f => items[f.name].key), actionItems: retroActions.map(a => items[a.name].key),
     };
   } finally {
     await api.dispose();

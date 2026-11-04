@@ -14,6 +14,20 @@ export interface SeedResult {
   sprint: string;
   /** REST UUID of the project's existing Stories board. */
   boardId: string;
+  /** REST UUID of the future sprint: capacity 22, 13 points committed. */
+  futureSprint: string;
+  /** REST UUID of the closed sprint that ended yesterday, named Foundations. */
+  recentSprint: string;
+  /** REST UUID of the older closed sprint, named Discovery. */
+  olderSprint: string;
+  /** Six ranked backlog rows above the older stories: the first five total 8 points, the sixth has 2. */
+  backlogRows: string[];
+  /** The three stories already in the future sprint, 13 points. */
+  futureStories: string[];
+  /** Two stories finished in the recent sprint, with item-level retro points. */
+  retroStories: string[];
+  /** Action items: [closed in the older sprint under a Feature, open under features[0]]. */
+  actionItems: string[];
 }
 
 export interface ShotSpec {

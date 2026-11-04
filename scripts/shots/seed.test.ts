@@ -59,6 +59,8 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
     const initialSprint = await sprint();
     const managedOrder = async () => managed(await getItems()).map(i => i.key);
     const initialOrder = await managedOrder();
+    const retroPointsBefore = (await Promise.all([first.olderSprint, first.recentSprint, first.sprint]
+      .map(async id => (await body(await api.get(`/api/sprints/${id}/retro`))).cards.flatMap((c: any) => c.points)))).flat().length;
     const featureAttachment = async (name: string) => {
       const feature = await getItem(first.features[0]);
       const list = await body(await api.get(`/api/work-items/${feature.id}/attachments`));
@@ -67,10 +69,10 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
     const initialResearch = await (await api.get((await featureAttachment('first-project-research.md')).downloadUrl)).text();
 
     await t.test('Seed_WhenRun_ShouldReturnTheDeclaredShape', async () => {
-      assert.deepEqual(Object.keys(first).sort(), ['projectKey', 'projectId', 'epics', 'features', 'stories', 'sprint', 'boardId'].sort());
+      assert.deepEqual(Object.keys(first).sort(), ['projectKey', 'projectId', 'epics', 'features', 'stories', 'sprint', 'boardId', 'futureSprint', 'recentSprint', 'olderSprint', 'backlogRows', 'futureStories', 'retroStories', 'actionItems'].sort());
       assert.equal(first.projectKey, 'DEMO');
       const uuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
-      for (const id of [first.projectId, first.sprint, first.boardId]) assert.match(id, uuid);
+      for (const id of [first.projectId, first.sprint, first.boardId, first.futureSprint, first.recentSprint, first.olderSprint]) assert.match(id, uuid);
       for (const [keys, count, type] of [[first.epics, 3, 'epic'], [first.features, 6, 'feature'], [first.stories, 20, 'story']] as const) {
         assert.equal(keys.length, count);
         assert.equal(new Set(keys).size, count);
@@ -84,7 +86,8 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
       assert.equal(feature.goal, 'help a new member create their first project and find the next action.');
       assert.ok(feature.statusLine.length > 0);
       assert.ok(feature.statusVerified);
-      assert.equal(baseline.length, 35);
+      // 35 older items, 6 backlog rows, 3 future-sprint stories, 2 finished stories and 2 Action items.
+      assert.equal(baseline.length, 48);
       assert.equal(baseline.filter(i => i.type === 'bug').length, 2);
       assert.equal(baseline.filter(i => i.type === 'task').length, 4);
       assert.ok(baseline.filter(i => i.type === 'story').every(i => i.points !== null));
@@ -98,6 +101,59 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
       assert.equal(baseline.reduce((n, i) => n + i.attachments.length, 0), 4);
     });
 
+    await t.test('Seed_WhenRun_ShouldPlanAFutureSprintAndRankSixBacklogRows', async () => {
+      const sprints = await body(await api.get(`${projectPath}/sprints`));
+      const future = sprints.find((s: any) => s.id === first.futureSprint);
+      assert.ok(future.startDate > initialSprint.endDate, 'the future sprint starts after First steps ends');
+      assert.equal((await body(await api.get(`/api/sprints/${first.futureSprint}/capacity`))).teamTotal, 22);
+      const items = managed(await getItems());
+      const inFuture = items.filter(i => i.sprint?.id === first.futureSprint);
+      assert.equal(inFuture.length, 3);
+      assert.equal(inFuture.reduce((n, i) => n + i.points, 0), 13);
+      const rows = [] as any[];
+      for (const key of first.backlogRows) rows.push(await getItem(key));
+      assert.equal(rows.length, 6);
+      assert.ok(rows.every(r => r.type.id === 'story' && r.sprint === null && r.parent && r.points > 0));
+      assert.equal(rows.slice(0, 5).reduce((n, r) => n + r.points, 0), 8);
+      assert.ok(rows[5].points >= 2);
+      // They rank above every other unsprinted story, in order.
+      const backlog = items.filter(i => i.type.id === 'story' && !i.sprint).map(i => i.key);
+      assert.deepEqual(backlog.slice(0, 6), first.backlogRows);
+      // The new keys come after the older fixtures, so the older keys did not move.
+      const number = (key: string) => Number(key.split('-')[1]);
+      assert.ok(first.backlogRows.every(key => number(key) > Math.max(...first.stories.map(number))));
+    });
+
+    await t.test('Seed_WhenRun_ShouldSeedClosedSprintsWithRetroPointsThemesAndActionItems', async () => {
+      const sprints = await body(await api.get(`${projectPath}/sprints`));
+      for (const id of [first.olderSprint, first.recentSprint]) {
+        const closed = sprints.find((s: any) => s.id === id);
+        assert.ok(closed.endDate < initialSprint.startDate, 'a past sprint ended before First steps');
+        assert.equal(String(closed.rolloverStatus).toLowerCase(), 'decided');
+      }
+      const pointsOf = async (id: string) => (await body(await api.get(`/api/sprints/${id}/retro`))).cards.flatMap((c: any) => c.points);
+      const older = await pointsOf(first.olderSprint);
+      const recent = await pointsOf(first.recentSprint);
+      const all = [...older, ...recent];
+      for (const category of ['wentWell', 'wentBadly', 'improve', 'notInPlan']) {
+        assert.ok(all.some((p: any) => p.category === category), `a ${category} point exists`);
+      }
+      assert.ok(all.every((p: any) => p.author.user.id && p.author.role === 'person'));
+      // The same theme carries wentBadly points in both past sprints, which makes it recurring with the current sprint's point.
+      const themes = (sprint: any[]) => new Set(sprint.filter(p => p.category === 'wentBadly').map(p => p.theme?.name));
+      assert.ok(themes(older).has('Unclear acceptance criteria') && themes(recent).has('Unclear acceptance criteria'));
+      assert.ok(all.some((p: any) => p.category !== 'wentWell' && !p.decision && !p.notNeeded && !p.action), 'one point is still to decide');
+      assert.ok(all.some((p: any) => p.action));
+      assert.equal(first.actionItems.length, 2);
+      const closedAction = await getItem(first.actionItems[0]);
+      const openAction = await getItem(first.actionItems[1]);
+      assert.equal(closedAction.type.id, 'action');
+      assert.equal(closedAction.state.category, 'completed');
+      assert.equal(closedAction.sprint.id, first.olderSprint);
+      assert.ok(closedAction.parent && openAction.parent);
+      assert.notEqual(openAction.state.category, 'completed');
+    });
+
     await t.test('Seed_WhenCredentialsDiffer_ShouldNotReuseAnAuthenticatedSession', async () => {
       await assert.rejects(seedDemo(config.baseUrl, { email: config.admin.email, password: config.admin.password + '-incorrect' }), /auth\/login returned 401/);
     });
@@ -106,6 +162,9 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
       const second = await seedDemo(config.baseUrl, config.admin);
       assert.deepEqual(second, first);
       assert.deepEqual(await snapshot(), baseline);
+      const retroPointCount = async () => (await Promise.all([first.olderSprint, first.recentSprint, first.sprint]
+        .map(async id => (await body(await api.get(`/api/sprints/${id}/retro`))).cards.flatMap((c: any) => c.points)))).flat().length;
+      assert.equal(await retroPointCount(), retroPointsBefore, 'a reseed adds no retro point');
       assert.deepEqual(await boardSettings(), initialBoard);
       const projects = await body(await api.get('/api/projects'));
       assert.equal(projects.filter((p: any) => p.key === 'DEMO').length, 1);
@@ -180,7 +239,7 @@ await test('Demo REST fixture on a disposable runtime', { timeout: 180_000 }, as
       const remaining = await body(await api.get(`/api/work-items/${feature.id}/attachments`));
       assert.equal(remaining.find((a: any) => a.name === 'unrelated-note.md').id, note.id);
       assert.equal(await (await api.get(note.downloadUrl)).text(), '# Keep this unrelated note\n');
-      assert.equal(managed(await getItems()).length, 35);
+      assert.equal(managed(await getItems()).length, 48);
     });
   } finally {
     await api.dispose();
