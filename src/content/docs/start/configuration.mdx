@@ -179,6 +179,24 @@ Destination for the ShipLean sign-out action while proxy sign-in is active.
 - **Example:** `/oauth2/sign_out`
 - **Set it when:** You want sign-out to send the person to the proxy's sign-out route, or to another HTTP or HTTPS destination.
 
+## Sign-in with Google
+
+### `SHIPLEAN_GOOGLE_CLIENT_ID`
+
+Client ID of a Google OAuth web client. Setting it together with `SHIPLEAN_GOOGLE_CLIENT_SECRET` adds a **Sign in with Google** button to the sign-in page. Anyone with a Google account that the client allows can then create a user by signing in. See [Sign in with Google](/start/sign-in/#sign-in-with-google) for the account rules and the client setup.
+
+- **Default:** Not set. The button is off.
+- **Example:** `<client-id>.apps.googleusercontent.com`
+- **Set it when:** You want people to sign in with Google. Set both Google settings or neither, because ShipLean refuses to start with only one. Do not set them with an identity proxy, because ShipLean also refuses to start with both.
+
+### `SHIPLEAN_GOOGLE_CLIENT_SECRET`
+
+Client secret of the same Google OAuth client. This setting is a secret. Keep it in your deployment's secret store, and do not put it in a file under version control.
+
+- **Default:** Not set.
+- **Example:** `<google-client-secret>`
+- **Set it when:** You set `SHIPLEAN_GOOGLE_CLIENT_ID`.
+
 ## MCP gateway
 
 ### `SHIPLEAN_MCP_GATEWAY_EMAIL_HEADER`
