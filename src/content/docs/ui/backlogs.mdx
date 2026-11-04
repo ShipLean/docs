@@ -74,7 +74,7 @@ In Planning mode, **+ Add** in a sprint's header opens an add row that puts new 
 
 ## Select many items
 
-In List and Planning modes, each row has a checkbox in the first column. The checkbox appears when you hover the row, focus it or select any row. The header checkbox selects every shown row, or clears the selection when all are selected. Rows in a collapsed sprint section are not shown, so it leaves them out.
+In List and Planning modes, each row has a checkbox in the first column. The checkbox appears when you hover the row or select any row. On a touch screen it always shows. The header checkbox selects every shown row, or clears the selection when all are selected. Rows in a collapsed sprint section are not shown, so it leaves them out.
 
 - Hold **Ctrl** or **Cmd** and click a row to add it to the selection or remove it.
 - Hold **Shift** and click a row to select the range from the last row you selected.
@@ -92,7 +92,7 @@ When at least one row is selected, an action bar sticks to the bottom of the bac
 - **Remove** moves each row to its Removed state. It does not delete anything.
 - **Clear** clears the selection.
 
-A move or Remove clears the selection. If the action fails, the selection comes back, and rows a teammate changed stay selected. Set keeps the selection, so you can set another field.
+A move or Remove clears the selection. If the action fails, the selection comes back. If a teammate changed a row, that row stays selected. Set keeps the selection, so you can set another field.
 
 You can act on at most 100 rows at once. With more selected, the bar says to select 100 rows or fewer, and its actions are disabled.
 
@@ -106,7 +106,7 @@ If a teammate changed a row while the action ran, ShipLean leaves that row out. 
 
 ### Drag a selection
 
-Drag one of two or more selected rows to move the whole selection. The rows dim, and a badge shows the count, for example `3 items`. In List mode, drop it where it should rank. In Planning mode, drop it on a sprint section, which shows what the sprint would hold. You can also drop it on a row to set its place, or on the Backlog section. Dragging is off while a filter or search is on. The action bar's Move to still works.
+Drag one of two or more selected rows to move the whole selection. The rows dim, and a badge shows the count, for example `3 items`. In List mode, drop it where it should rank. In Planning mode, drop it on a sprint section, which shows what the sprint would hold. You can also drop it on a row to put it next to that row, or on the Backlog section. Dragging is off while a filter or search is on. The action bar's Move to still works.
 
 ## Estimate in the row
 
@@ -157,7 +157,7 @@ Choose **Keys** or press **?** to list the keys. They work in List and Planning 
 | **/** | Search this list |
 | **?** | Show the keys |
 
-Press **M** and the action bar labels each sprint with its number. Any other key cancels. With no row selected, the next key you press cancels the chord.
+Press **M** and the action bar labels each sprint with its number. Any other key cancels. With no row selected, **M** does nothing, and the next key you press has no effect.
 
 <Shot name="ui-backlogs-keys" alt="Keyboard, on the list dialog listing the keys for moving, selecting, estimating, adding, moving to a sprint and searching." />
 
