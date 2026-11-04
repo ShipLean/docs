@@ -66,11 +66,11 @@ ShipLean asks Google for the `openid`, `profile` and `email` scopes. On every si
 
 - **A user with that email exists.** ShipLean links the Google account to that user and keeps their password, name, projects and history. Email matching ignores case.
 - **No user has that email.** ShipLean creates a user with the name Google sends. When Google sends no usable name, the name is the part of the email before the `@`.
-- **Later sign-ins.** ShipLean identifies the person by Google's account ID, not the email. If the person changes their email at Google to a new address that Google reports as verified, nothing changes in ShipLean, and ShipLean does not follow the new address.
+- **Later sign-ins.** ShipLean identifies the person by Google's account ID, not the email. If the person changes their email at Google to a new address that Google reports as verified, ShipLean does not follow the new address.
 
 ShipLean refuses a sign-in when the user is disabled, or when the email already belongs to a user linked to a different Google account. The second case happens when Google gives the address to a different account. An instance admin must choose **Change email…** on the existing user in the users list. The Google account then gets a new, separate user, and the old user stays linked to the old Google account.
 
-A linked user's password still works. A password lockout does not stop Google sign-in, and a Google sign-in does not clear the lockout. A one-time password that the user has not replaced ends at their next Google sign-in. A user given one must sign in with it and choose a password before using Google again. A user who has Google and no password has no password form in their profile. An admin can give them a password with **Set up sign-in…** in the users list.
+A linked user's password still works. A password lockout does not stop Google sign-in, and a Google sign-in does not clear the lockout. A one-time password that the user has not replaced ends at their next Google sign-in. To keep the password, sign in with it and choose a new one before using Google. A user who has Google and no password has no password form in their profile. An admin can give them a password with **Set up sign-in…** in the users list.
 
 ### When Google sign-in does not work
 
