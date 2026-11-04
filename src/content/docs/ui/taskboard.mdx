@@ -1,13 +1,13 @@
 ---
 title: "Taskboard"
-description: "Track sprint tasks by their parent Story or Bug, or by assignee, and adjust taskboard card fields, styles and tag colours."
+description: "Track sprint tasks by their parent Story, Bug or Action item, or by assignee, and adjust taskboard card fields, styles and tag colours."
 sidebar:
   order: 25
 ---
 
 import Shot from '../../../components/Shot.astro';
 
-Use the Taskboard to see and move tasks in a sprint. Each column is a Task state. The rows group tasks by their parent Story or Bug, or by the person assigned to each task.
+Use the Taskboard to see and move tasks in a sprint. Each column is a Task state. The rows group tasks by their parent Story, Bug or Action item, or by the person assigned to each task.
 
 The address is `/p/:key/sprints/:sprintId/taskboard`. To see one Feature's tasks across every sprint instead, use its [Feature board](/ui/feature-board/).
 
@@ -15,7 +15,9 @@ The address is `/p/:key/sprints/:sprintId/taskboard`. To see one Feature's tasks
 
 <Shot name="ui-taskboard-overview" alt="A sprint Taskboard with tasks arranged by parent Story and Task state." />
 
-The default view groups tasks under their Story or Bug. Each row has a cell for every Task state. Select a row header to collapse or expand its tasks.
+The default view groups tasks under their Story, Bug or Action item. Each row has a cell for every Task state. Select a row header to collapse or expand its tasks. Choose **+ Task** on a row to add a task under that parent.
+
+To add a parent to the sprint, choose **+ Add story or bug**. Its **Type** menu offers User Story, Bug and Action item. The item goes into this sprint.
 
 ## Group tasks by person
 
@@ -41,7 +43,7 @@ The Taskboard columns come from the project's Task states. To add or change thos
 
 <Shot name="ui-taskboard-settings-fields" alt="Taskboard settings with task card fields and a preview." />
 
-Open **Settings** to choose fields shown on task cards, including keys, assignees, tags, points, and extra fields. For Story and Bug rows, choose the parent fields and whether to show task progress. Changes apply immediately to the Taskboard.
+Open **Settings** to choose fields shown on task cards, including keys, assignees, tags, points, and extra fields. For Story, Bug and Action item rows, choose the parent fields and whether to show task progress. Changes apply immediately to the Taskboard.
 
 <Shot name="ui-taskboard-settings-styles" alt="Taskboard settings with conditional task card style rules." />
 
