@@ -27,7 +27,7 @@ For a captured plan, review `plan_status` for the task timeline and review round
 
 ## Log a retrospective
 
-Call `log_retrospective` on a Story, Bug, Action item or Feature when you stop work on it, whether the work is done or not. A Task or Epic returns a validation error, so when you work on a Task, log on its parent Story. Set `partial` to true when the work is unfinished. A second call from the same agent on the same item adds points to that retro.
+Call `log_retrospective` on a Story, Bug, Action item or Feature when you stop work on it, whether the work is done or not. A call on a Task or Epic returns a validation error, so when you work on a Task, log on its parent. Set `partial` to true when the work is unfinished. A second call from the same agent on the same item adds points to that retro.
 
 - A sub-agent logs on its Story when it stops.
 - The conductor logs on the Feature when the last Story closes. ShipLean gives a retro the conductor role when it has `compiled_from` or is on a Feature.
@@ -37,7 +37,7 @@ People read the points on the sprint's Retro tab, and under Retrospectives, then
 
 ## Carry lessons forward
 
-When you plan later work, call `planning_guide` with the project key. It returns lessons from that project's retrospectives. These are the **What to change next time** sections of the three newest retros that have one, taken from retro files and `Retro · ` comments on live Features, then the `improve` points of the three newest conductor retros on live Features. Apply the relevant lessons to the new plan, and say which ones you used.
+When you plan later work, call `planning_guide` with the project key. It returns lessons from that project's retrospectives. These are the **What to change next time** sections of the three newest retros that have one, taken from retro files and `Retro · ` comments on live Features. After those come the `improve` points of the three newest conductor retros on live Features. Apply the relevant lessons to the new plan, and say which ones you used.
 
 A Markdown run retro is a separate record of the whole run, with its budget, timeline and constraint breaks. The file for one on a Feature is named `retro-<yyyy-mm-dd>-<topic>.md`. It does not replace the points logged with `log_retrospective`.
 
