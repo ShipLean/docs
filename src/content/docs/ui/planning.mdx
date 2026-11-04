@@ -25,44 +25,48 @@ The planning view is at `/p/:key/backlogs/stories?mode=planning`. A sprint's cap
 
 The forecast is a planning aid. It warns when committed points exceed capacity, but it does not prevent you from planning more work.
 
-Action items are planned like stories. They can sit in a sprint, and their points count toward the committed and completed figures, the burndown, the velocity and the forecast. To raise one, see [Raising an action item](/ui/sprint-retro/#raising-an-action-item).
+You plan action items the same way as stories. They can sit in a sprint, and their points count toward the committed and completed figures, the burndown, the velocity and the forecast. To raise one, see [Raising an action item](/ui/sprint-retro/#raising-an-action-item).
 
 To close a sprint and decide where its unfinished work goes, see [Sprint backlog](/ui/sprint-backlog/).
 
 ## Pull a sprint from the forecast
 
-With the **Forecast** box ticked, the Backlog section shows a pull line under the row where the forecast's cut falls. The line reads "Everything above this line, 5 items, into" a sprint, followed by that sprint's total, for example `13 + 8 = 21 / 22`. The first number is the points the sprint holds. The second is the points of the rows above the line that are not already in it. The third is the total after they join, followed by the sprint's limit. The limit is the sprint's capacity, or the project's velocity when the sprint has no capacity.
+With the **Forecast** box ticked, the Backlog section shows a pull line under the last row that fits the sprint. The line reads "Everything above this line, 5 items, into" a sprint, followed by that sprint's total, for example `13 + 8 = 21 / 22`. The first number is the points already in the sprint. The second is the points of the rows above the line that are not already in it. The third is the total after they join, followed by the sprint's limit. The limit is the sprint's capacity, or the project's velocity when the sprint has no capacity.
 
 The forecast chooses the rows from the top of the backlog. It takes each row while the sprint still has room, and stops at the first row that does not fit. It never skips a row to fit a smaller one below it. A row bigger than the room still goes into a sprint that is empty. A row with no estimate counts as 0 points, and the line shows a "not estimated, counted as 0" count.
 
-The line goes to the first future sprint that has room for at least one row, or else the first future sprint. To use another sprint, choose it in the **Sprint to pull into** box. The line then goes back to what fits that sprint.
+The line goes to the first future sprint that has room for at least one row, or else the first future sprint. To use another future sprint, choose it in the sprint box on the line. The line then goes back to what fits that sprint.
 
-To pull the rows above the line, select **Pull into** followed by the sprint name. The rows move to the sprint and keep their order, and a message offers Undo for about nine seconds. The button is off when no row is above the line.
+<Shot name="ui-planning-pull-line" alt="Backlog section in planning mode with the Forecast box ticked. The pull line sits under the last row that fits, with a grip, the text 'Everything above this line, 5 items, into', a future sprint in the sprint box, the total 13 + 8 = 21 / 22 and the Pull into button." />
+
+To pull the rows above the line, select **Pull into** followed by the sprint name. The rows move to the sprint and keep their order, and a message offers Undo for about nine seconds. The button is disabled when no row is above the line.
 
 To move the line before you pull, use either of these:
 
 - Drag the grip at the left of the line. The line snaps below the row under the pointer, and the total updates as you drag.
 - Focus the grip and press Alt with the up or down arrow. The line moves one row.
 
-Once you move the line, **Back to what fits** appears. Select it to return the line to the forecast's cut. When the total goes over the limit, it turns red and ends with "+n over". Going over is a warning and never blocks the pull. A pull takes at most 100 rows, and the total then ends with "capped at 100 rows".
+Once you move the line, **Back to what fits** appears. Select it to return the line to the last row that fits. When the total goes over the limit, it turns red and shows "+n over". Going over is a warning and never blocks the pull. A pull takes at most 100 rows, and the total then shows "capped at 100 rows".
 
-The line is off while the Forecast box is clear, while a search or a check from Before you plan is open, when the backlog is empty, and when the project has no future sprint.
+The line does not show while the Forecast box is clear, while a search or a check from Before you plan is open, while the Backlog section is collapsed, when the backlog is empty, and when the project has no future sprint.
 
-When the sprint has no capacity and the project has no velocity, the total has no limit. It reads `0 + 8 = 8`, with no bar and no "over", so it can never turn red. The cut then takes the first row, since a row too big for the room still goes into an empty sprint, and keeps going only over rows that have no points. To get a useful cut, enter capacity for the sprint or drag the line.
+When the sprint has no capacity and the project has no velocity, the total has no limit. It reads `0 + 8 = 8`, with no bar and no "over", so it can never turn red. In an empty sprint, the line sits under the first row. If that row has no points, the line also passes each row with no points directly below it. In a sprint that already has points, the line sits above the first row and **Pull into** is disabled. To pull more rows, enter capacity for the sprint or drag the line.
 
 ## Before you plan
 
-The Before you plan strip sits above the Stories list in List and Planning modes. It shows five checks on the top 100 rows of the backlog, in this order:
+<Shot name="ui-planning-before-you-plan" alt="Before you plan strip above the Stories list in Planning mode, showing the five checks with the count each flags and a tick on a check that flags none." />
+
+The Before you plan strip sits above the Stories list in List and Planning modes. It shows five checks on the top 100 open rows of the Stories list, in this order. Capacity and velocity do not affect them.
 
 | Check | Flags |
 | --- | --- |
 | **not estimated** | Stories, bugs and action items with no points. |
 | **no acceptance criteria** | Stories with no acceptance criteria. |
-| **no parent** | Any item except an epic that has no parent. |
-| **stale** | Items not changed in the last 30 days. |
-| **likely duplicates** | Items whose title shares at least two words, and three quarters of the shorter title's words, with another item in the list. |
+| **no parent** | Any row except an epic that has no parent. |
+| **stale** | Rows not changed in the last 30 days. |
+| **likely duplicates** | Rows whose title shares at least two words, and three quarters of the shorter title's words, with another row among the first 500 rows of the list. The comparison leaves out common stop words and single letters. |
 
-Each check shows how many rows it flags, or a tick when none are flagged. The checks never block planning or any other action.
+Each check shows how many rows it flags, or a tick when it flags none. The checks never block planning or any other action.
 
 To work through a check, select its count. The list then shows only the flagged rows, in the order they have in the backlog. The rows stay in the list as you fix them, and a tick marks each one that is fixed. The strip shows "2 of 5 fixed". Select the count again, select **Leave**, or press Esc to go back to the full list.
 
@@ -85,7 +89,7 @@ Each member's capacity is the velocity divided equally among the people in the t
 
 For example, with a velocity of 40, four people, and 10 working days, someone who is in all 10 days has 10 points and someone away for a week has 5. A public holiday lowers everyone's default days. With one holiday, the default is 9 days, so each person has 9 points. The team total is the sum of the members' capacity, rounded to two decimals, and ShipLean compares it with committed points and velocity. Members at 0 days stay in the table and still count as one of the people the velocity is shared among.
 
-ShipLean calculates each member's capacity for you and shows it as read-only points. The same number appears in All sprints, and the planning forecast. When you close a sprint, the next sprint's total is compared with the same capacity.
+ShipLean calculates each member's capacity for you and shows it as read-only points. The same number appears in All sprints and the planning forecast. When you close a sprint, the Close sprint dialog compares the next sprint's total with the same capacity.
 
 **Copy from previous sprint** copies the previous sprint's members, days, and velocity. **Clear** empties the table. A sprint whose table is empty plans against velocity: the page says "No capacity entered: planning uses velocity" followed by the number, and the summary says "No capacity entered".
 
