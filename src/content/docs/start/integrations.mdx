@@ -5,7 +5,7 @@ sidebar:
   order: 9
 ---
 
-Connect GitHub or GitLab to show live pull request, merge request, and issue details on Feature links. Webhooks can add pull or merge request links to Stories, Tasks, and Bugs automatically. They also complete linked work when all requests are closed and at least one is merged. You can also send application logs to Seq.
+Connect GitHub or GitLab to show live pull request, merge request, and issue details on Feature links. Webhooks can add pull or merge request links to Stories, Tasks, Bugs, and Action items automatically. They also complete linked work when all requests are closed and at least one is merged. You can also send application logs to Seq.
 
 ## Connect GitHub and GitLab link cards
 
@@ -86,7 +86,9 @@ ShipLean IDs: SHIP-12, SHIP-13, SHIP-20
 
 Only the first non-blank line of the description counts, and it must start with `ShipLean IDs:`. Keys use uppercase letters, and a comma or a space separates them. A key further down the description links nothing. On GitHub this is the pull request description, and on GitLab it is the merge request description.
 
-Stories, Tasks, Bugs, and [Action items](/ui/sprint-retro/#raising-an-action-item) link by their own key. ShipLean skips a key that matches no item, and an Epic's key, without an error. A Feature's key links nothing from the title or branch. In the `ShipLean IDs:` line, a Feature's key links every Story, Bug, and Action item directly under it. ShipLean reads the Feature's children when the event arrives. A merge then completes them, including any that still have open Tasks. ShipLean does not link the Feature or its Tasks. ShipLean reads at most 100 keys from the line and ignores the rest. One event links at most 100 items, and the next event for the request links any others that those keys and their Features reach. The link card shows whether the request is open, merged, or closed. ShipLean does not create work items from webhook payloads.
+Stories, Tasks, Bugs, and [Action items](/ui/sprint-retro/#raising-an-action-item) link by their own key. ShipLean skips a key that matches no item, and an Epic's key, without an error. A Feature's key links nothing from the title or branch. In the `ShipLean IDs:` line, a Feature's key links every Story, Bug, and Action item directly under it. ShipLean reads the Feature's children when the event arrives. A merge then completes them, including any that still have open Tasks. ShipLean does not link the Feature or its Tasks.
+
+ShipLean reads at most 100 keys from the line and ignores the rest. One event links at most 100 items. If the named keys and the children of any named Feature come to more, each later event for the request links up to 100 more. The link card shows whether the request is open, merged, or closed. ShipLean does not create work items from webhook payloads.
 
 An item moves to its type's first Completed state when all pull or merge requests linked to it are merged or closed, and at least one has merged. A close without a merge does not complete an item on its own. If an item has several linked requests, one that is still open, or one with no event yet, keeps the item open. Reopening a request updates its card but does not reopen a completed work item.
 
