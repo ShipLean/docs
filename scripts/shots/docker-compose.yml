@@ -12,6 +12,9 @@ services:
       SHIPLEAN_ADMIN_EMAIL: ${SHIPLEAN_ADMIN_EMAIL:?Set SHIPLEAN_ADMIN_EMAIL}
       SHIPLEAN_ADMIN_PASSWORD: ${SHIPLEAN_ADMIN_PASSWORD:?Set SHIPLEAN_ADMIN_PASSWORD}
       SHIPLEAN_BLOB_ROOT: /data/blobs
+      # Only the signed-out sign-in capture needs these; the button is the only thing they change. Empty means off.
+      SHIPLEAN_GOOGLE_CLIENT_ID: ${SHIPLEAN_GOOGLE_CLIENT_ID:-}
+      SHIPLEAN_GOOGLE_CLIENT_SECRET: ${SHIPLEAN_GOOGLE_CLIENT_SECRET:-}
     volumes:
       - blobs:/data/blobs
   postgres:

@@ -230,18 +230,18 @@ export async function main(args = process.argv.slice(2)) {
         let context: BrowserContext | undefined;
         try {
           const ctx = seedDemo ? await seedDemo(baseUrl, admin as Admin) : undefined;
-          context = await browser.newContext({ storageState: authState, viewport, deviceScaleFactor: 1, colorScheme: theme, timezoneId: 'UTC', locale: 'en-US', reducedMotion: 'reduce' });
+          context = await browser.newContext({ storageState: shot.public ? undefined : authState, viewport, deviceScaleFactor: 1, colorScheme: theme, timezoneId: 'UTC', locale: 'en-US', reducedMotion: 'reduce' });
           const page = await context.newPage();
           page.setDefaultTimeout(30_000);
           await page.clock.setFixedTime(captureTime);
-          if (!sample) {
+          if (!sample && !shot.public) {
             await page.goto(applicationUrl(baseUrl, '/profile'));
             await themeControl(page, theme);
           }
           // Public login has no theme control; it follows the emulated OS preference.
           const route = typeof shot.route === 'function' ? shot.route(ctx!) : shot.route;
           await page.goto(applicationUrl(baseUrl, route));
-          if (sample) await page.getByRole('button', { name: 'Sign in', exact: true }).waitFor({ state: 'visible' });
+          if (sample || shot.public) await page.getByRole('button', { name: 'Sign in', exact: true }).waitFor({ state: 'visible' });
           else {
             await page.getByTestId('shell-main').waitFor({ state: 'visible' });
             await page.waitForFunction((value) => document.documentElement.dataset.theme === value, theme);

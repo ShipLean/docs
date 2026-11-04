@@ -78,4 +78,23 @@ export const shots: ShotSpec[] = [
     route: story(0),
     steps: showConflict,
   },
+  {
+    // The seed writes every retro point as the signed-in person, so this shows one retro row, not two.
+    name: 'ui-work-items-retrospective',
+    route: (ctx) => `/p/${ctx.projectKey}/items/${ctx.retroStories[0]}`,
+    steps: async (page) => {
+      const section = page.getByTestId('work-item-retro-section');
+      await section.scrollIntoViewIfNeeded();
+      await section.getByTestId('work-item-retro-row').first().waitFor({ state: 'visible' });
+    },
+  },
+  {
+    name: 'ui-work-items-action-item',
+    route: (ctx) => `/p/${ctx.projectKey}/items/${ctx.actionItems[1]}`,
+    steps: async (page) => {
+      const why = page.getByTestId('retro-action-why');
+      await why.scrollIntoViewIfNeeded();
+      await why.getByTestId('retro-action-why-point').first().waitFor({ state: 'visible' });
+    },
+  },
 ];

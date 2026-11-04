@@ -35,6 +35,8 @@ export interface ShotSpec {
   name: string;
   /** Application-relative path, resolved after seeding. */
   route: string | ((ctx: SeedResult) => string);
+  /** Captured signed out, on a public route such as /login. Skips the theme control and the app shell, so the theme follows the emulated OS preference. */
+  public?: boolean;
   steps?: (page: Page, ctx: SeedResult) => Promise<void>;
   clip?: { x: number; y: number; width: number; height: number };
 }

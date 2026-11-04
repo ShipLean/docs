@@ -31,6 +31,10 @@ jobs:
           printf '{"admin":{"email":"docs@example.com","password":"%s"}}' "$password" > "$RUNNER_TEMP/shots.json"
           chmod 600 "$RUNNER_TEMP/shots.json"
       - name: Capture
+        env:
+          # Dummy values that only turn the Sign in with Google button on. Nothing signs in with them.
+          SHIPLEAN_GOOGLE_CLIENT_ID: shots-placeholder.example.invalid
+          SHIPLEAN_GOOGLE_CLIENT_SECRET: placeholder-not-a-secret
         run: pnpm shots --config "$RUNNER_TEMP/shots.json"
       - name: Upload screenshots
         if: always()
