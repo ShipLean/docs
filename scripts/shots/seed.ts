@@ -15,7 +15,7 @@ const captureDay = new Date().toISOString().slice(0, 10);
 // Keep cookies in memory for this capture run; each seed still gets a fresh client.
 const sessions = new Map<string, Awaited<ReturnType<APIRequestContext['storageState']>>>();
 
-type ItemType = 'epic' | 'feature' | 'story' | 'bug' | 'task';
+type ItemType = 'epic' | 'feature' | 'story' | 'bug' | 'task' | 'action';
 type Category = 'proposed' | 'inProgress' | 'resolved' | 'completed';
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 interface Item {
@@ -282,7 +282,8 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
       id: columnIds[category], name: ['Ready', 'In progress', 'In review', 'Done'][i],
       wipLimit: i === 1 ? 5 : i === 2 ? 3 : null, split: i === 1,
       definitionOfDone: ['The goal and acceptance criteria are clear.', 'The change is ready for review.', 'A teammate has reviewed the work.', 'The acceptance criteria are met.'][i],
-      stateMappings: (['story', 'bug'] as const).map(type => ({ type, stateId: state(type, category) })),
+      // An Action item has no Resolved state, so its In review column repeats Active, as the product's default board does.
+      stateMappings: (['story', 'bug', 'action'] as const).map(type => ({ type, stateId: state(type, type === 'action' && category === 'resolved' ? 'inProgress' : category) })),
     }));
     const settings = {
       columns: [...columns, ...loaded.settings.columns.filter(c => !Object.values(columnIds).includes(c.id))],
@@ -290,7 +291,7 @@ export async function seedDemo(baseUrl: string, admin: { email: string; password
         { id: 'demo-expedite', name: 'Expedite', colour: 'danger', kind: 'criteria', criteria: { match: 'all', clauses: [{ field: 'priority', op: '=', value: 1 }] } },
         { id: 'lane-default', name: 'Everything else', colour: null, kind: 'default', criteria: null },
       ],
-      cardFields: ['story', 'bug'].map(type => ({ type, showKey: true, showAssignee: true, showTags: true, showPoints: true, showEmptyFields: false, extraFields: ['priority'] })),
+      cardFields: ['story', 'bug', 'action'].map(type => ({ type, showKey: true, showAssignee: true, showTags: true, showPoints: true, showEmptyFields: false, extraFields: ['priority'] })),
       styleRules: [{ id: 'demo-priority', name: 'Urgent work', enabled: true, colour: 'danger', bold: false, italic: false, underline: false, criteria: { match: 'all', clauses: [{ field: 'priority', op: '=', value: 1 }] } }],
       tagColours: [{ tag: 'onboarding', colour: 'info' }, { tag: 'quality', colour: 'warn' }],
       annotations: { tasks: true, stories: false, bugs: false, features: false },
