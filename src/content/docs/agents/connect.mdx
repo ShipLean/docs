@@ -89,6 +89,10 @@ If you deny a request, no connection is granted. To disconnect a client later, o
 
 This is expected on the first request. Open the client's MCP settings and choose **Authenticate** or **Connect**. Sign in to the ShipLean account whose project access the agent should use, then review and allow the consent request.
 
+### A remote Claude Code session cannot find ShipLean
+
+A Claude Code remote session, such as one you drive from your phone or the web, loads only the MCP servers that were already authenticated when it started. If you authenticate ShipLean after the session starts, that session still cannot use it, and `/mcp` reports that there is no server named `shiplean`. Authenticate ShipLean before you start a remote session, or start a new session after you authenticate. This is a Claude Code limitation.
+
 ### The client gets a 401 after a password change
 
 A password change invalidates the person's existing agent tokens. In **Connected agents** on your profile, revoke the old connection if it is still listed. Then authenticate again from the client.
