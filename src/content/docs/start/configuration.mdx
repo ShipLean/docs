@@ -87,6 +87,14 @@ Maximum total size of the attachments on one work item. Only live files count to
 - **Example:** `524288000`, which is 500 MiB.
 - **Set it when:** You need a different total allowance for each work item.
 
+### `SHIPLEAN_DEMO_MAX_BYTES`
+
+Maximum size of one sprint demo video, in bytes. It cannot be larger than `SHIPLEAN_ATTACHMENT_MAX_ITEM_BYTES`. If it is, ShipLean refuses to start and names this setting.
+
+- **Default:** `209715200`, which is 200 MiB.
+- **Example:** `104857600`, which is 100 MiB.
+- **Set it when:** You need a different limit for sprint demo videos.
+
 ## Reverse proxy
 
 ### `SHIPLEAN_TRUSTED_PROXIES`
@@ -196,6 +204,24 @@ This is the client secret of the same Google OAuth client. This setting is a sec
 - **Default:** Not set.
 - **Example:** `<google-client-secret>`
 - **Set it when:** You set `SHIPLEAN_GOOGLE_CLIENT_ID`.
+
+## Sprint demos on YouTube
+
+### `SHIPLEAN_YOUTUBE_CLIENT_ID`
+
+This is the client ID of the Google OAuth client that ShipLean uses to put sprint demos on YouTube. It is a separate client from the one in `SHIPLEAN_GOOGLE_CLIENT_ID`, which is only for sign-in. Register `<base_url>/api/youtube/callback` as the redirect URI. A client saved in **Instance settings › Integrations** is used instead of these two settings. ShipLean has not yet been tested against Google itself for this connection.
+
+- **Default:** Not set. YouTube is off and its routes return 404.
+- **Example:** `<client-id>.apps.googleusercontent.com`
+- **Set it when:** You want sprint demos to go to YouTube. Set both YouTube settings or neither, because ShipLean refuses to start with only one.
+
+### `SHIPLEAN_YOUTUBE_CLIENT_SECRET`
+
+This is the client secret of the same YouTube OAuth client. This setting is a secret. Keep it in your deployment's secret store, and do not put it in a file under version control.
+
+- **Default:** Not set.
+- **Example:** `<youtube-client-secret>`
+- **Set it when:** You set `SHIPLEAN_YOUTUBE_CLIENT_ID`.
 
 ## MCP gateway
 
