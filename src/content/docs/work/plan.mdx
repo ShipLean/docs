@@ -17,6 +17,8 @@ Open the Feature and read its attachments and recent comments. Check its next st
 
 If you use an agent, ask it to plan the Feature by key. The `plan_feature` prompt asks the agent to read the Feature and follow the planning guide. You can call `planning_guide` yourself. Pass the project key to include lessons from previous retrospectives.
 
+An agent reads the planning guide before any breakdown of a Feature or Epic, even a small one. The guide picks the mode, so a one-Story job still goes through it. Connect the agent to ShipLean first ([Connect an agent](/agents/connect/)). Without the connection, the agent cannot read the guide or capture the plan, and it should ask you to connect it before it creates any work.
+
 ## Plan by hand
 
 1. Open the Feature's backlog and add Stories for the outcomes a person can recognize. For this example, a Story might be "Create a project with a memorable key."
