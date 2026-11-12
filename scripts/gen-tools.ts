@@ -65,7 +65,7 @@ function description(text: string, from: number, context: string): { value: stri
   return { value: resolveExpression(found[1], context, classAt(text, from)), next: match.lastIndex };
 }
 const sources = new Map<string, string>();
-for (const file of files) {
+for (const file of [...files, resolve(product, 'src/ShipLean.WebApi/Features/Mcp/Payloads/McpPayloadTargets.cs')]) {
   const text = await readFile(file, 'utf8');
   sources.set(file, text);
   for (const match of text.matchAll(new RegExp(`\\bconst\\s+string\\s+(\\w+)\\s*=\\s*(${expressionPattern})\\s*;`, 'g'))) {
@@ -73,13 +73,13 @@ for (const file of files) {
     constantsByName.set(match[1], (constantsByName.get(match[1]) ?? new Set()).add(match[2]));
   }
 }
-function paramList(text: string): string[] {
+function paramList(text: string, owner: string): string[] {
   const found: string[] = [];
-  const re = /\[Description\("((?:\\.|[^"\\])*)"\)\]\s*(?:IReadOnlyList<[^>]+>\??|[\w.]+\??)\s+(\w+)(?:\s*=\s*([^,\n]+))?/g;
+  const re = new RegExp(`\\[Description\\((${expressionPattern})\\)\\]\\s*(?:IReadOnlyList<[^>]+>\\??|[\\w.]+\\??)\\s+(\\w+)(?:\\s*=\\s*([^,\\n]+))?`, 'g');
   for (const match of text.matchAll(re)) {
     const name = match[2];
     const optional = match[3] !== undefined || text.slice(Math.max(0, (match.index ?? 0) - 80), match.index).includes('?');
-    found.push(`\`${name}\`${optional ? ' (optional)' : ''}: ${unescapeCSharp(match[1]).replace(/[.;]$/, '')}`);
+    found.push(`\`${name}\`${optional ? ' (optional)' : ''}: ${resolveExpression(match[1], name, owner).replace(/[.;]$/, '')}`);
   }
   return found;
 }
@@ -95,14 +95,14 @@ for (const file of files) {
     if (!desc?.value || methodAt < 0) throw new Error(`Missing public description or method for ${name} in ${file}`);
     const open = text.indexOf('{', methodAt);
     const sig = text.slice(methodAt, open);
-    tools.push({ name, scope, preview: /PreviewScope\s*=\s*McpScopes\.Read/.test(match[3]), area: groups[basename(resolve(file, '..'))] ?? 'Other', description: desc.value, parameters: paramList(sig) });
+    tools.push({ name, scope, preview: /PreviewScope\s*=\s*McpScopes\.Read/.test(match[3]), area: groups[basename(resolve(file, '..'))] ?? 'Other', description: desc.value, parameters: paramList(sig, classAt(text, after)) });
   }
   for (const match of text.matchAll(/\[McpServerPrompt\(Name\s*=\s*"([^"]+)"\)\]/g)) {
     const after = match.index! + match[0].length;
     const desc = description(text, after, match[1]);
     const methodAt = text.indexOf('public async Task<PromptMessage>', after);
     const open = text.indexOf('{', methodAt);
-    const parameters = paramList(text.slice(methodAt, open));
+    const parameters = paramList(text.slice(methodAt, open), classAt(text, after));
     prompts.push(`- **\`${match[1]}\`.** ${desc?.value ?? 'Prompt.'}${parameters.length ? ` Arguments: ${parameters.join('; ')}.` : ''}`);
   }
 }

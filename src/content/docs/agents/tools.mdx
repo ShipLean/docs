@@ -56,7 +56,7 @@ This tool needs write scope.
 
 Attach research findings, analyses, comparisons, plans and retros as Markdown on a work item instead of keeping them in local files. The name must end in .md. Attaching a name the item already has replaces that file. It shows on the item as attached by you through this tool, and its text is searchable. When the Markdown is already a file or is over about 20 KB, upload it with create_payload_upload with field content (curl -T) and pass payload; otherwise send it inline.
 
-Arguments: `feature`: The item's key, such as SHIP-12; `name`: The file name, ending in .md, such as design.md; `content` (optional): The Markdown text.
+Arguments: `feature`: The item's key, such as SHIP-12; `name`: The file name, ending in .md, such as design.md; `content` (optional): The Markdown text; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
 
 #### `attach_file`
 
@@ -72,7 +72,7 @@ This tool needs write scope. A preview call uses read scope.
 
 Put new work in the backlog: up to 100 epics, features, stories, bugs or tasks from the conversation, each with its title, description, acceptance criteria, repro steps, severity, points, tags, priority, parent and sprint. One item is created straight away. Several items come back as a preview and a plan; call again with that plan to create exactly those items in one go. Name the project when the user is in more than one. When the items are already in a file or are over about 20 KB, upload a JSON object holding them, like &#123;"items": [...]&#125;, with create_payload_upload (curl -T) and pass payload instead of items.
 
-Arguments: `items` (optional): The items to create, 1 to 100. Left out when you pass a plan; `project` (optional): The project key, such as SHIP. Needed when the user is in more than one project; `plan` (optional): The plan a preview returned. Creates exactly what it holds and ignores items.
+Arguments: `items` (optional): The items to create, 1 to 100. Left out when you pass a plan; `project` (optional): The project key, such as SHIP. Needed when the user is in more than one project; `plan` (optional): The plan a preview returned. Creates exactly what it holds and ignores items; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
 
 #### `break_down`
 
@@ -80,7 +80,7 @@ This tool needs write scope.
 
 Split a story, bug or action item into child tasks, or a feature into stories (or an epic into features), from a list of titles with optional points, description (Markdown) and tags. Up to 100 children, created together. They take the parent's sprint; the parent's state is left alone. When the children are already in a file or are over about 20 KB, upload a JSON object holding them, like &#123;"children": [...]&#125;, with create_payload_upload (curl -T) and pass payload instead of children.
 
-Arguments: `parent`: The parent's key, such as SHIP-12; `children` (optional): The children, 1 to 100.
+Arguments: `parent`: The parent's key, such as SHIP-12; `children` (optional): The children, 1 to 100; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
 
 #### `comment`
 
@@ -104,7 +104,7 @@ This tool needs write scope.
 
 Improve one work item: rewrite its title, description or acceptance criteria, and set its points, tags, priority, severity or parent. A rewritten checklist keeps the ticked state of every line whose text is unchanged. Pass expected_revision (from get_work_item) to refuse if someone has edited it since you read it. A note becomes a comment explaining the change. When the new description is already in a file or is over about 20 KB, upload it with create_payload_upload (curl -T) and pass payload.
 
-Arguments: `item`: The item's key, such as SHIP-12; `title` (optional): A new title; `description` (optional): A new description in Markdown; replaces the old one; `acceptance_criteria` (optional): The whole acceptance checklist, one line each; replaces the old one; `points` (optional): Story points; `tags` (optional): The whole tag list; replaces the old one; `priority` (optional): 1 (highest) to 4; `severity` (optional): A bug's severity, 1 (critical) to 4 (low); `parent` (optional): The parent's key, or none to detach it; `expected_revision` (optional): The revision you read. A stale write is refused as a conflict; `note` (optional): Why you changed it. Added as a comment after the change.
+Arguments: `item`: The item's key, such as SHIP-12; `title` (optional): A new title; `description` (optional): A new description in Markdown; replaces the old one; `acceptance_criteria` (optional): The whole acceptance checklist, one line each; replaces the old one; `points` (optional): Story points; `tags` (optional): The whole tag list; replaces the old one; `priority` (optional): 1 (highest) to 4; `severity` (optional): A bug's severity, 1 (critical) to 4 (low); `parent` (optional): The parent's key, or none to detach it; `expected_revision` (optional): The revision you read. A stale write is refused as a conflict; `note` (optional): Why you changed it. Added as a comment after the change; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
 
 #### `report_link_state`
 
@@ -122,7 +122,7 @@ This tool needs write scope.
 
 Write a Feature's one-line status (up to 500 characters) and stamp it verified now, by you and through this tool, even when the text is unchanged. Call this at the end of every session on a Feature, even when nothing changed, so it shows the Feature was checked. Optionally move the Feature to a state by name, and set its health (onTrack, atRisk or blocked), in the same write. Feature health: set explicitly; a status that says blocked doesn't set it. Only a Feature has a status.
 
-Arguments: `feature`: The Feature's key, such as SHIP-12; `status`: The status, one line; `state` (optional): Move the Feature to this state, by name, in the same write.
+Arguments: `feature`: The Feature's key, such as SHIP-12; `status`: The status, one line; `state` (optional): Move the Feature to this state, by name, in the same write; `health` (optional): Feature health: onTrack, atRisk or blocked. Set explicitly; a status that says blocked doesn't set it.
 
 #### `create_feature`
 
@@ -130,7 +130,7 @@ This tool needs write scope.
 
 Create a Feature when an idea first comes up, before any research: search first, then use this with a goal. Optionally set its one-line status, health (onTrack, atRisk or blocked), state, epic and slug. The slug is its short name in addresses; it defaults to one made from the title and can't be changed later. Name the project when the user is in more than one. When the arguments are already in a file or are over about 20 KB, upload them with create_payload_upload (curl -T) and pass payload.
 
-Arguments: `title`: The Feature's title; `goal`: The goal: what the Feature is for; `project` (optional): The project key, such as SHIP. Needed when the user is in more than one project; `epic` (optional): The key of the epic this Feature belongs to; `slug` (optional): Lower-case words joined by hyphens, at most 64 characters. Defaults to one made from the title; `status` (optional): The one-line status. Stamps it verified now, by you; `state` (optional): Start the Feature in this state, by name.
+Arguments: `title`: The Feature's title; `goal`: The goal: what the Feature is for; `project` (optional): The project key, such as SHIP. Needed when the user is in more than one project; `epic` (optional): The key of the epic this Feature belongs to; `slug` (optional): Lower-case words joined by hyphens, at most 64 characters. Defaults to one made from the title; `status` (optional): The one-line status. Stamps it verified now, by you; `state` (optional): Start the Feature in this state, by name; `health` (optional): Feature health: onTrack, atRisk or blocked. Set explicitly; a status that says blocked doesn't set it; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
 
 ### Planning
 
@@ -148,7 +148,7 @@ This tool needs write scope. A preview call uses read scope.
 
 Put a plan for several agents in the backlog: a feature (an existing one by key, or a new one), its stories (one per lane of a wave) and their tasks (one per agent brief), with the shared branch, the common brief and the plan document attached to the feature. A call without a plan comes back as a preview and a plan, with any warnings about the plan's shape; call again with the same arguments and that plan to create exactly what was previewed in one go; changed arguments are refused. When the plan is already in a file or is over about 20 KB, upload it with create_payload_upload (curl -T) and pass payload instead of the arguments; the same payload serves the preview and the apply. Follow planning_guide when you write the plan.
 
-Arguments: `feature` (optional): The feature the plan lands under; `shared_branch` (optional): The git branch every agent of the plan pushes to; `common_brief` (optional): The brief every agent reads before its own, in Markdown; `stories` (optional): The stories, one per lane of a wave, each with its tasks; `project` (optional): The project key, such as SHIP. Needed when the user is in more than one project; `plan_markdown` (optional): The whole plan document, in Markdown, attached to the feature; `plan` (optional): The plan a preview returned. Send it with the same arguments as the preview to create exactly what was previewed; changed arguments are refused.
+Arguments: `feature` (optional): The feature the plan lands under; `shared_branch` (optional): The git branch every agent of the plan pushes to; `common_brief` (optional): The brief every agent reads before its own, in Markdown; `stories` (optional): The stories, one per lane of a wave, each with its tasks; `project` (optional): The project key, such as SHIP. Needed when the user is in more than one project; `plan_markdown` (optional): The whole plan document, in Markdown, attached to the feature; `plan` (optional): The plan a preview returned. Send it with the same arguments as the preview to create exactly what was previewed; changed arguments are refused; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
 
 #### `planning_guide`
 
