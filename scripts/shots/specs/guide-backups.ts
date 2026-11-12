@@ -11,4 +11,14 @@ export const shots: ShotSpec[] = [
       await page.getByTestId('backups-save-button').waitFor({ state: 'visible' });
     },
   },
+  {
+    name: 'guide-backups-schedule',
+    route: '/instance/backups',
+    steps: async (page) => {
+      const schedule = page.getByTestId('backups-cron-preset');
+      await schedule.waitFor({ state: 'visible' });
+      await schedule.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+      await page.getByTestId('backups-cron-description').waitFor({ state: 'visible' });
+    },
+  },
 ];

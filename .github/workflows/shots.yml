@@ -32,13 +32,13 @@ jobs:
           chmod 600 "$RUNNER_TEMP/shots.json"
       - name: Capture
         # The Google placeholder values are the defaults in scripts/shots/docker-compose.yml.
-        run: pnpm shots --config "$RUNNER_TEMP/shots.json"
+        run: pnpm shots --config "$RUNNER_TEMP/shots.json" --page guide-backups
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: shots
-          path: src/assets/shots/guide-backups-settings-*.webp
+          path: src/assets/shots/guide-backups-*.webp
           if-no-files-found: warn
   seed-test:
     # Runs the seed integration test on its own stack, so it cannot change the images the capture job takes.
