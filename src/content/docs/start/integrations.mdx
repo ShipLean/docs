@@ -62,6 +62,12 @@ On a repository, open **Settings**, select **Webhooks**, and choose **Add webhoo
 
 GitHub sends a `ping` when you create the webhook. ShipLean responds with `pong`.
 
+### Receive GitHub issues and comments
+
+You can also let ShipLean turn GitHub issues into conversations that propose and track work. Add **Issues** and **Issue comments** to the GitHub webhook's selected events, keeping **Pull requests** enabled. Reuse the GitHub webhook URL and secret above. Then, in the project's settings, enable **Take GitHub issues**. The project needs its GitHub repository, an agent connection, and a **run as** project member whose email is allowed by the configured agent relay. The instance GitHub token must be able to read and write issues and read Actions runs. The relay must be deployed and allow the run-as person's email. The project settings page lists missing configuration; it cannot verify that the relay is ready.
+
+When an issue opens, ShipLean creates a Story or Bug in a Triage state and an agent drafts a proposal from the issue, its comments, repository context, and related work. The issue author or a GitHub maintainer can accept the latest proposal by replying with `LGTM` as the first word. Other replies from them start another proposal round; other commenters' replies are mirrored for the agent. Once accepted, ShipLean moves or creates the proposed work item and posts progress as that work advances. A maintainer can comment `/shiplean` to start or resume a held conversation. The project setting controls proposal instructions and the maximum rounds.
+
 ### Configure GitLab
 
 On a project, open **Settings**, select **Webhooks**, and choose **Add new webhook**. A group owner can create a group webhook for the group's projects. Set:

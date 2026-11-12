@@ -34,6 +34,16 @@ For several agents working in parallel, ask `plan_feature` to plan the existing 
 
 Each Story represents a lane within a wave. Each Task has its own brief. Wave 0 defines the shared contracts. Work in a later wave can start when the earlier wave's Stories are complete or removed. Keep tasks in the same wave independent. Use waves only when one task needs another task's result.
 
+After applying an agent's plan, give each Story a rough estimate in story points using your best judgment from the plan and task budgets. Keep the estimate quick; task context budgets are for sizing agent work and are separate from Story points.
+
+`capture_plan` can create at most 150 items in one plan: its Stories and Tasks, plus the Feature if the plan creates a new one. If a plan is larger, split it across Features or reduce its Tasks. The limit is on created work items; it does not count the brief or plan document.
+
+### Send a large plan by file
+
+When the `capture_plan` arguments are already in a file or are over about 20 KB, upload them instead of putting the full content into the tool call. Call `create_payload_upload` with `tool: "capture_plan"`, then run the returned `curl -T` command in a shell within 10 minutes. The file is a JSON object containing the tool arguments. Use the returned payload ID in the `payload` argument for the preview, then use that same payload ID and the preview's `plan` token to apply the unchanged arguments. Inline arguments you also send take precedence over values from the upload; `plan` must be sent inline.
+
+The upload URL is one-time and expires after 10 minutes. The upload can be up to 2 MB, and its payload can be reused for 60 minutes after upload, including for the preview and apply. A payload is tied to the agent connection and target tool. If the upload URL cannot be reached from the agent's environment, or the arguments are small and not already in a file, send them inline instead. Other tools support file payloads only when they opt in; check the tool description before uploading.
+
 Choose a mode that fits the work:
 
 - **Direct.** One or two tasks that fit in one working context.
