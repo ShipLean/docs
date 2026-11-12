@@ -95,6 +95,22 @@ Maximum size of one sprint demo video, in bytes. It cannot be larger than `SHIPL
 - **Example:** `104857600`, which is 100 MiB.
 - **Set it when:** You need a different limit for sprint demo videos.
 
+### `SHIPLEAN_BACKUP_PG_DUMP`
+
+The `pg_dump` executable used by scheduled backups, either a path or a name on `PATH`. Its major version must be at least the PostgreSQL server's major version.
+
+- **Default:** `pg_dump` on `PATH`; the ShipLean image includes the PostgreSQL 18 version.
+- **Set it when:** The correct executable is installed somewhere else.
+
+### `SHIPLEAN_BACKUP_TEMP`
+
+The directory for temporary backup files, including an encrypted database dump before upload and an attachment during restore. Files are owner-only and removed when the operation finishes. Allow enough space for one encrypted dump.
+
+- **Default:** The system temporary directory.
+- **Set it when:** Backups need a different temporary volume or more space.
+
+See [scheduled backups and restore](/start/guides/backups/) for setup and recovery.
+
 ## Reverse proxy
 
 ### `SHIPLEAN_TRUSTED_PROXIES`
