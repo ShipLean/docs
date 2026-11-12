@@ -39,7 +39,7 @@ When the only available host is `*.svc` or `*.svc.cluster.local`, `GET /health` 
 
 ## Back up data
 
-Back up PostgreSQL and the blob store. Work item data and settings are in PostgreSQL. Attachments and profile photos are in the configured blob store. By default, that is the `/data/blobs` volume. Otherwise, it is the PostgreSQL or S3 store that the configuration selects. A database backup alone does not include files stored in the blob folder or the S3 bucket.
+Back up PostgreSQL and the blob store. Work item data and settings are in PostgreSQL. Attachments and profile photos are in the configured blob store. By default, that is the `/data/blobs` volume. Otherwise, it is the PostgreSQL or S3 store that the configuration selects. A database backup alone does not include files stored in the blob folder or the S3 bucket. For scheduled encrypted backups to S3 and the restore runbook, see [Back up and restore ShipLean](/start/guides/backups/).
 
 For the included Compose example, you can create a PostgreSQL dump with:
 

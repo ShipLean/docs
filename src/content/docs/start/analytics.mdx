@@ -59,6 +59,8 @@ environment:
 
 Your Umami must be reachable from the ShipLean server. It does not need to be reachable from people's browsers.
 
+In Umami, use the **Pages** report to see ShipLean screen views. Each screen is sent as a page view under a project path; ShipLean does not send a historical backfill, so the report starts collecting after analytics is enabled.
+
 ## Set up PostHog
 
 1. Create a project in PostHog, and copy its project token (formerly project API key) from the project settings. It starts with `phc_`.

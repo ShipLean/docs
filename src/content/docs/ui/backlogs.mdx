@@ -15,7 +15,7 @@ Use a backlog to find, shape and order work in a project. Open **Backlogs** in t
 - Features: `/p/:key/backlogs/features`.
 - Epics: `/p/:key/backlogs/epics`.
 
-Only Stories has List, Planning, and Tree modes. Features and Epics each show a ranked list. Selecting, the action bar, Add many, search and the list keys work in List and Planning modes.
+Stories has List, Planning, and Tree modes; Features has List and Tree; Epics has List. Selecting, the action bar, Add many, search and list keys work in Stories List and Planning modes. Features and Epics show ranked lists in List mode.
 
 ## Overview
 
@@ -25,7 +25,7 @@ Only Stories has List, Planning, and Tree modes. Features and Epics each show a 
 
 Choose **Epics**, **Features** or **Stories** in the side menu to change which work items the table shows. The Features table includes each Feature's parent Epic. The Epics table includes its Feature count. Both levels can show story-point sums and progress through their Stories, Bugs and Action items.
 
-On Stories, choose **List** for a flat ranked list, **Tree** to see Stories, Bugs and Action items under their Epics and Features, or **Planning** to place Stories in sprints.
+On Stories, choose **List** for a flat ranked list, **Tree** to see Stories, Bugs and Action items under their Epics and Features, or **Planning** to place Stories in sprints. On Features, choose **Tree** to see Features under Epics, nested Features under their parents, and Features with no parent. Rows with children start expanded; use the row control to collapse or expand them. Tree mode hides Rank and Parent because the hierarchy supplies that information. It has no drag-to-reorder control; use List mode to rank Features.
 
 <Shot name="ui-backlogs-features" alt="Features backlog with each Feature's parent, state, points, and progress." />
 
@@ -49,7 +49,7 @@ Quick search can also start an Epic, Feature, Story, Bug or Action item. Its act
 
 In List and Tree modes, drag a row by its handle to change its rank. In Tree mode, drop a Story or Bug on a group to change its parent, or on another item to place it above that item. In Planning mode, drag a row into a sprint section to assign it and set its rank in one move. You can also focus a Planning row and press **Alt+Up** or **Alt+Down** to move it one place.
 
-Filtering turns off moving in List and Tree modes, because a filtered position is ambiguous when you cannot see every row. The **#** column keeps each item's rank in the full backlog while a filter is active. Features and Epics show their rank, but those lists do not have drag-to-reorder controls.
+Filtering turns off moving in List and Tree modes, because a filtered position is ambiguous when you cannot see every row. The **#** column keeps each item's rank in the full backlog while a filter is active. Features and Epics show their rank, but those lists do not have drag-to-reorder controls. In either level's List mode, select a sortable column heading to sort ascending, select it again to sort descending, and select it a third time to return to rank order. Empty cells stay after rows with values; rank breaks ties. Sorting changes the displayed order only, not the saved rank. Tree mode keeps its hierarchy order.
 
 ## Add many items
 
@@ -136,7 +136,7 @@ Choose **Columns** to show or hide optional columns. Your choice is saved for yo
 
 ## Read roll-ups
 
-Features and Epics show their own estimate and, when available, the sum of points below them. ShipLean shows a warning when the rolled-up sum is more than a quarter above the item's own estimate. Progress counts the completed Stories, Bugs and Action items beneath the row, including those under nested Features. It shows the completed share and count. The Epic table also shows the number of Features under each Epic.
+Features and Epics show their own estimate and, when available, the sum of points below them. ShipLean shows a warning when the rolled-up sum is more than a quarter above the item's own estimate. Progress counts the Stories, Bugs and Action items beneath the row, including those under nested Features. Its segments distinguish completed work, open work in the current sprint, open work in another sprint, and open work with no sprint. The completed count and total appear beside the bar; point to the bar to see each segment's count. The Epic table also shows the number of Features under each Epic.
 
 In Tree mode, collapsed groups show their point and completion roll-ups. In Planning mode, sprint sections show committed points and capacity. The forecast line marks the estimated cutoff at the current velocity. Use **Forecast** to hide or show that line.
 
