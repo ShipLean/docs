@@ -32,7 +32,7 @@ jobs:
           chmod 600 "$RUNNER_TEMP/shots.json"
       - name: Capture
         # The Google placeholder values are the defaults in scripts/shots/docker-compose.yml.
-        run: pnpm shots --config "$RUNNER_TEMP/shots.json" --page guide-backups
+        run: pnpm shots --config "$RUNNER_TEMP/shots.json"
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
