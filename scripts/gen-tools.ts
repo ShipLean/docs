@@ -86,7 +86,7 @@ function paramList(text: string): string[] {
 
 for (const file of files) {
   const text = sources.get(file)!;
-  for (const match of text.matchAll(/\[McpServerTool\(Name\s*=\s*"([^"]+)"\)\s*,\s*McpScope\(McpScopes\.(Read|Write|Plan)([^)]*)\)\]/g)) {
+  for (const match of text.matchAll(/\[McpServerTool\(Name\s*=\s*"([^"]+)"\)\s*,\s*McpScope\(McpScopes\.(Read|Write|Plan)([^)]*)\)(?:\s*,\s*McpPayload)?\]/g)) {
     const name = match[1];
     const scope = match[2].toLowerCase();
     const after = match.index! + match[0].length;
@@ -109,6 +109,10 @@ for (const file of files) {
 if (tools.length === 0) throw new Error(`No [McpServerTool] registrations found under ${toolsDir}`);
 const names = tools.map((tool) => tool.name);
 if (new Set(names).size !== names.length) throw new Error('Duplicate server tool registration: ' + names.filter((name, i) => names.indexOf(name) !== i).join(', '));
+const registrations = [...sources.values()].flatMap((text) =>
+  [...text.matchAll(/\[McpServerTool\(Name\s*=\s*"([^"]+)"\)/g)].map((match) => match[1]));
+const skipped = registrations.filter((name) => !names.includes(name));
+if (skipped.length) throw new Error(`Tool registrations not parsed: ${skipped.join(', ')}`);
 
 const doc = await readFile(mcpDoc, 'utf8');
 const docNames = new Set([...doc.matchAll(/`([a-z][a-z0-9_]+)`/g)].map((match) => match[1]));
@@ -118,14 +122,17 @@ const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and re
 function scopeLine(tool: Tool): string {
   return tool.preview ? `This tool needs ${tool.scope} scope. A preview call uses read scope.` : `This tool needs ${tool.scope} scope.`;
 }
+function escapeMdx(text: string): string {
+  return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('{', '&#123;').replaceAll('}', '&#125;');
+}
 let generated = `## Tools\n\nThe server currently registers **${tools.length} tools**. Each tool lists its required scope; preview calls use read scope until you apply them.\n`;
 for (const group of groupsInOrder) {
   const inGroup = tools.filter((tool) => tool.area === group);
   if (!inGroup.length) continue;
   generated += `\n### ${group}\n`;
   for (const tool of inGroup) {
-    generated += `\n#### \`${tool.name}\`\n\n${scopeLine(tool)}\n\n${tool.description.replaceAll('<', '&lt;').replaceAll('>', '&gt;')}\n`;
-    if (tool.parameters.length) generated += `\nArguments: ${tool.parameters.join('; ')}.\n`;
+    generated += `\n#### \`${tool.name}\`\n\n${scopeLine(tool)}\n\n${escapeMdx(tool.description)}\n`;
+    if (tool.parameters.length) generated += `\nArguments: ${escapeMdx(tool.parameters.join('; '))}.\n`;
   }
 }
 generated += `\n## Prompts\n\nPrompts give the agent a task-oriented starting message; they are separate from tools and do not have a tool scope.\n\n${prompts.join('\n')}\n`;
