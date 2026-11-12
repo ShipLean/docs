@@ -44,6 +44,10 @@ Any project member can edit a sprint. Select **Edit sprint** in the sprint heade
 
 <Shot name="ui-sprints-edit" alt="The Edit sprint rail above the sprint list, with the sprint's name, start and end dates, and goal, and Cancel and Save buttons." />
 
+### Delete an empty sprint
+
+Open **Edit sprint** and choose **Delete sprint** at the bottom of the rail. Confirm the sprint name in the prompt, or cancel. ShipLean deletes a sprint only when it has no work items; if it contains work in any state, the server refuses the deletion and the reason appears in the rail. A sprint named by a retrospective also cannot be deleted. Deleting a sprint does not delete project work. Deletion is permanent.
+
 When you change a sprint's dates, the days available to each member in [its capacity](/ui/planning/#enter-capacity-per-person) are recalculated, so a longer sprint gives more default days.
 
 ## Start work in the current sprint
@@ -63,3 +67,7 @@ The sprint list shows dates, status, goal, team capacity, committed points, and 
 <Shot name="ui-sprints-velocity" alt="Velocity chart comparing committed and completed points across ended sprints." />
 
 Open a sprint from its row, then choose **Capacity** in the sprint navigation to plan the team's capacity from its velocity and each member's days available. See [sprint planning and capacity](/ui/planning/#enter-capacity-per-person).
+
+## Make a sprint demo
+
+After closing a sprint, open its **Demo** tab to request, review or remake an agent-created demo. Configure automatic demos and optional YouTube publication in Project settings. See [Make and review sprint demos](/start/guides/sprint-demos/) for setup, generation, failure states and review.

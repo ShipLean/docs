@@ -26,6 +26,10 @@ export const sidebar = [
         "link": "/start/production/"
       },
       {
+        "label": "Scheduled backups and restore",
+        "link": "/start/guides/backups/"
+      },
+      {
         "label": "Configuration reference",
         "link": "/start/configuration/"
       },
@@ -79,6 +83,10 @@ export const sidebar = [
         "link": "/ui/navigation/"
       },
       {
+        "label": "ShipLean on your phone",
+        "link": "/ui/mobile/"
+      },
+      {
         "label": "Sign in and your profile",
         "link": "/ui/profile/"
       },
@@ -117,6 +125,10 @@ export const sidebar = [
       {
         "label": "Sprint retro",
         "link": "/ui/sprint-retro/"
+      },
+      {
+        "label": "Sprint demos",
+        "link": "/start/guides/sprint-demos/"
       },
       {
         "label": "Taskboard",

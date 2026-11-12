@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import Shot from '@/components/Shot.astro';
+import ProductShot from '@/components/ProductShot.astro';
 
 Open an item from a backlog, board or link to see its fields, description, child tasks and history. Changes in the item form stay as a draft until you choose **Save**. Comments, task states and attachments save on their own.
 
@@ -62,6 +63,12 @@ An Action item with no Tasks shows no Tasks section. One that has Tasks lists th
 Use **Discussion** to leave a comment or mention a project member with `@`. Comments save when you post, separately from the item form. Use **Ctrl+Enter** or **⌘+Enter** to post. You can edit your own comments. A project admin can archive another member's comment. Any project member can mark a comment as superseded, which keeps it in the discussion with a strike-through.
 
 On a Feature the same comment stream is called **Log**, and it lists newest entries first. Entries from an agent are marked as agent activity.
+
+## Decisions and questions
+
+The **Decisions and questions** section appears on Stories and Features. It shows decisions and questions recorded by an agent, with numbered labels. A decision includes a recommended answer and may include alternatives; the owner can confirm it, choose an alternative, enter another answer, or withdraw it. A question can be open-ended or offer up to six short answers to choose from. The owner answers on the item. Decision changes appear in the item's history; an answer to a question is posted as a Markdown comment in Discussion. An agent that asked a question should continue with independent work or hand back; it should not wait for a reply. The next agent to pick up the item reads the owner's answer. See [agent scopes](/agents/scopes/) for the related MCP tools.
+
+<ProductShot name="decisions-questions" alt="Example decisions and questions with an open question, recommended decisions and their Confirm and Change controls." />
 
 ## Link work and code
 

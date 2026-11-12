@@ -65,7 +65,7 @@ function description(text: string, from: number, context: string): { value: stri
   return { value: resolveExpression(found[1], context, classAt(text, from)), next: match.lastIndex };
 }
 const sources = new Map<string, string>();
-for (const file of files) {
+for (const file of [...files, resolve(product, 'src/ShipLean.WebApi/Features/Mcp/Payloads/McpPayloadTargets.cs')]) {
   const text = await readFile(file, 'utf8');
   sources.set(file, text);
   for (const match of text.matchAll(new RegExp(`\\bconst\\s+string\\s+(\\w+)\\s*=\\s*(${expressionPattern})\\s*;`, 'g'))) {
@@ -73,20 +73,20 @@ for (const file of files) {
     constantsByName.set(match[1], (constantsByName.get(match[1]) ?? new Set()).add(match[2]));
   }
 }
-function paramList(text: string): string[] {
+function paramList(text: string, owner: string): string[] {
   const found: string[] = [];
-  const re = /\[Description\("((?:\\.|[^"\\])*)"\)\]\s*(?:IReadOnlyList<[^>]+>\??|[\w.]+\??)\s+(\w+)(?:\s*=\s*([^,\n]+))?/g;
+  const re = new RegExp(`\\[Description\\((${expressionPattern})\\)\\]\\s*(?:IReadOnlyList<[^>]+>\\??|[\\w.]+\\??)\\s+(\\w+)(?:\\s*=\\s*([^,\\n]+))?`, 'g');
   for (const match of text.matchAll(re)) {
     const name = match[2];
     const optional = match[3] !== undefined || text.slice(Math.max(0, (match.index ?? 0) - 80), match.index).includes('?');
-    found.push(`\`${name}\`${optional ? ' (optional)' : ''}: ${unescapeCSharp(match[1]).replace(/[.;]$/, '')}`);
+    found.push(`\`${name}\`${optional ? ' (optional)' : ''}: ${resolveExpression(match[1], name, owner).replace(/[.;]$/, '')}`);
   }
   return found;
 }
 
 for (const file of files) {
   const text = sources.get(file)!;
-  for (const match of text.matchAll(/\[McpServerTool\(Name\s*=\s*"([^"]+)"\)\s*,\s*McpScope\(McpScopes\.(Read|Write|Plan)([^)]*)\)\]/g)) {
+  for (const match of text.matchAll(/\[McpServerTool\(Name\s*=\s*"([^"]+)"\)\s*,\s*McpScope\(McpScopes\.(Read|Write|Plan)([^)]*)\)(?:\s*,\s*McpPayload)?\]/g)) {
     const name = match[1];
     const scope = match[2].toLowerCase();
     const after = match.index! + match[0].length;
@@ -95,20 +95,24 @@ for (const file of files) {
     if (!desc?.value || methodAt < 0) throw new Error(`Missing public description or method for ${name} in ${file}`);
     const open = text.indexOf('{', methodAt);
     const sig = text.slice(methodAt, open);
-    tools.push({ name, scope, preview: /PreviewScope\s*=\s*McpScopes\.Read/.test(match[3]), area: groups[basename(resolve(file, '..'))] ?? 'Other', description: desc.value, parameters: paramList(sig) });
+    tools.push({ name, scope, preview: /PreviewScope\s*=\s*McpScopes\.Read/.test(match[3]), area: groups[basename(resolve(file, '..'))] ?? 'Other', description: desc.value, parameters: paramList(sig, classAt(text, after)) });
   }
   for (const match of text.matchAll(/\[McpServerPrompt\(Name\s*=\s*"([^"]+)"\)\]/g)) {
     const after = match.index! + match[0].length;
     const desc = description(text, after, match[1]);
     const methodAt = text.indexOf('public async Task<PromptMessage>', after);
     const open = text.indexOf('{', methodAt);
-    const parameters = paramList(text.slice(methodAt, open));
+    const parameters = paramList(text.slice(methodAt, open), classAt(text, after));
     prompts.push(`- **\`${match[1]}\`.** ${desc?.value ?? 'Prompt.'}${parameters.length ? ` Arguments: ${parameters.join('; ')}.` : ''}`);
   }
 }
 if (tools.length === 0) throw new Error(`No [McpServerTool] registrations found under ${toolsDir}`);
 const names = tools.map((tool) => tool.name);
 if (new Set(names).size !== names.length) throw new Error('Duplicate server tool registration: ' + names.filter((name, i) => names.indexOf(name) !== i).join(', '));
+const registrations = [...sources.values()].flatMap((text) =>
+  [...text.matchAll(/\[McpServerTool\(Name\s*=\s*"([^"]+)"\)/g)].map((match) => match[1]));
+const skipped = registrations.filter((name) => !names.includes(name));
+if (skipped.length) throw new Error(`Tool registrations not parsed: ${skipped.join(', ')}`);
 
 const doc = await readFile(mcpDoc, 'utf8');
 const docNames = new Set([...doc.matchAll(/`([a-z][a-z0-9_]+)`/g)].map((match) => match[1]));
@@ -118,14 +122,17 @@ const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and re
 function scopeLine(tool: Tool): string {
   return tool.preview ? `This tool needs ${tool.scope} scope. A preview call uses read scope.` : `This tool needs ${tool.scope} scope.`;
 }
+function escapeMdx(text: string): string {
+  return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('{', '&#123;').replaceAll('}', '&#125;');
+}
 let generated = `## Tools\n\nThe server currently registers **${tools.length} tools**. Each tool lists its required scope; preview calls use read scope until you apply them.\n`;
 for (const group of groupsInOrder) {
   const inGroup = tools.filter((tool) => tool.area === group);
   if (!inGroup.length) continue;
   generated += `\n### ${group}\n`;
   for (const tool of inGroup) {
-    generated += `\n#### \`${tool.name}\`\n\n${scopeLine(tool)}\n\n${tool.description.replaceAll('<', '&lt;').replaceAll('>', '&gt;')}\n`;
-    if (tool.parameters.length) generated += `\nArguments: ${tool.parameters.join('; ')}.\n`;
+    generated += `\n#### \`${tool.name}\`\n\n${scopeLine(tool)}\n\n${escapeMdx(tool.description)}\n`;
+    if (tool.parameters.length) generated += `\nArguments: ${escapeMdx(tool.parameters.join('; '))}.\n`;
   }
 }
 generated += `\n## Prompts\n\nPrompts give the agent a task-oriented starting message; they are separate from tools and do not have a tool scope.\n\n${prompts.join('\n')}\n`;
