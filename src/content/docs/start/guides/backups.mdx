@@ -182,15 +182,19 @@ Use a bucket in another account or region when you can.
 ## Restore runbook
 
 You need: Docker, the passphrase (the one for the generation in the file name), the bucket's access, and a Postgres 18
-server or newer that you can reach. Everything below runs in a shell, from an empty working folder.
+server or newer that you can reach. Keep the downloaded and decrypted files in an empty working folder. For stopping and
+starting ShipLean, use the orchestration system and project that actually run your instance; the local Compose commands
+below are examples for the repository's single `src` Compose project only.
 
 ### 1. Stop ShipLean
 
-Stop every ShipLean instance that points at the database, so nothing writes while you restore and nothing migrates an
-empty database:
+Use your deployment orchestration to stop **all** ShipLean instances that point at the target database, including every
+replica. Keep them stopped through the restore so nothing writes to the database and nothing starts against an empty
+database. For the repository's local Compose example only, run this from the ShipLean repository root; it stops the
+`shiplean` service in the `src` Compose project and does not stop instances managed by other projects or orchestrators:
 
 ```bash
-docker compose -f src/docker-compose.yml stop shiplean
+docker compose --project-name src --file src/docker-compose.yml stop shiplean
 ```
 
 ### 2. Download the newest database backup
@@ -251,19 +255,26 @@ DATABASE_URL=postgresql://postgres:secret@postgres:5432/shiplean
 ```
 
 Restore into an **empty** database. The dump has no `DROP` statements, so a database that already has ShipLean tables
-(ShipLean started once and migrated it) fails with "already exists" errors. If it has, drop it first:
+(ShipLean started once and migrated it) fails with "already exists" errors. The following `DROP DATABASE ... WITH
+(FORCE)` permanently deletes **all data and objects in the database named by `DB_NAME`** and terminates connections to
+it. Confirm that `ADMIN_URL` reaches the intended server and `DB_NAME` names only the database you intend to replace;
+keep all ShipLean instances stopped. If you need the old database, take and verify a separate backup before dropping it.
+For a new restore target, choose a new `DB_NAME` and point ShipLean at it when you restart instead of replacing the
+existing database.
 
 ```bash
 docker run --rm --network "$NETWORK" postgres:18 psql "$ADMIN_URL" -c "DROP DATABASE IF EXISTS $DB_NAME WITH (FORCE)"
-docker run --rm --network "$NETWORK" postgres:18 psql "$ADMIN_URL" -c "CREATE DATABASE $DB_NAME"
+docker run --rm --network "$NETWORK" postgres:18 psql "$ADMIN_URL" -c "CREATE DATABASE $DB_NAME TEMPLATE template0 ENCODING 'UTF8' LOCALE_PROVIDER libc LOCALE 'en_US.UTF-8'"
 ```
 
-The dump doesn't carry the database's locale, and text sorting depends on it. The `postgres:18` image defaults to
-`en_US.UTF-8`, which is what ShipLean runs on. On a server with another default
-(`psql "$ADMIN_URL" -c "SELECT datcollate FROM pg_database WHERE datname = 'template1'"`), create it with that locale
-instead: `CREATE DATABASE $DB_NAME TEMPLATE template0 ENCODING 'UTF8' LOCALE 'en_US.UTF-8'`.
+The dump doesn't carry the database's locale, and text sorting depends on it. ShipLean's tested database setup uses
+the libc locale provider and `en_US.UTF-8`; the command uses that same explicit setting. The `postgres:18` image here
+provides the `psql` and `pg_restore` clients; its locale defaults do not determine the locale of the remote database.
+The target Postgres server must have the `en_US.UTF-8` libc locale available. You can inspect an existing database's
+provider and collation with `psql "$ADMIN_URL" -c "SELECT datlocprovider, datcollate FROM pg_database WHERE datname = 'template1'"`.
 
-Skip the drop and the create if the database exists and is empty (a fresh compose volume creates an empty `shiplean`).
+Skip the drop and the create if the database exists and is empty (a fresh Compose database volume creates an empty
+`shiplean`).
 Then restore with the `pg_restore` from the `postgres:18` image:
 
 ```bash
@@ -338,8 +349,13 @@ If more than one is set, S3 wins, then Postgres, then the folder, the same rule 
 
 ### 6. Start ShipLean and check
 
+Use your deployment orchestration to start the normal set of instances, all pointed at the restored database. For the
+repository's local Compose example only, run this from the ShipLean repository root; it starts the `shiplean` service in
+the `src` project and does not start other replicas or deployments. Use your actual Compose project name if you changed
+it:
+
 ```bash
-docker compose -f src/docker-compose.yml up -d shiplean
+docker compose --project-name src --file src/docker-compose.yml up -d shiplean
 curl -fsS http://127.0.0.1:8080/health
 ```
 
