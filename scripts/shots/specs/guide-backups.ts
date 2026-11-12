@@ -15,7 +15,7 @@ export const shots: ShotSpec[] = [
     name: 'guide-backups-schedule',
     route: '/instance/backups',
     steps: async (page) => {
-      const schedule = page.getByTestId('backups-cron-preset');
+      const schedule = page.getByTestId('backups-cron-preset').first();
       await schedule.waitFor({ state: 'visible' });
       await schedule.evaluate((element) => element.scrollIntoView({ block: 'center' }));
       await page.getByTestId('backups-cron-description').waitFor({ state: 'visible' });
