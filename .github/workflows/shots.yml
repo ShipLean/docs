@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shots
-          path: src/assets/shots
+          path: src/assets/shots/guide-backups-settings-*.webp
           if-no-files-found: warn
   seed-test:
     # Runs the seed integration test on its own stack, so it cannot change the images the capture job takes.
