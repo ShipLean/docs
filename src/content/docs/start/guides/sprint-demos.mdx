@@ -5,6 +5,7 @@ sidebar:
   order: 16
 ---
 
+import ProductShot from '@/components/ProductShot.astro';
 
 A sprint demo is a short narrated video of what a sprint finished. An agent makes it from the sprint's own items, on its own machine, and sends it back to ShipLean. The sprint's Demo tab plays it, with its chapters, the features it covers and its script. ShipLean never renders video itself. See [Sprints](/ui/sprints/) for creating sprints and [the sprint backlog](/ui/sprint-backlog/) for closing one.
 
@@ -18,6 +19,8 @@ A sprint demo is a short narrated video of what a sprint finished. An agent make
    - Otherwise open the sprint's **Demo** tab (after Retro) and press **Create demo**. This is also how to retry, and how to make a demo for a sprint that was closed with the setting off.
 3. **Watch the status.** The tab's band shows where the demo is (below). It refetches by itself when the demo changes, so it needs no reload.
 4. **Play it.** When the status is Ready the tab shows the player, the chapters (a click seeks), the features the demo covers and the script. **Remake demo** asks the agent again; the old video stays live until the new one arrives.
+
+<ProductShot name="sprint-demo-ready" alt="Example Ready status for a sprint demo, with a link to the work item and a Remake demo button." />
 
 Create demo is off, with the reason shown, when the sprint isn't closed, when an agent session is already making this demo, or when the project has no agent connection or no repository (the check `AgentStartBlock` makes for any agent start). Everyone on the project can press it; the settings need a project admin.
 

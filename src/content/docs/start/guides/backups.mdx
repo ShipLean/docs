@@ -5,6 +5,7 @@ sidebar:
   order: 15
 ---
 
+import Shot from '@/components/Shot.astro';
 
 ShipLean can back itself up on a schedule to an S3 bucket you own, and this page is how to set that up and how to
 restore from it. The restore runbook is written for a broken server: read the [runbook](#restore-runbook) first and
@@ -49,7 +50,7 @@ Open **Instance settings › Backups** (instance admins only). Fill in the desti
 the passphrase, then **Save**. Press **Test connection** first: it writes, reads and deletes a test object and tells you
 which step failed. **Back up now** runs one straight away.
 
-<Shot name="guide-backups-settings" alt="Instance backup settings showing the destination, schedule, retention, and backup controls." />
+<Shot name="guide-backups-settings" alt="The Backups tab before setup, showing backup status, history and destination fields." />
 
 Rules the form enforces:
 
