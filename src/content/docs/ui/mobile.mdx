@@ -1,0 +1,69 @@
+---
+title: "ShipLean on your phone"
+description: "Install the ShipLean phone app, sign in, use Inbox and project tabs, and set up voice."
+sidebar:
+  order: 23
+---
+
+The ShipLean phone app is for quick project updates, answers and voice commands. It is available for iOS and Android. The documented release path distributes iOS builds through TestFlight and Android builds through Google Play internal testing. Ask your ShipLean administrator or team for the current tester invitation; production store availability depends on the separate store review and release process.
+
+The app is a companion to the web app. It currently focuses on **Inbox**, **Backlog**, **Features** and **Retro**. Use the web app for screens or actions the phone app directs you to open there.
+
+## Install and sign in
+
+1. Install the build from the TestFlight or Google Play testing invitation your team sent you.
+2. Open ShipLean and enter your server address. The app checks that it can reach the server before enabling **Sign in**.
+3. Sign in through the browser page that opens. Check the device name and server shown on the confirmation page, then choose **Sign in** and return to ShipLean.
+4. Choose a project from **Projects**. The project screen has the **Inbox**, **Backlog**, **Features** and **Retro** tabs. The centre microphone control is available for voice commands.
+
+The app remembers the server address and email for the next sign-in. Your sign-in credential is stored in the phone's secure storage and is sent only to the server you signed in to. The app does not support servers whose API is blocked by an identity proxy; ask your administrator about a direct server address if sign-in fails for that reason.
+
+To remove a phone session, open **Account** in the app and sign out, or use **Your profile → Signed-in devices** in the web app and sign the device out there. If an administrator or another signed-in session revokes the phone, the next request returns you to the sign-in screen.
+
+## Set up voice
+
+Voice is optional. The setup flow asks whether to configure the microphone and download the on-device voice models. You can skip either step and use the app by tapping and typing instead. Voice needs a native app build; it does not work in Expo Go.
+
+The app uses the microphone only while you hold the microphone control. Speech recognition and command handling run on the phone; the app does not upload your audio or read the screen aloud. The microphone permission prompt explains this. If permission is off, use the phone's app settings to allow microphone access, then try again.
+
+The voice models take substantial storage and download time. Setup selects **Auto** by default and shows the selected model, download size and free space; you can choose another model offered for your phone. Keep the app online while setup finishes, and use Wi-Fi if you prefer not to download over mobile data. The app verifies downloaded files. If a download pauses for Wi-Fi, choose **Wait** to continue on Wi-Fi or **Use mobile data** to allow the current download to proceed. A dropped connection is retried; a restarted download can continue from its partial file. iOS can continue a download in the background, but force-quitting the app can restart the file currently in progress. Android keeps the initial model download running with a system download notification; Android may limit long-running background work, in which case leave ShipLean open until it finishes.
+
+In **Account → Voice**, you can review voice status and change or download models. **Model licences** lists the licences for the bundled speech and command models. If voice is unavailable, check that setup is complete, a model is ready and microphone permission is granted. You can still use the rest of the app without voice.
+
+### Use the microphone
+
+Hold the microphone control while speaking, then release it. The app turns the request into a preview of the actions it understood. Review the preview before applying it; you can remove a line or cancel the preview. This confirmation is important for commands that change more than one item. Voice commands are limited to the actions available on the current screen. If an action is web-only, the app tells you where to do it.
+
+If the app reports **Someone else changed this**, it refreshes the screen and rebuilds the preview. Review the changed lines and apply the new preview only if it is still what you want. If the screen cannot refresh (for example, while offline) or you have moved to another screen, the app shows that the change could not be applied. Return to the relevant screen, refresh it, and try the command again.
+
+## Inbox
+
+The Inbox shows items waiting for you in the selected project. It can include decisions to confirm, questions, mentions that need a reply or **Seen**, and a Feature status check when its status line is three days old. The badge counts open asks, not work items. Use **Waiting** for open asks and **Answered** for asks you answered in the last seven days. The list is ordered by how long items have been waiting.
+
+Open an ask to review it, then answer by tapping, typing or voice. Answers are attached to the work item. After you answer, there is a five-second **Undo** window before the answer is sent. When the phone is offline, the Inbox shows its last loaded content and holds answers on the phone; they appear as waiting to send and are sent when the connection returns. Pending answers survive closing and reopening the app. If a send fails, the Inbox shows the ask again so you can retry. The Inbox does not send push notifications.
+
+## Backlog
+
+Use **Backlog** to browse Stories, Features or Epics. Change the level from the control at the top of the list. Search or filter to narrow the list, then open a row to see its work item. You can add items and use the available move and edit actions from the list; the microphone can carry out supported actions for the current level. Some planning and bulk-edit actions are web-only. If the phone tells you to use the web, open the linked backlog there.
+
+Pull down on a list to refresh it. If a change conflicts with a newer version on the server, the app refreshes the affected view; review the current row before trying again.
+
+## Features
+
+The **Features** tab groups Features by state. Use its filters to show everything, items needing your attention, or Features under an Epic. Open a Feature to review its description, status and activity. A Feature's board shows its Stories and Bugs across their states and sprints. The phone board is read-only for task moves; choose **Open on web** to move tasks on the web board.
+
+Feature status checks may also appear in Inbox. Use the Feature screen to review the status and its latest verification before answering. Pull down to refresh the overview or board.
+
+## Retro
+
+The **Retro** tab opens the selected project's current sprint retrospective (or the most recent ended sprint with retrospective notes when the current sprint has none). Browse notes by category and theme, use **To decide** to focus on points awaiting a decision, and use **Features** to review retrospective coverage by Feature. You can add a point or respond to a point that needs your decision. Use the web app for retrospective actions that the phone screen does not offer.
+
+## If something goes wrong
+
+- **The project will not open:** check your connection and that your account still has access to the project, then pull down to retry. If the app says your session ended, sign in again.
+- **An answer is waiting to send:** reconnect to the internet and leave ShipLean open while it sends. Check **Answered** or the work item before repeating an answer.
+- **A voice action was not applied:** read the failure message and the updated preview. A partial failure can leave other lines applied; the app identifies those separately. Retry only the refused action after checking the current item.
+- **Voice is disabled:** finish model setup, allow microphone access in your phone settings, and return to the app. Voice setup failures do not block tap or typed actions.
+- **You cannot find an action:** open the relevant item in the web app. The phone app does not expose every web workflow.
+
+For the complete web workflows, see [Work items](/ui/work-items/), [Backlogs](/ui/backlogs/), [Features](/ui/features/), [Retrospectives](/ui/retrospectives/) and [Your profile](/ui/profile/).
