@@ -61,15 +61,23 @@ Put the variables in your shell profile (`~/.bashrc`, `~/.zshrc`) for every sess
 }
 ```
 
-### Repo settings file
+### Where the variables can go
 
-A repository's `.claude/settings.json` can carry the same `env` block so everyone who works in the repo sends telemetry. Do not put `OTEL_RESOURCE_ATTRIBUTES` for one item there (see "Tag the item").
+Claude Code ignores the OpenTelemetry exporter variables in a repository's `.claude/settings.json` and `.claude/settings.local.json`. That is by design: a repository cannot turn telemetry on, choose where it goes or capture content. Put them in one of these instead:
 
-In our check, the same `env` block passed as `claude --settings <file>` took effect, but a `.claude/settings.json` and a `.claude/settings.local.json` in the working directory did not in a headless `claude -p` run. We did not find out whether that is the folder trust prompt, so check it on your own setup with the command under "Check it works".
+- your shell, or `env` in `~/.claude/settings.json` (above);
+- a settings file you pass with `claude --settings <file>`, which took effect in our check;
+- managed settings, for everyone (below).
+
+Do not put `OTEL_RESOURCE_ATTRIBUTES` for one item in a shared file (see "Tag the item").
+
+### Collector token
+
+A shared collector should require a token. Give each developer a narrow, send-only collector token and pass it in `OTEL_EXPORTER_OTLP_HEADERS` (for example `Authorization=Bearer <token>`) in `~/.claude/settings.json` or managed settings, or fetch it with `otelHeadersHelper` in user settings. Never use a ShipLean API token or a store credential for this, and never commit the token to a repository or set it in a cloud environment's variables.
 
 ### Org-wide managed settings
 
-To turn it on for everyone, an admin sets the same `env` block in Claude Code's managed settings file (on Linux `/etc/claude-code/managed-settings.json`; on macOS and Windows the corresponding managed location). Users cannot override managed settings. We did not exercise this file; Claude Code reports whether it found managed settings in the `managed_settings_resolved` event.
+To turn it on for everyone, an admin sets the same `env` block in Claude Code's managed settings file (on Linux `/etc/claude-code/managed-settings.json`; on macOS and Windows the corresponding managed location). Also set the exporter selectors (`OTEL_TRACES_EXPORTER`, `OTEL_LOGS_EXPORTER`) there: otherwise a developer can still turn a signal off or switch it to console. We did not exercise this file; Claude Code reports whether it found managed settings in the `managed_settings_resolved` event.
 
 ### Collector
 
@@ -77,7 +85,7 @@ Point `OTEL_EXPORTER_OTLP_ENDPOINT` at your own collector (see [Collector](/insp
 
 ### agent-relay
 
-When agent-relay starts Claude Code for an item, it sets the item and project in `OTEL_RESOURCE_ATTRIBUTES` for that one run and passes the variables above through, so you do not tag by hand. It uses the same variable names as this page.
+When agent-relay has `RELAY_OTEL_ENDPOINT` set, it sets the variables above itself for each run it starts, and tags the item, project and `vcs.repository.url.full` in `OTEL_RESOURCE_ATTRIBUTES`, so you do not tag by hand.
 
 ## Tag the item
 
@@ -98,9 +106,10 @@ By default Claude Code keeps content out of what it sends. We checked each switc
 | Variable | What it adds |
 |---|---|
 | (none) | Token counts, model, timings, tool names and status. `prompt`, `user_prompt` and `response` are the literal text `<REDACTED>`. |
-| `OTEL_LOG_USER_PROMPTS=1` | The prompt text (on the `user_prompt` log and on the interaction span) and the assistant's reply. |
+| `OTEL_LOG_USER_PROMPTS=1` | The prompt text (on the `user_prompt` log and on the interaction span). With tracing it also puts `system_prompt_preview`, `new_context` and `response.model_output` on `llm_request` spans. It also adds the assistant's reply, because `OTEL_LOG_ASSISTANT_RESPONSES` falls back to it; set that to `0` to keep replies redacted. |
 | `OTEL_LOG_TOOL_DETAILS=1` | `tool_input` and `tool_parameters` on `tool_result` and `tool_decision` logs (a Bash command, an MCP call's arguments) and `full_command` on Bash spans. |
 | `OTEL_LOG_TOOL_CONTENT=1` | A `tool.output` event on the tool span with the tool's output. |
+| `OTEL_LOG_RAW_API_BODIES` | Implies all content above, plus the raw API request and response bodies. Treat it as everything. |
 
 ShipLean shows none of this unless the project turns content display on, and "What it did" never shows prompt text. Leave the switches off unless your collector redacts. See [Privacy](/inspection/privacy/).
 
@@ -119,9 +128,8 @@ Claude Code batches telemetry; a short session can exit before the batch goes ou
 
 ## Known gaps
 
-- Claude Code's log records have no severity (the number is 0), so a store reports them at the lowest level. Failures show on the spans (status Error on `claude_code.tool.execution`), not in the log level. A failed tool call is `success=false` on its `tool_result` log and an error on the execution span.
+- Claude Code's log records have no severity (the number is 0), so ShipLean reports their severity as UNSPECIFIED, not as a level. Failures show on the spans (status Error on `claude_code.tool.execution`), not in the log level. A failed tool call is `success=false` on its `tool_result` log and an error on the execution span.
 - ShipLean's tool-call link (a run linked because it called `pick_up` on an item) does not work with Claude Code today. The span names the tool (`mcp__shiplean__pick_up`) but carries no input; the log has the input only when `OTEL_LOG_TOOL_DETAILS` is on, and names the tool `mcp_tool`. Use `shiplean.item`.
 - The spans have no `prompt.id`; only the logs do.
 - Subagent spans were not in our run, so this page does not describe them.
-- Project `.claude/settings.json` env was not picked up in our headless check (see "Repo settings file").
 - The signed-in account's email, user id and organization id are on every record.
