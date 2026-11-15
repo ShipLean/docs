@@ -1,0 +1,127 @@
+---
+title: "Feature timeline"
+description: "See how a finished or running Feature was delivered: a Gantt chart built from state history, with waits, blocks, review rounds and the critical path."
+sidebar:
+  order: 26.2
+---
+
+import ProductShot from '@/components/ProductShot.astro';
+
+The Feature timeline is a Gantt chart of how a Feature was delivered. It is built after the fact from the state history of the Feature's tasks. Nobody draws it or enters dates. Use it to see where the time went: what ran in parallel, what waited, and what set the finish date.
+
+The address is `/p/:key/items/:itemKey/timeline`, where `:itemKey` is the Feature's key.
+
+<ProductShot name="feature-timeline-selected" alt="The Feature timeline for a finished Feature, with four key dates above a toolbar, a Gantt chart of story brackets and task bars with dependency arrows and a critical path outline, and the right rail showing one selected task's history, reviews, waits and the tasks it held up." />
+
+## Open the timeline
+
+Open a Feature and find the **Timeline** section. It shows the four [key dates](#key-dates) and an **Open timeline** link. Select the link to open the page. Select **Back to** the Feature's key at the top of the page to return.
+
+The timeline is for desktop screens. On a narrow or touch screen, 900 px wide or less, the **Open timeline** link is hidden, and the phone app has no timeline. The Feature page still shows the key dates there. See [ShipLean on your phone](/ui/mobile/).
+
+## Key dates
+
+The header and the Feature page's **Timeline** section show the same four dates, with the gap between each pair:
+
+- **Added.** When the Feature was created, and by whom.
+- **Planned.** When a plan was captured, or when the first Story or Bug was added if no plan was captured.
+- **Execution started.** When the first task that has a recorded start moved to an in-progress state.
+- **Finished.** When the Feature moved to a completed state. A Feature that was reopened has no finish date until it is completed again.
+
+A date that has not happened yet reads **Not yet**. While the Feature is running, the gap to **Finished** is dashed and reads "so far". The gaps are not drawn to scale. The execution gap, from **Execution started** to **Finished**, is the one in colour.
+
+## Read the chart
+
+The chart has one row for each Story or Bug bracket and each task bar. The axis shows calendar days in your time zone, with weekends shaded and sprint names across the top. A running Feature has a red dashed line for now.
+
+Items that have not started are not drawn. A Story that has no started tasks, and any task still in New, are listed under **Not started** in the rail instead.
+
+<ProductShot name="gantt-chart-finished" alt="The Gantt chart of a finished Feature: grey story brackets with task bars beneath, green review dots after the bars, grey dependency arrows with wait labels such as 22.8 h and 1.8 days, a red dashed arrow for a blocked task, and dark outlines on the critical path." />
+
+### Bars
+
+A bar is one task. It starts when the task first moved to an in-progress state and ends when it last moved to Resolved, or to Closed if it was never resolved. The bar is drawn from state history only. A task that is still being worked on has no end yet and runs to now.
+
+A **diamond** marks a task that was closed with no start recorded. It sits at the moment of closing and has no length, because ShipLean cannot say when the work began.
+
+### Story brackets
+
+A bracket spans a Story or Bug. It starts when its first task starts. It ends when its last task ends, and only when every task under it has ended. Until then the bracket has no end.
+
+Removed Stories, Bugs and tasks are left out.
+
+### Review dots
+
+A dot after a bar is one review round on that task. Green is **Approved** and amber is **Changes asked**. A thin dashed line joins the dots to the bar. A review that came before the bar ended sits on the bar. Selecting it selects the task.
+
+Review rounds come from the `log_review` tool, which agents call to record a round on a task. Reviews are recorded for tasks only. A task with no recorded rounds has no dots. See the [tool reference](/agents/tools/).
+
+### Arrows
+
+With **Dependencies** on, arrows join one task to the task that waited on it.
+
+- A solid grey arrow means the first task had to finish before the second started. It comes from a link between the two, or from the order of the plan's waves when the second task has no link arrow of its own.
+- A dashed red arrow means a task blocked another one part-way. It comes from a **Blocked by** link where the second task had already started before the first ended.
+
+### Waits
+
+A number on an arrow, such as **22.8 h** or **1.1 days**, is how long the later task waited after the earlier one ended. A wait under 12 hours has no label. An overlap has none either.
+
+## Toolbar
+
+Every setting is kept in the address, so you can share a link to a particular view. Only settings that differ from the defaults appear in it.
+
+- **Group.** Choose how rows are arranged. **Stories** shows a bracket with its tasks beneath it. **People** shows one group per assignee, with **Unassigned** last. **Tasks** shows a flat list ordered by start time.
+- **Zoom.** **Fit** squeezes the whole range into the available width. **Days** gives each day a fixed width and labels it with the weekday, and the chart scrolls sideways.
+- **Dependencies.** Shows or hides the arrows, waits and the critical path outline. It is on by default.
+- **Critical path.** See below. It is on by default but can only be turned on once the Feature is finished.
+- **Chart** and **JSON for agents.** Switch between the chart and the [JSON view](#json-view).
+
+The legend at the right of the toolbar names the bar and dot colours.
+
+## Critical path
+
+The critical path is the chain of tasks that set the finish date. ShipLean starts from the task that ended last. It then follows each arrow back to the task that released it, as long as that task ended no more than an hour after the next one started. A task that blocked a task on the chain is added to it.
+
+Tasks on the path get a dark outline, and the arrows between them are drawn heavier. The **Critical path** control is disabled until the Feature is done. A running Feature has no critical path, because its finish is not known. Its tooltip reads "Shows once the Feature is Done."
+
+## The rail
+
+The right rail changes with what you select. Select a bar, bracket or diamond to select it. Select a key in the rail to jump to that item. Select the **✕** or press **Esc** to clear the selection.
+
+With nothing selected, the rail shows **Reading the chart**, a short legend of bars, brackets, diamonds, review dots, arrows and the critical path. For a running Feature it also shows **Not started**, the items that have not begun.
+
+<ProductShot name="timeline-rail-selected" alt="The timeline rail for one selected task: its assignee, start and end, an On the critical path note, its history of Active and Resolved periods, a changes requested review followed by an approved review, the task it waited on and the task it held up." />
+
+With a task selected, the rail shows:
+
+- Its key, which links to the task, its title and its assignee. An agent is marked "(agent)".
+- Its start, end and length, and **On the critical path** if it is on the path.
+- **History.** Each state it was in, when it entered it and how long it stayed. Blocked time appears as **Blocked**.
+- **Reviews.** Each round, its verdict, who gave it, when, and the note.
+- **Waited on.** The tasks it waited for, with the wait.
+- **Held up.** The tasks that waited for it. A task that blocked it is marked "(blocked it)".
+
+With a Story or Bug selected, the rail shows its dates and its tasks.
+
+## JSON view
+
+Choose **JSON for agents** to see exactly what an agent receives from the `feature_timeline` tool for this Feature, with a **Copy** button. Times are in UTC.
+
+The page and the tool use the same data. The JSON view lets you check what an agent is told before you rely on it, and compare it with the chart. The rail changes to **Fields and the chart**, a guide to which part of the chart each field draws:
+
+- `bars`: one entry per task, with its start, end, history periods and reviews.
+- `stories`: the brackets, each Story or Bug with its task keys.
+- `edges`: the arrows, with from, to, kind, source and wait.
+- `critical_path`: the keys on the critical path, in order.
+- `key_dates`: added, planned, execution started and finished.
+
+See the [tool reference](/agents/tools/) for `feature_timeline` and `log_review`.
+
+## Limits
+
+- The chart comes from state history. A task moved straight to Closed shows as a diamond, and a task that never left New is not drawn.
+- Waits and arrows need links between items or a captured plan with waves. Without them the chart shows bars and brackets only.
+- Review dots exist only for rounds recorded with `log_review`.
+- The timeline is for Features. An Epic, Story, Bug or Task has none.
+- It is for desktop screens. See [ShipLean on your phone](/ui/mobile/).

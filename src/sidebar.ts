@@ -139,6 +139,10 @@ export const sidebar = [
         "link": "/ui/feature-board/"
       },
       {
+        "label": "Feature timeline",
+        "link": "/ui/feature-timeline/"
+      },
+      {
         "label": "Retrospectives",
         "link": "/ui/retrospectives/"
       },

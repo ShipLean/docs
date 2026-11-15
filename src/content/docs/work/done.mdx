@@ -23,7 +23,7 @@ The default workflow has no separate Blocked or Parked states. It uses the state
 2. Log the Feature's retrospective with `log_retrospective` on the Feature. Set `compiled_from` to the keys of the Stories you compile it from. Put points under `went_well`, `went_badly` with a `root_cause` for each, `improve`, and `not_in_plan`. ShipLean skips a Story in `compiled_from` that has no retro and returns a warning.
 3. Move the Feature to its Completed state, and update the status line with the outcome.
 
-For a captured plan, review `plan_status` for the task timeline and review rounds before you log the retrospective.
+For a captured plan, review `plan_status` for the task table and review rounds before you log the retrospective. To see how the Feature was actually delivered, open its [Feature timeline](/ui/feature-timeline/), or call `feature_timeline` with the Feature's key. It shows each task's bar, the waits between tasks, the review rounds logged with `log_review`, and, once the Feature has moved to a Completed state, the critical path. It gives no findings, so draw your own conclusions for the retro.
 
 ## Log a retrospective
 

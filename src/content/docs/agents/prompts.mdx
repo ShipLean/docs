@@ -57,6 +57,26 @@ Tools: `find_work_to_pick_up`, `get_brief`, `pick_up`.
 Find the next unassigned, unstarted task in project SHIP. If there is one, read its full brief with get_brief, summarize the goal and constraints, and pick it up with pick_up. If no task is available, tell me. Do not take work that is already assigned or started.
 ```
 
+## Log a review round
+
+The reviewer records its verdict on the task after it leaves its `Review · ` comment. The Feature timeline draws each logged review after the task's bar.
+
+Tool: `log_review`.
+
+```text
+You reviewed SHIP-34. After your Review · comment, call log_review on SHIP-34 with verdict changes_requested if you found any blocking issue, otherwise approved. Add a short note if it helps. log_review works on tasks only and does not change the task's state.
+```
+
+## See how a Feature was delivered
+
+The agent reads the Feature's timeline and summarizes it from the data. The tool returns no findings, so the agent draws its own conclusions.
+
+Tool: `feature_timeline`.
+
+```text
+Read feature_timeline for SHIP-12. Summarize how the Feature was delivered: when it started and finished, which tasks waited on others, how many review rounds each task had, and what the critical path was. Note any tasks that never started. Use only what the timeline shows.
+```
+
 ## End a sprint and summarize it
 
 The agent reviews sprint results and previews the roll-over. It waits for your approval before it applies the preview and closes the sprint.
