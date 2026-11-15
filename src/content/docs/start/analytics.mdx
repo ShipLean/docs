@@ -24,6 +24,19 @@ Each event records that an action happened. It does not record what the action w
 
 Actions that cover no single project carry no project. These are search, listing projects, sign-in and account actions, profile changes, and instance admin actions.
 
+### Feature timeline events
+
+These events cover the [Feature timeline](/ui/feature-timeline/) and its agent tools. Read each against a baseline for the same weeks, not on its own.
+
+| Event | When it is sent | Extra properties |
+| --- | --- | --- |
+| `timeline.opened` | Someone opens a Feature timeline. | `from`: `feature` when they came from the Feature page, `link` for any other way in. |
+| `timeline.bar_selected` | Someone selects a bar on a timeline. | None. |
+| `feature.timeline_viewed` | An agent calls `feature_timeline`. | None. |
+| `review.logged` | An agent calls `log_review`. | None. |
+
+Compare `timeline.opened` and `timeline.bar_selected` with views of the Feature page, and `feature.timeline_viewed` with `get_work_item` events whose `item_type` is `feature`. `get_work_item` events carry `item_type`, the type of the item the agent read. Other tools' events do not carry it.
+
 ## What is never collected
 
 - **No free text.** Titles, descriptions, comments, search queries, attachment names, project names, state names, and addresses people type are never sent. Events carry only ids, fixed event names, short fixed values, numbers, and true or false.

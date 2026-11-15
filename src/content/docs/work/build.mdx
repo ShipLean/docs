@@ -21,7 +21,7 @@ While working, the agent can use `update_progress` to change the state, add a no
 
 The conductor reads the Feature's plan with `get_brief`, then uses `plan_status` to see the waves, Story and Task states, owners, commits, and review rounds. It starts a wave when the previous wave's Stories are complete or removed. Agents read their own task brief with `get_brief`, work independently, and report with `report_task` when they stop. They report when work is blocked or partial, too.
 
-The report is recorded on the Task. It can include commits, test results, decisions, constraints, and unfinished work. Each unfinished item is recorded as an unowned task for the plan to assign. A completed Task still needs its review. Add reviewer findings as a comment that begins `Review · `. Keep fix-round notes on the Task. After a Story's Tasks pass review, close the Story. The next wave can then begin.
+The report is recorded on the Task. It can include commits, test results, decisions, constraints, and unfinished work. Each unfinished item is recorded as an unowned task for the plan to assign. A completed Task still needs its review. Add reviewer findings as a comment that begins `Review · `. Then call `log_review` on the Task with the verdict, `approved` or `changes_requested`, once per round. `log_review` works on Tasks only and does not change the Task's state. Keep fix-round notes on the Task. After a Story's Tasks pass review, close the Story. The next wave can then begin.
 
 ## Mix people and agents
 

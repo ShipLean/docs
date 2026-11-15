@@ -7,12 +7,14 @@ sidebar:
 
 ShipLean registers these tools on `/mcp`. Start with `list_projects` to find the project key you need. Each tool entry says which of the [read, write, and plan scopes](/agents/scopes/) it needs.
 
-The argument summaries below come from the server's tool registrations in the source code. For connection and authentication, see [Connect an agent](/agents/connect/) and [Authentication options](/agents/auth/).
+The argument summaries below come from the server's tool registrations in the source code. Two tools record and read how a Feature was delivered. A reviewer calls `log_review` once per review round on a task, after its `Review · ` comment. A conductor or lead calls `feature_timeline` on a Feature to read its bars, waits, review rounds, and critical path, for example when writing a retro. The [Feature timeline](/ui/feature-timeline/) page shows the same data.
+
+For connection and authentication, see [Connect an agent](/agents/connect/) and [Authentication options](/agents/auth/).
 
 {/* GENERATED TOOL REFERENCE START */}
 ## Tools
 
-The server currently registers **42 tools**. Each tool lists its required scope; preview calls use read scope until you apply them.
+The server currently registers **44 tools**. Each tool lists its required scope; preview calls use read scope until you apply them.
 
 ### Finding work
 
@@ -365,6 +367,22 @@ This tool needs write scope.
 Get a one-time upload URL for another tool's large arguments, so the content goes from a file through the shell instead of through you. Use it when the content is already in a file or is over about 20 KB; otherwise send the arguments inline. Without field, the file is a JSON object of that tool's arguments; with field, the file is the raw UTF-8 text of that one string argument, so a Markdown file needs no JSON escaping. The call stores nothing and returns payload, upload_url, expires_at and command (curl -T &lt;file&gt; '&lt;url&gt;'): run the command in the shell within 10 minutes, with the file's path in place of &lt;file&gt;, then call the tool with payload set to the payload id. Arguments you send inline win over the payload's. The payload works only for you, through this connection, for that tool, and you can reuse it for 60 minutes after the upload (a preview and then its apply, for example). It can't carry plan or payload: send those inline. The upload takes up to 2 MB. If base_url is blank and the request arrived on a cluster service name, the call fails: send the arguments inline.
 
 Arguments: `tool`: The tool the payload is for, such as capture_plan; `field` (optional): The one string argument the file holds as raw text, such as content. Leave out when the file is a JSON object of the tool's arguments.
+
+#### `log_review`
+
+This tool needs write scope.
+
+Log one review of a task: the verdict, who and when. Call it once per round, after the Review · comment: 'changes_requested' when there is any blocking finding, else 'approved'. It only appends; the task's state does not change. Tasks only. The Feature timeline shows each review after the task's bar.
+
+Arguments: `item`: The key of the task, such as SHIP-12; `verdict`: 'approved' or 'changes_requested'; `note` (optional): A short note, optional.
+
+#### `feature_timeline`
+
+This tool needs read scope.
+
+How a Feature was delivered, drawn after the fact from state history: the page's view model as JSON. Key dates, the execution, one bar per task with its start, end, state periods and review events, the dependency edges, the critical path once the Feature is Done, and the tasks never started. Times are ISO 8601 UTC, positions are hour offsets from scale.start, labels are made on the server. No findings: draw your own conclusions. Use it for 'how did the Payments feature go?'.
+
+Arguments: `key`: The key of the Feature, such as SHIP-12. A key that is not a Feature is not_found.
 
 ## Prompts
 
