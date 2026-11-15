@@ -21,11 +21,11 @@ Hooks are commands Cursor runs at fixed points in an agent session, passing the 
 |---|---|
 | `beforeSubmitPrompt` | A prompt was sent. The text only with content on. |
 | `beforeShellExecution`, `afterShellExecution` | A shell command starts and ends. The end carries the duration. |
-| `beforeMCPExecution`, `afterMCPExecution` | An MCP tool call starts and ends, with the tool name and the duration. |
+| `beforeMCPExecution`, `afterMCPExecution` | An MCP tool call starts and ends, with the tool name, the MCP server name (`mcp_server_name`, when Cursor sends it) and the duration. |
 | `afterFileEdit` | A file was edited, with its path. |
 | `stop` | The agent stopped, with its status (`completed`, `aborted`, `error`). |
 
-Every record carries the event name (`cursor.hook.<event>`), the conversation id as `session.id` and the generation id as `prompt.id`. The resource carries `service.name = cursor`, the item and project, and the signed-in user's email when Cursor sends it.
+Every record carries the event name (`cursor.hook.<event>`), the conversation id as `session.id` and the generation id as `prompt.id`. The resource carries `service.name = cursor`, the item and project, the repository URL (credentials stripped) and branch read from git, the model (`gen_ai.request.model`) and Cursor version (`service.version`) when Cursor sends them, and the signed-in user's email when Cursor sends it.
 
 ShipLean shows these runs as flat event rows grouped by turn, with a banner saying what Cursor does not send. Bars are drawn back from an event by its duration where there is one; other events are single marks.
 
@@ -34,22 +34,24 @@ ShipLean shows these runs as flat event rows grouped by turn, with a banner sayi
 The Agent setup tab (or the `agent_setup` tool) prints the files below with your collector's address filled in. Put them in your project:
 
 1. Save the script as `.cursor/hooks/shiplean-cursor-hook.mjs`. It has no dependencies and needs Node 18 or newer.
-2. Save `.cursor/hooks.json`. Cursor reads project hooks from `<project>/.cursor/hooks.json` and runs relative commands from the project root; a user-level file at `~/.cursor/hooks.json` also works, but then the command path must be absolute.
+2. Save `.cursor/hooks.json`. Cursor reads project hooks from `<project>/.cursor/hooks.json` and runs relative commands from the project root. A user-level file at `~/.cursor/hooks.json` also works: user hooks run from `~/.cursor/`, so with the script saved in `~/.cursor/hooks/` the command is `node ./hooks/shiplean-cursor-hook.mjs`. With a user-level file you still need a `.shiplean` file or `SHIPLEAN_ITEM` per project.
 
 ```json
 {
   "version": 1,
   "hooks": {
-    "beforeSubmitPrompt": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs" }],
-    "beforeShellExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs" }],
-    "afterShellExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs" }],
-    "beforeMCPExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs" }],
-    "afterMCPExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs" }],
-    "afterFileEdit": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs" }],
-    "stop": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs" }]
+    "beforeSubmitPrompt": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "beforeShellExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "afterShellExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "beforeMCPExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "afterMCPExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "afterFileEdit": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "stop": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }]
   }
 }
 ```
+
+`timeout` is in seconds and is a documented hook field; the script also gives up on its own after three seconds.
 
 3. Tell the script where your collector is, in the environment Cursor starts with:
 
@@ -60,13 +62,13 @@ export SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS="authorization=Bearer <send-only t
 
 Point it at your own collector (see [Collector](/inspection/collector/)); ShipLean has no OTLP endpoint of its own. Use a narrow, send-only collector token, never a ShipLean API token or a store credential.
 
-The script never blocks Cursor. It always answers "allow" (and `continue` for prompts), drops a failed post silently, and gives up after three seconds. If the endpoint is unset it sends nothing.
+The script never blocks Cursor. It answers "allow" for `before*` hooks (and `continue` for prompts), drops a failed post silently, and gives up after three seconds. If the endpoint is unset it sends nothing.
 
 ## Tag the item
 
 ShipLean links a run to an item through a `shiplean.item` attribute. The script reads it from, in order:
 
-- `SHIPLEAN_ITEM` and `SHIPLEAN_PROJECT` in the environment, or
+- `SHIPLEAN_ITEM` and `SHIPLEAN_PROJECT` in the environment, which win over the file, or
 - a `.shiplean` file in the workspace root or any parent folder:
 
 ```text
@@ -74,11 +76,11 @@ item=SHIP-123
 project=SHIP
 ```
 
-A value that came from a `.shiplean` file is marked with `shiplean.link_source = file`, so ShipLean shows the link as coming from the file. Commit the file only if the whole team works on that item; otherwise keep it local. Without an item the run is not tagged and links only if a ShipLean tool call names one (see "Known gaps").
+An item from `SHIPLEAN_ITEM` is a plain tag (Tagged) and overrides the file. Only a value that came from a `.shiplean` file is marked with `shiplean.link_source = file`, so ShipLean shows that link as coming from the file (ShipleanFile). Commit the file only if the whole team works on that item; otherwise keep it local. Without an item the run is not tagged and is not linked (see "Known gaps").
 
 ## Content and privacy
 
-By default the script sends no content: no prompt text, no shell command, no tool input and no output. It sends event names, ids, tool names, file paths, durations and status.
+By default the script sends no content: no prompt text, no shell command, no tool input and no output. It sends event names, ids, tool names, file paths, durations and status. The signed-in user's email is personal data and goes on every record when Cursor sends it; set `SHIPLEAN_USER_EMAIL` to replace it.
 
 Set `SHIPLEAN_LOG_CONTENT=1` to add the prompt text, the shell command or MCP tool input, and the shell or MCP output. These can hold secrets. Leave it off unless your collector redacts. File edits are never sent, only the path, and the agent's reply text is never sent.
 
@@ -101,8 +103,6 @@ It prints `{}` and, within a few seconds, a record for service `cursor` should b
 - This page has not been checked against a real Cursor run. Payload fields are as Cursor's documentation lists them.
 - No model-call timing. Hooks fire around tools, prompts and stops, not around model requests, so there are no model-call rows and no token counts. The run page's banner says so.
 - Events are points, not spans. A tool call is two records (before and after); only the after record has a duration, and only shell and MCP calls have one.
-- No repository or branch is sent.
-- ShipLean recognises a ShipLean tool call by its MCP server name or tool name. Cursor sends the server name as `mcp_server_name` and the bare tool name; check that your release's records carry it before relying on links made from tool calls. Tagging through `SHIPLEAN_ITEM` or `.shiplean` is the supported path.
-- The tool input that names the item is content, so a link made from a tool call needs `SHIPLEAN_LOG_CONTENT=1`.
-- Only the events in the table are hooked. Cursor also offers `afterAgentResponse`, `afterAgentThought`, `beforeReadFile`, `preToolUse`, `postToolUse`, `sessionStart`, `sessionEnd`, `subagentStart` and `subagentStop`, which this setup does not use, so reads, thinking and subagents do not show.
+- ShipLean does not link Cursor runs from tool calls: Cursor sends the bare tool name, and the item is only in the tool input, which is content. Tag the run with `SHIPLEAN_ITEM` or `.shiplean`; that is the supported path.
+- Only the events in the table are hooked. Cursor also offers `afterAgentResponse`, `afterAgentThought`, `beforeReadFile`, `preToolUse`, `postToolUse`, `sessionStart`, `sessionEnd`, `subagentStart` and `subagentStop`, `postToolUseFailure`, `preCompact`, `beforeTabFileRead`, `afterTabFileEdit` and `workspaceOpen`, among others, which this setup does not use, so reads, thinking and subagents do not show.
 - Hooks run only where Cursor's agent runs; Tab completions and the other editor features are not covered.
