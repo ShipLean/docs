@@ -3,48 +3,133 @@ title: "Set up Claude Code"
 description: "Send Claude Code telemetry to your collector so its runs show on the item."
 sidebar:
   order: 4
-checkedWith: "Claude Code (not yet checked)"
-checkedOn: "unchecked"
+checkedWith: "Claude Code 2.1.323"
+checkedOn: "2026-11-15"
 ---
 
 Send Claude Code telemetry to your collector so its runs show on the item.
 
+Checked with Claude Code 2.1.323 on 2026-11-15: a real session on Linux sent to an OpenTelemetry collector 0.165.0 over OTLP/HTTP, and read back from ClickHouse.
+
 ## What it emits
 
-To be written.
+Claude Code sends both traces and logs. Traces need the enhanced telemetry beta; without it you get only logs, and the run page falls back to the flat event view.
+
+Spans (instrumentation scope `com.anthropic.claude_code.tracing`):
+
+| Span | What it is |
+|---|---|
+| `claude_code.interaction` | One prompt and everything it caused. The root of a turn. |
+| `claude_code.llm_request` | One model call: `model`, `input_tokens`, `output_tokens`, `cache_read_tokens`, `ttft_ms`, `attempt`, `stop_reason`. Carries a `gen_ai.request.attempt` span event. |
+| `claude_code.tool` | One tool call: `tool_name` (the full `mcp__<server>__<tool>` for MCP tools), `tool_use_id`, `duration_ms`. |
+| `claude_code.tool.blocked_on_user` | The wait for a permission decision, with `decision` and `source`. |
+| `claude_code.tool.execution` | The tool actually running. Status Error with `error_class` when it fails. |
+
+Log events (scope `com.anthropic.claude_code.events`, the name is in the record body as `claude_code.<event>`): `user_prompt`, `assistant_response`, `api_request`, `tool_decision`, `tool_result`, and at start-up `plugin_loaded`, `hook_registered`, `mcp_server_connection` and `managed_settings_resolved`. The start-up events belong to the session but have no prompt or trace id.
+
+Every record carries `session.id`; the logs of a turn carry `prompt.id` and the trace and span ids of their turn. The spans do not carry `prompt.id`. Records also carry the signed-in user's `user.email`, `user.id` and `organization.id`, which a shared collector should treat as personal data.
 
 ## Set up
 
-To be written.
+Turn on telemetry with these variables. ShipLean's Agent setup tab and the `agent_setup` tool print them with your project and item filled in.
+
+```sh
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1      # the traces
+export OTEL_TRACES_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318   # your collector, see "Collector"
+```
+
+Metrics are optional and ShipLean does not read them; leave `OTEL_METRICS_EXPORTER` unset or `none`.
+
+### Per-user environment
+
+Put the variables in your shell profile (`~/.bashrc`, `~/.zshrc`) for every session, or in the `env` block of `~/.claude/settings.json`, which Claude Code applies to its own process:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1",
+    "OTEL_TRACES_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel.example.com"
+  }
+}
+```
+
+### Where the variables can go
+
+Claude Code ignores the OpenTelemetry exporter variables in a repository's `.claude/settings.json` and `.claude/settings.local.json`. That is by design: a repository cannot turn telemetry on, choose where it goes or capture content. Put them in one of these instead:
+
+- your shell, or `env` in `~/.claude/settings.json` (above);
+- a settings file you pass with `claude --settings <file>`, which took effect in our check;
+- managed settings, for everyone (below).
+
+Do not put `OTEL_RESOURCE_ATTRIBUTES` for one item in a shared file (see "Tag the item").
+
+### Collector token
+
+A shared collector should require a token. Give each developer a narrow, send-only collector token and pass it in `OTEL_EXPORTER_OTLP_HEADERS` (for example `Authorization=Bearer <token>`) in `~/.claude/settings.json` or managed settings, or fetch it with `otelHeadersHelper` in user settings. Never use a ShipLean API token or a store credential for this, and never commit the token to a repository or set it in a cloud environment's variables.
+
+### Org-wide managed settings
+
+To turn it on for everyone, an admin sets the same `env` block in Claude Code's managed settings file (on Linux `/etc/claude-code/managed-settings.json`; on macOS and Windows the corresponding managed location). Also set the exporter selectors (`OTEL_TRACES_EXPORTER`, `OTEL_LOGS_EXPORTER`) there: otherwise a developer can still turn a signal off or switch it to console. We did not exercise this file; Claude Code reports whether it found managed settings in the `managed_settings_resolved` event.
+
+### Collector
+
+Point `OTEL_EXPORTER_OTLP_ENDPOINT` at your own collector (see [Collector](/inspection/collector/)). ShipLean has no OTLP endpoint of its own. The reference collector config accepts OTLP/HTTP on port 4318.
+
+### agent-relay
+
+When agent-relay has `RELAY_OTEL_ENDPOINT` set, it sets the variables above itself for each run it starts, and tags the item, project and `vcs.repository.url.full` in `OTEL_RESOURCE_ATTRIBUTES`, so you do not tag by hand.
 
 ## Tag the item
 
-To be written.
+Runs link to an item through resource attributes. Set them per run:
+
+```sh
+export OTEL_RESOURCE_ATTRIBUTES="shiplean.project=SHIP,shiplean.item=SHIP-123,vcs.repository.name=ShipLean,vcs.ref.head.name=my-branch"
+```
+
+Claude Code copies them onto every span and log record, and ShipLean reads `shiplean.item` and `shiplean.project`. The `vcs.*` attributes are optional context.
+
+The other way ShipLean links a run is from a ShipLean MCP tool call that names the item. Do not rely on it for Claude Code: its tool-call records do not carry what the link rule looks for (see "Known gaps"). Set the resource attributes.
 
 ## Content and privacy
 
-To be written.
+By default Claude Code keeps content out of what it sends. We checked each switch on its own:
+
+| Variable | What it adds |
+|---|---|
+| (none) | Token counts, model, timings, tool names and status. `prompt`, `user_prompt` and `response` are the literal text `<REDACTED>`. |
+| `OTEL_LOG_USER_PROMPTS=1` | The prompt text (on the `user_prompt` log and on the interaction span). With tracing it also puts `system_prompt_preview`, `new_context` and `response.model_output` on `llm_request` spans. It also adds the assistant's reply, because `OTEL_LOG_ASSISTANT_RESPONSES` falls back to it; set that to `0` to keep replies redacted. |
+| `OTEL_LOG_TOOL_DETAILS=1` | `tool_input` and `tool_parameters` on `tool_result` and `tool_decision` logs (a Bash command, an MCP call's arguments) and `full_command` on Bash spans. |
+| `OTEL_LOG_TOOL_CONTENT=1` | A `tool.output` event on the tool span with the tool's output. |
+| `OTEL_LOG_RAW_API_BODIES` | Implies all content above, plus the raw API request and response bodies. Treat it as everything. |
+
+ShipLean shows none of this unless the project turns content display on, and "What it did" never shows prompt text. Leave the switches off unless your collector redacts. See [Privacy](/inspection/privacy/).
 
 ## Check it works
 
-To be written.
+Run a tiny session with the variables set:
+
+```sh
+OTEL_RESOURCE_ATTRIBUTES="shiplean.project=SHIP,shiplean.item=SHIP-123" \
+  claude -p "list the files in this directory" --max-turns 3
+```
+
+Within a few seconds the run appears under Agent runs on SHIP-123, with an interaction, model calls and the tool call. If it does not, see [Troubleshooting](/inspection/troubleshooting/). To look at the collector's side directly, read the newest rows of `otel_traces` where `ServiceName = 'claude-code'`.
+
+Claude Code batches telemetry; a short session can exit before the batch goes out. Lower `OTEL_TRACES_EXPORT_INTERVAL` and `OTEL_LOGS_EXPORT_INTERVAL` (milliseconds) if a run is missing its tail.
 
 ## Known gaps
 
-To be written.
-
-## Per-user environment
-
-To be written.
-
-## Repo settings file
-
-To be written.
-
-## Org-wide managed settings
-
-To be written.
-
-## agent-relay
-
-To be written.
+- Claude Code's log records have no severity (the number is 0), so ShipLean reports their severity as UNSPECIFIED, not as a level. Failures show on the spans (status Error on `claude_code.tool.execution`), not in the log level. A failed tool call is `success=false` on its `tool_result` log and an error on the execution span.
+- ShipLean's tool-call link (a run linked because it called `pick_up` on an item) does not work with Claude Code today. The span names the tool (`mcp__shiplean__pick_up`) but carries no input; the log has the input only when `OTEL_LOG_TOOL_DETAILS` is on, and names the tool `mcp_tool`. Use `shiplean.item`.
+- The spans have no `prompt.id`; only the logs do.
+- Subagent spans were not in our run, so this page does not describe them.
+- The signed-in account's email, user id and organization id are on every record.
