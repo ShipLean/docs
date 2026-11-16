@@ -120,7 +120,7 @@ export COLLECTOR_TOKEN=$(openssl rand -hex 24)
 
 # ClickHouse mode
 docker compose -f docker-compose.clickhouse.yml up -d --wait
-docker compose -f docker-compose.clickhouse.yml exec clickhouse clickhouse-client -n \
+docker compose -f docker-compose.clickhouse.yml exec -T clickhouse clickhouse-client -n \
   --user otel_writer --password change-me-writer < clickhouse-users.sql   # after the first telemetry arrives
 
 # or Tempo and Loki mode
