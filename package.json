@@ -13,6 +13,7 @@
     "shots": "tsx scripts/shots/run.ts",
     "test:seed": "tsx --test scripts/shots/seed.test.ts",
     "check:inspection": "tsx scripts/check-inspection-pages.ts",
+    "test:inspection": "tsx --test src/lib/inspection-checked.test.ts",
     "check:config": "tsx scripts/check-config.ts",
     "test:config": "tsx --test scripts/check-config.test.ts",
     "check:site": "tsx scripts/checks/run.ts"

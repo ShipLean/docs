@@ -4,6 +4,9 @@ name: Deploy documentation
 on:
   push:
     branches: [main]
+  schedule:
+    # Weekly rebuild so the 90-day "Out of date" banner on agent pages is recomputed.
+    - cron: '0 3 * * 1'
   workflow_dispatch:
 
 permissions:

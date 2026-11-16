@@ -5,36 +5,81 @@ sidebar:
   order: 8
 ---
 
-A checklist for a run that does not appear, per agent.
+Work down this list in order: each step rules out the layer before it. The run's path is agent, then collector, then store, then ShipLean.
 
 ## Is telemetry on
 
-To be written.
+The agent sends nothing until it is told to, and each agent needs different switches. Check the agent's own page first: [Claude Code](/inspection/claude-code/#set-up), [Codex CLI](/inspection/codex-cli/#set-up), [Cursor](/inspection/cursor/#set-up). ShipLean's Agent setup tab and the `agent_setup` tool print the exact settings for your project and item.
+
+If the variables are right but a short session leaves nothing behind, the agent exited before its batch went out. Lower the export intervals, as the [Claude Code page](/inspection/claude-code/#check-it-works) says.
 
 ## Is the collector reachable
 
-To be written.
+From the machine the agent runs on, the collector's OTLP/HTTP port (4318 in the reference config) must answer. Check the endpoint with `curl -i <endpoint>/v1/logs`; any HTTP answer, even 405, means it is reachable, and a connection error means it is not. A collector that requires a token answers 401 without the `Authorization` header in `OTEL_EXPORTER_OTLP_HEADERS`.
+
+Then check the store side: read the newest rows of `otel_traces` or `otel_logs` (ClickHouse), or search Tempo and Loki, for the agent's service name. Rows there mean the agent and collector work and the problem is on the ShipLean side.
 
 ## Are the attributes present
 
-To be written.
+A run shows on an item only when its records carry `shiplean.item` (and `shiplean.project`). Read one stored record and look at its resource attributes. If they are missing, the agent did not get `OTEL_RESOURCE_ATTRIBUTES`, or the collector removed them (the optional allow-list drops everything it does not list). See "Tag the item" on the agent's page. agent-relay sets them itself.
 
 ## Does the field mapping match
 
-To be written.
+If the attributes exist under other names, ShipLean cannot find them. Open the health panel (Admin › Instance health), press "Check fields" (see below), then set the matching `SHIPLEAN_INSPECTION_FIELD_*` variable. The names are in [turn on](/inspection/turn-on/#field-mapping).
 
-## Has the trace expired
+## Fields show as not found in the health panel
 
-To be written.
+After you press "Check fields", the health panel lists each mapped field and whether recent telemetry carries it. "Not found" for a field means no recent record had that attribute. The usual causes:
+
+- nothing has been sent recently, so there is nothing to find. Run a short session first;
+- the agent does not send it. Cursor's hook sends `prompt.id`, taken from the hook's `generation_id`. Codex CLI documents `conversation.id` and `turn.id` instead; mapping them to `session.id` and `prompt.id` is wave 2 work. Claude Code's spans have no `prompt.id`, only its logs do. That is expected and the panel is not always green for every agent;
+- the collector renamed or deleted it. Look at the collector's processors;
+- you mapped a different name. Check the `SHIPLEAN_INSPECTION_FIELD_*` variable.
+
+Only the item and project fields have to be found for runs to link.
+
+## My run is not there yet
+
+In Tempo and Loki mode, a run that has just finished can take a minute or so to appear. Tempo finds a trace by attribute only after it has been flushed, and the collector's batch holds data first. Runs are linked only by tagging them with `shiplean.item`; linking through a ShipLean tool call works for no agent today. Wait a minute and reload before you look further. The timings are on the [collector page](/inspection/collector/#search-lag). ClickHouse mode has no such lag beyond the exporter's batch, and the health panel shows how far the run index is behind.
+
+## ShipLean says the store is unreachable
+
+When ShipLean cannot reach the store, the run page and the row panel show a "store unreachable" state with the problem text instead of the generic error, and the underlying request answers with HTTP 409. The Agent runs section on the item still loads and says the store is down. The problem text is the same as in the health panel: read it there. Typical causes: the ClickHouse connection string or its HTTP port (8123), a changed password for ShipLean's store user, a Tempo or Loki URL or tenant that is wrong, or the store container being down. Fix the setting or the store; no reload of ShipLean is needed once the store answers.
+
+![The run page when the store is unreachable, showing the problem text instead of a run.](/inspection/run-page-store-unreachable.png)
+
+## It says "No longer available"
+
+A run listed on an item but gone from the store has expired: the store's retention (30 days in the reference configs) deleted its telemetry, and ShipLean keeps only the index entry. It is not an error and the data cannot be recovered through ShipLean. If you need runs for longer, raise the store's retention and `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` together. In Tempo and Loki mode the notice shows only while ShipLean still holds the cached link, about ten minutes after it last found the run; after that the page shows "Couldn't load this run. Reload the page to try again." A run that was never stored shows the same message.
+
+## My settings env block is ignored
+
+Claude Code ignores the OpenTelemetry variables in a repository's `.claude/settings.json` and `.claude/settings.local.json`, by design, so a repository cannot turn telemetry or content capture on. Put them in your shell, in `env` in `~/.claude/settings.json`, in a file passed with `claude --settings <file>`, or in managed settings. See [Where the variables can go](/inspection/claude-code/#where-the-variables-can-go). This is also a privacy feature: see [Privacy](/inspection/privacy/#the-switches).
+
+## The run shows in the wrong project, or not at all
+
+ShipLean reads the project from the `shiplean.project` attribute, and Tempo and Loki mode also queries under the project's tenant. If a run is on the wrong project or under none:
+
+- check `shiplean.project` on a stored record; an agent can send the wrong value. To make the collector decide, [force the project](/inspection/collector/#forcing-shipleanproject);
+- check the project is enabled for Inspection ([per project](/inspection/turn-on/#per-project));
+- in Tempo and Loki mode, check the project's tenant and selector override match where the collector wrote the telemetry. A tenant mismatch looks like an empty store;
+- confirm it is the project and item you meant: the item key in `shiplean.item` must belong to that project.
+
+## Content is missing
+
+If the run page shows no prompts or tool input, that is the default. Content needs three things at once: the agent captures it, the collector does not redact it, and the project has Show content on. See [Privacy](/inspection/privacy/). When the collector redacts it, no setting in ShipLean brings it back, and a redaction rule that is too wide or a secret pattern that hit hides more than you wanted ([Redaction](/inspection/collector/#redaction)).
 
 ## Claude Code
 
-To be written.
+- Spans are missing and the page is flat events: the enhanced telemetry beta is off (`CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`).
+- Variables set in a repository file do nothing: see above.
+- The run is not linked: Claude Code's tool-call records cannot link a run, so `shiplean.item` has to be set.
+- No severity pills: expected. Claude Code sends no log severity.
 
 ## Codex CLI
 
-To be written.
+Not yet checked against a real run, so this list is short. Check `otel.exporter` is not `none`, which is its default and exports nothing. Without a trace exporter the run may be untagged. Read the service name from your collector; it is not documented. See [Codex CLI known gaps](/inspection/codex-cli/#known-gaps).
 
 ## Cursor
 
-To be written.
+Not yet checked against a real run. Run the hook script by hand with the sample payload and read its output ([Cursor, check it works](/inspection/cursor/#check-it-works)). Hooks run only where Cursor's agent runs, and the item has to come from `SHIPLEAN_ITEM` or a `.shiplean` file. See [Cursor known gaps](/inspection/cursor/#known-gaps).

@@ -7,9 +7,13 @@ checkedWith: "Claude Code 2.1.323"
 checkedOn: "2026-11-15"
 ---
 
+import CheckedWith from '@/components/CheckedWith.astro';
+
 Send Claude Code telemetry to your collector so its runs show on the item.
 
-Checked with Claude Code 2.1.323 on 2026-11-15: a real session on Linux sent to an OpenTelemetry collector 0.165.0 over OTLP/HTTP, and read back from ClickHouse.
+<CheckedWith agent="claude-code" checkedWith={frontmatter.checkedWith} checkedOn={frontmatter.checkedOn} />
+
+The check was a real session on Linux sent to an OpenTelemetry collector 0.165.0 over OTLP/HTTP, and read back from ClickHouse.
 
 ## What it emits
 

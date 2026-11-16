@@ -13,9 +13,11 @@ pnpm dev
 
 `pnpm build` generates `dist/`, builds the Pagefind search index, and fails on broken internal Markdown or MDX links. `pnpm preview` serves the built site. `pnpm check` checks Astro and TypeScript files. The build workflow runs on pull requests and pushes to `main`.
 
+The "Out of date" banner on agent inspection pages (older than 90 days) is computed at build time. The deploy workflow therefore also runs weekly (Mondays 03:00 UTC) so the banner appears without a docs push.
+
 ## Pages and links
 
-Pages live in `src/content/docs/`. All initial pages use MDX so they can import components and shared configuration. Keep each page's slug and title when you replace its outline. `src/sidebar.ts` declares the six sections and their order.
+Pages live in `src/content/docs/`. All initial pages use MDX so they can import components and shared configuration. Keep each page's slug and title when you replace its outline. `src/sidebar.ts` declares the seven sections and their order.
 
 Use root-relative links with trailing slashes, such as `/start/quickstart/`. Link runnable examples to their file in `https://github.com/ShipLean/docs/blob/main/examples/` or to their download at `https://raw.githubusercontent.com/ShipLean/docs/main/examples/`. Repository files are not copied into the website automatically.
 

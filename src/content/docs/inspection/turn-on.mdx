@@ -29,7 +29,7 @@ SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION=<connection string, a secret>
 
 | Variable | Meaning |
 |---|---|
-| `SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION` | The connection string for ClickHouse's HTTP port (8123), with the read-only user below. |
+| `SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION` | The connection string for ClickHouse's HTTP port (8123), with the ShipLean user below. |
 | `SHIPLEAN_INSPECTION_CLICKHOUSE_DATABASE`, `_TRACES_TABLE`, `_LOGS_TABLE` | The exporter's names. Defaults `otel`, `otel_traces`, `otel_logs`. Letters, digits and `_` only. |
 | `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` | Default 30. Match the exporter's `ttl`. |
 
@@ -55,7 +55,7 @@ SHIPLEAN_INSPECTION_LOKI_URL=http://loki:3100
 | `SHIPLEAN_INSPECTION_LOKI_URL`, `_LOKI_AUTH`, `_LOKI_TENANT` | The same for Loki. |
 | `SHIPLEAN_INSPECTION_LOKI_SELECTOR` | The base stream selector for log queries. Default `{service_name=~".+"}`. |
 
-Use read-only credentials for both. Retention is whatever your Tempo and Loki are set to. Because Tempo and Loki have no run index, ShipLean looks runs up when someone opens an item and keeps what it found for about ten minutes in a small table of its own.
+Use read-only credentials for both. Retention is whatever your Tempo and Loki are set to. Because Tempo and Loki have no run index, ShipLean looks runs up when someone opens an item and keeps what it found for about ten minutes as run links (no span or log data) in a small table in ShipLean's own Postgres.
 
 ## Per project
 
@@ -83,4 +83,4 @@ If you rename an attribute in the collector, set the matching variable. The Clic
 
 ## The health panel
 
-The instance's Inspection settings show a health panel: whether Inspection is on and in which mode, whether the store answered and how long it took, how far the run index lags behind the newest telemetry (ClickHouse), and, for each field in the table above, whether recent telemetry carries that attribute. A field that shows as not found usually means the agent is not sending it, or the collector renamed it. See [Troubleshooting](/inspection/troubleshooting/). The panel's problem text is also what a run page shows when the store is down.
+The health panel (Admin › Instance health) shows: whether Inspection is on and in which mode, whether the store answered and how long it took, how far the run index lags behind the newest telemetry (ClickHouse), and, after an admin presses "Check fields", for each field in the table above whether recent telemetry carries that attribute. A field that shows as not found usually means the agent is not sending it, or the collector renamed it. See [Troubleshooting](/inspection/troubleshooting/). The panel's problem text is also what a run page shows when the store is down.

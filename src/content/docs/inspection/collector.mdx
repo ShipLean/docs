@@ -15,7 +15,7 @@ Checked on 2026-11-15 with OpenTelemetry Collector contrib 0.165.0, ClickHouse 2
 | [`collector-tempo-loki.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/collector-tempo-loki.yaml) | Collector to Tempo (traces) and Loki (logs). |
 | [`docker-compose.clickhouse.yml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/docker-compose.clickhouse.yml) | Collector and ClickHouse, for a team starting from nothing. |
 | [`docker-compose.tempo-loki.yml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/docker-compose.tempo-loki.yml) | Collector, Tempo and Loki, with [`tempo.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/tempo.yaml) and [`loki.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/loki.yaml). |
-| [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql) | The read-only user for ShipLean. |
+| [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql) | The ShipLean user: reads `otel`, writes only `inspection`. |
 
 Both configs share the same receiver and processors, in this order: `memory_limiter`, the redaction processors, `batch`.
 
@@ -48,7 +48,7 @@ exporters:
 
 `ttl: 720h` makes the exporter create the tables with a 30-day TTL, so ClickHouse drops older rows itself. Set ShipLean's `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` to the same number of days (default 30), so ShipLean knows when a run is gone and shows "no longer available" instead of an error. The exporter sets the TTL only when it creates a table. To change it for existing tables, alter them in ClickHouse (`ALTER TABLE otel.otel_traces MODIFY TTL toDateTime(Timestamp) + INTERVAL 14 DAY`, and the same for `otel_logs`).
 
-### The read-only ClickHouse user
+### The ClickHouse user for ShipLean
 
 Give ShipLean its own user, not the collector's. [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql) creates `shiplean_reader`:
 
@@ -78,7 +78,7 @@ The supplied `tempo.yaml` sets `block_retention: 720h` and `loki.yaml` sets `ret
 
 ### Search lag
 
-Tempo finds a trace by attribute only after the trace has been flushed from the ingester, and the collector's `batch` processor holds data first. With the supplied settings (`batch` 5 s, Tempo `trace_idle_period: 1s`, `max_block_duration: 5s`) a fixture run was searchable about 16 seconds after we sent it. With Tempo's defaults it takes longer. A run that has just finished and is linked to an item only through a ShipLean tool call, not through `shiplean.item`, is found by that search, so it can take a minute or so to appear. Tag the run with `shiplean.item` and ShipLean can find it without waiting. If a finished run is missing, wait a minute and reload before you troubleshoot.
+Tempo finds a trace by attribute only after the trace has been flushed from the ingester, and the collector's `batch` processor holds data first. With the supplied settings (`batch` 5 s, Tempo `trace_idle_period: 1s`, `max_block_duration: 5s`) a fixture run was searchable about 16 seconds after we sent it. With Tempo's defaults it takes longer. A run that has just finished can take a minute or so to appear. Runs are linked only by tagging them with `shiplean.item`; linking through a ShipLean tool call works for no agent today. If a finished run is missing, wait a minute and reload before you troubleshoot.
 
 ## Redaction
 

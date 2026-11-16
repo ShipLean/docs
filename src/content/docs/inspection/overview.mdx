@@ -5,16 +5,58 @@ sidebar:
   order: 1
 ---
 
-What you get from agent inspection, the two store modes and what each agent gives you.
+Agent inspection shows what a coding agent did on a work item: its turns, model calls, tool calls and errors, on a page you open from the item. ShipLean does not collect the telemetry. Your agents send it to your own collector, the collector stores it, and ShipLean reads it back.
 
 ## What you get
 
-To be written.
+- An **Agent runs** section on an item page, one row per run, linked to the item the run worked on. A row says what the run did from its ShipLean tool calls (for example `report_task: done`), never from prompt text.
+- A **run page** at `/items/<key>/runs/<run>`: a waterfall grouped by turn on one time axis, with a side panel for the selected span or event. Agents that send only log events get the same page as flat event rows, with a banner saying what that agent does not send.
+- Tokens, but no cost. ShipLean shows token counts and never a price.
+- Desktop only. Under 900 px wide the item shows no Agent runs section and a run link shows one line with a link back; the phone app shows nothing.
+- Content (prompts, tool input and output) is hidden unless the project turns it on. See [Privacy](/inspection/privacy/).
+
+Only items that runs are linked to directly show them. A planning run on a Feature shows on the Feature, and there is no roll-up of children's runs.
+
+![A run page: a waterfall of turns, model calls and tool calls on one time axis.](/inspection/run-page.png)
 
 ## The two store modes
 
-To be written.
+The instance picks one mode when an admin [turns Inspection on](/inspection/turn-on/).
+
+| | ClickHouse | Tempo and Loki |
+|---|---|---|
+| Where the collector writes | ClickHouse, through the collector's `clickhouse` exporter | Tempo (traces) and Loki (logs) |
+| Who writes | The collector writes all telemetry. ShipLean writes only its run index, in an `inspection` database in your ClickHouse, never to `otel.*` | The collector writes all telemetry. ShipLean caches run links (no span or log data) in its own Postgres for about ten minutes |
+| How ShipLean finds an item's runs | A run index it builds in an `inspection` database in your ClickHouse, from the exporter's tables | A search by `shiplean.item` when someone opens the item, cached for about ten minutes |
+| Retention | The exporter's `ttl` (30 days in the reference config) | Your Tempo and Loki retention |
+| ShipLean's credentials | Read-only on the exporter's tables, plus create, insert and drop on `inspection.*` only | Read-only Tempo and Loki credentials |
+
+In both modes you run your own collector; ShipLean has no OTLP endpoint. The [collector page](/inspection/collector/) has reference configs for both modes, with redaction and batching.
+
+![An item page with its Agent runs section listing runs, each with a short summary of what it did.](/inspection/agent-runs-section.png)
 
 ## What each agent gives you
 
-To be written.
+This table says what we know, and how we know it. Only Claude Code has been checked with a real run.
+
+| | Claude Code | Codex CLI | Cursor |
+|---|---|---|---|
+| Checked | Yes, version 2.1.323 on 2026-11-15, a real run read back from ClickHouse | No. Written from OpenAI's documentation | No. Written from Cursor's hooks documentation |
+| What it sends | Spans and logs (spans need the enhanced telemetry beta) | Logs; spans only if you set a trace exporter | Log records only, from a hook script ShipLean supplies |
+| Run page | Waterfall | Flat event rows (a waterfall if your release sends traces) | Flat event rows |
+| Model-call timing and tokens | Yes: `llm_request` spans with `ttft_ms` and token counts | Per request (`codex.api_request`); tokens arrive on `codex.sse_event` | None: hooks do not fire around model requests |
+| Link by tagging `shiplean.item` | Supported, and what to use | Documented only for spans; unconfirmed for logs | Supported, through `SHIPLEAN_ITEM` or a `.shiplean` file |
+| Link from a ShipLean tool call | Does not work today | Does not work today | Does not work today |
+| Content by default | Redacted by the agent | Prompt text off; tool output on, truncated (`tool_result.max_bytes`) | Not sent |
+
+Tool-call linking means linking a run because it called a ShipLean tool such as `pick_up` on an item. It does not work for any of the three agents today: Claude Code's spans carry the tool name but no input and its logs name the tool `mcp_tool`; Codex CLI's tool input is not documented; Cursor sends the bare tool name with the item only inside the tool input. Tag the run with `shiplean.item` instead; it is the only way runs are linked today. agent-relay does this for every run it starts.
+
+Each agent's own page has the detail and its known gaps: [Claude Code](/inspection/claude-code/), [Codex CLI](/inspection/codex-cli/), [Cursor](/inspection/cursor/). Those pages show a "Checked with" line, and an Out of date banner when the check is more than 90 days old or older than the recorded run.
+
+Every agent's records may carry the signed-in user's email and ids; see [Privacy](/inspection/privacy/#personal-data-on-every-record).
+
+## Where to go next
+
+1. [Set up the collector](/inspection/collector/).
+2. [Turn Inspection on](/inspection/turn-on/) for the instance, then for a project.
+3. Set up an agent, then [troubleshoot](/inspection/troubleshooting/) if its run does not show.
