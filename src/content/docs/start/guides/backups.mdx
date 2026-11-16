@@ -186,10 +186,10 @@ Use a bucket in another account or region when you can.
 
 ## Restore runbook
 
-You need: Docker, the passphrase (the one for the generation in the file name), the bucket's access, and a Postgres 18
+You need: Docker, the AWS CLI (steps 2 and 5 use `aws s3`), the passphrase (the one for the generation in the file name), the bucket's access, and a Postgres 18
 server or newer that you can reach. Keep the downloaded and decrypted files in an empty working folder. For stopping and
 starting ShipLean, use the orchestration system and project that actually run your instance; the local Compose commands
-below are examples for the repository's single `src` Compose project only.
+below are examples for the repository's single `src` Compose project only. They use a path relative to the repository root. If you run the published image with your own Compose file, give that file's path instead.
 
 ### 1. Stop ShipLean
 
@@ -258,6 +258,8 @@ DB_NAME=shiplean
 ADMIN_URL=postgresql://postgres:secret@postgres:5432/postgres
 DATABASE_URL=postgresql://postgres:secret@postgres:5432/shiplean
 ```
+
+Use your own user and password. The compose file in `src/` sets the password to `postgres` unless `POSTGRES_PASSWORD` is set.
 
 Restore into an **empty** database. The dump has no `DROP` statements, so a database that already has ShipLean tables
 (ShipLean started once and migrated it) fails with "already exists" errors. The following `DROP DATABASE ... WITH
@@ -367,6 +369,8 @@ curl -fsS http://127.0.0.1:8080/health
 `/health` answers 200 with the version. Sign in and open **Instance settings › Backups**. The saved destination is
 still there, with its secret key (the Data Protection keys came back with the dump). If you restored to a different
 host, check the setting there: **Test connection** proves the key still works.
+
+The restored run history shows the run that made the dump as still running, and the health line may say the last backup failed. The next run marks it abandoned (see [An abandoned run](#an-abandoned-run)) and clears it.
 
 Now delete the decrypted file: `shred -u shiplean.dump` (or `rm`). It holds the keys and every item in plain text.
 
