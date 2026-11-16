@@ -30,47 +30,57 @@ processors:
     spike_limit_mib: 100
 
   # --- Redaction: content is dropped by default. -------------------------------------------------------------------------
-  # Content attributes Claude Code, Codex CLI and Cursor can send. Deleted, not hashed: a hash of a prompt is still a
-  # fingerprint of it. To keep a stable fingerprint instead, change `delete` to `hash`.
-  attributes/drop_content:
-    actions:
-      - { key: user_prompt, action: delete }
-      - { key: prompt, action: delete }
-      - { key: tool_input, action: delete }
-      - { key: tool_parameters, action: delete }
-      - { key: full_command, action: delete }
-      - { key: Authorization, action: delete }
-      - { key: authorization, action: delete }
-      - { key: http.request.header.authorization, action: delete }
-
-  # The `tool.output` span event (Claude Code with OTEL_LOG_TOOL_CONTENT=1) holds the tool's output. Span events are not
-  # reached by the attributes processor, so the transform processor empties their attributes.
-  transform/drop_tool_output:
-    error_mode: ignore
-    trace_statements:
-      - context: spanevent
-        statements:
-          - 'delete_matching_keys(spanevent.attributes, ".*") where spanevent.name == "tool.output"'
-
-  # Secrets that turn up inside values that stay (a command in an error message, a header echoed in a log line).
-  transform/redact_secrets:
+  # One rule, mirroring ShipLean's own list of content keys (ContentKeys.IsHidden): an attribute is content when its last dotted
+  # segment is prompt, prompt_text, user_prompt, input, tool_input, tool_parameters, arguments, output, tool_output, response,
+  # result, content, command or full_command (so tool.input and foo.prompt go too), or when it is a gen_ai.* key whose segment
+  # starts with prompt, completion, message or system_instruction. Token counts and model names stay. Authorization keys go too.
+  # It runs on span attributes, span events, log attributes and resource attributes. Keys are deleted, not hashed: a hash of a
+  # prompt is still a fingerprint of it. The `tool.output` span event (Claude Code with OTEL_LOG_TOOL_CONTENT=1) is emptied whole.
+  # Then secret patterns run over the values that stay, and over the log body.
+  transform/redact:
     error_mode: ignore
     trace_statements:
       - context: span
         statements:
+          - 'delete_matching_keys(span.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
           - 'replace_all_patterns(span.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
           - 'replace_all_patterns(span.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
           - 'replace_all_patterns(span.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
           - 'replace_all_patterns(span.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+      - context: spanevent
+        statements:
+          - 'delete_matching_keys(spanevent.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
+          - 'delete_matching_keys(spanevent.attributes, ".*") where spanevent.name == "tool.output"'
+          - 'replace_all_patterns(spanevent.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_all_patterns(spanevent.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_all_patterns(spanevent.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_all_patterns(spanevent.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+      - context: resource
+        statements:
+          - 'delete_matching_keys(resource.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
     log_statements:
       - context: log
         statements:
+          - 'delete_matching_keys(log.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
           - 'replace_all_patterns(log.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
           - 'replace_all_patterns(log.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
           - 'replace_all_patterns(log.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
           - 'replace_all_patterns(log.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
           - 'replace_pattern(log.body, "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_pattern(log.body, "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_pattern(log.body, "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
           - 'replace_pattern(log.body, "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+      - context: resource
+        statements:
+          - 'delete_matching_keys(resource.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
 
   # --- Options, not in the pipelines below. Add them to `processors:` of the pipelines, before `batch`. ----------------------
   # Drop the signed-in account's personal data (every Claude Code record carries user.email, user.id, organization.id).
@@ -137,10 +147,10 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, attributes/drop_content, transform/drop_tool_output, transform/redact_secrets, batch]
+      processors: [memory_limiter, transform/redact, batch]
       # Options, added before batch: attributes/drop_user and resource/drop_user (together), transform/allow_list, resource/force_project
       exporters: [clickhouse]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, attributes/drop_content, transform/redact_secrets, batch]
+      processors: [memory_limiter, transform/redact, batch]
       exporters: [clickhouse]

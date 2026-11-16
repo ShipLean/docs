@@ -7,7 +7,11 @@
 --      GRANT CREATE DATABASE, CREATE TABLE, INSERT, SELECT, ALTER ON otel.* TO <collector user>;
 
 -- 2. ShipLean's user: read-only on the telemetry.
-CREATE USER IF NOT EXISTS shiplean_reader IDENTIFIED BY 'change-me-reader';
+-- __READER_PASSWORD__ is replaced from the container's SHIPLEAN_READER_PASSWORD when the file is piped in (see the docs page), so no
+-- password is stored in this file or typed on a command line. HOST limits where the reader may connect from: loopback and the
+-- private ranges (Docker's bridge, a LAN). Narrow it to ShipLean's own address in production.
+CREATE USER IF NOT EXISTS shiplean_reader IDENTIFIED BY '__READER_PASSWORD__'
+    HOST IP '127.0.0.0/8', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16';
 GRANT SELECT ON otel.otel_traces TO shiplean_reader;
 GRANT SELECT ON otel.otel_logs TO shiplean_reader;
 -- ShipLean keeps its own small run index in a separate `inspection` database (it never writes to `otel`).

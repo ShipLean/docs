@@ -86,8 +86,8 @@ Prompts, tool input and secrets must not reach your store unless you decided the
 
 The default pipeline:
 
-1. `attributes/drop_content` deletes these attributes from spans and log records: `user_prompt`, `prompt`, `tool_input`, `tool_parameters`, `full_command`, `Authorization`, `authorization` and `http.request.header.authorization`. These are the keys we found in a real Claude Code 2.1.323 run. They are deleted, not hashed: a hash of a prompt still fingerprints it. To keep a fingerprint, change `action: delete` to `action: hash` for a key.
-2. `transform/drop_tool_output` empties the attributes of the `tool.output` span event, where Claude Code puts a tool's output when `OTEL_LOG_TOOL_CONTENT` is on. Span events are out of reach of the attributes processor, so this needs the transform processor.
+1. `transform/redact` deletes content attributes with one regular expression that mirrors the rule ShipLean applies when a project hides content. A key goes when its last dotted segment is `prompt`, `prompt_text`, `user_prompt`, `input`, `tool_input`, `tool_parameters`, `arguments`, `output`, `tool_output`, `response`, `result`, `content`, `command`, `full_command` or `authorization` (so `tool.input` and `foo.prompt` go too), or when it is a `gen_ai.*` key with a segment that starts with `prompt`, `completion`, `message` or `system_instruction`. Token counts and model names stay. The rule runs on span attributes, span events, log attributes and resource attributes. Keys are deleted, not hashed: a hash of a prompt still fingerprints it.
+2. The same processor empties the attributes of the `tool.output` span event, where Claude Code puts a tool's output when `OTEL_LOG_TOOL_CONTENT` is on.
 3. `transform/redact_secrets` replaces secret patterns inside values that stay: `Authorization: Bearer …` and bare bearer tokens, API-key shapes (`sk-`, `ghp_`, `github_pat_`, `xox*-`, `AKIA…`) and `.env`-style lines (`NAME=value` on a line of its own). It covers span and log attributes and the log body.
 
 Test it the way we did: send a log record whose body is `Authorization: Bearer x` and whose `error.message` contains `curl failed: Authorization: Bearer x ghp_abcdefghijklmnop1234`. In the store the body is `<REDACTED>` and the message reads `curl failed: <REDACTED> <REDACTED>`. The `user_prompt`, `prompt` and `tool_parameters` attributes of the fixture were absent from ClickHouse, Tempo and Loki.
@@ -116,15 +116,19 @@ Both Compose files start the collector with the matching store. You need Docker 
 
 ```sh
 cd examples/inspection
-export COLLECTOR_TOKEN=$(openssl rand -hex 24)
+# Secrets live in an env file outside the repo, never on a command line.
+mkdir -p ~/.config/shiplean && (umask 077 && printf 'COLLECTOR_TOKEN=%s\nCLICKHOUSE_WRITER_PASSWORD=%s\nSHIPLEAN_READER_PASSWORD=%s\n' \
+  $(openssl rand -hex 24) $(openssl rand -hex 24) $(openssl rand -hex 24) > ~/.config/shiplean/inspection.env)
+set -a; . ~/.config/shiplean/inspection.env; set +a   # for the curl test below; compose reads the same file
 
 # ClickHouse mode
-docker compose -f docker-compose.clickhouse.yml up -d --wait
-docker compose -f docker-compose.clickhouse.yml exec -T clickhouse clickhouse-client -n \
-  --user otel_writer --password change-me-writer < clickhouse-users.sql   # after the first telemetry arrives
+docker compose --env-file ~/.config/shiplean/inspection.env -f docker-compose.clickhouse.yml up -d --wait
+# after the first telemetry arrives; the container's own CLICKHOUSE_USER and CLICKHOUSE_PASSWORD env log the client in
+docker compose --env-file ~/.config/shiplean/inspection.env -f docker-compose.clickhouse.yml exec -T clickhouse sh -c \
+  'sed "s/__READER_PASSWORD__/$SHIPLEAN_READER_PASSWORD/" | clickhouse-client -n' < clickhouse-users.sql
 
 # or Tempo and Loki mode
-docker compose -f docker-compose.tempo-loki.yml up -d
+docker compose -f docker-compose.tempo-loki.yml up -d   # needs only COLLECTOR_TOKEN, exported above
 ```
 
 Send a test record to confirm the collector accepts it. A 200 means it was accepted; the collector then batches for up to 5 seconds before it writes.
@@ -135,4 +139,4 @@ curl -i http://127.0.0.1:4318/v1/logs -H 'content-type: application/json' \
   --data '{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"claude-code"}},{"key":"shiplean.project","value":{"stringValue":"SHIP"}}]},"scopeLogs":[{"logRecords":[{"timeUnixNano":"'$(date +%s)'000000000","body":{"stringValue":"hello"}}]}]}]}'
 ```
 
-These are starting points, not production setups. Change the ClickHouse passwords (the Compose file's `change-me-writer` and the `change-me-reader` in the SQL file), keep the store ports on a private network, add TLS and back up the volumes. The ClickHouse container's user is the collector's writer; it has broad rights inside that container, so give a production collector only `CREATE DATABASE, CREATE TABLE, INSERT, SELECT, ALTER` on `otel`.
+These are starting points, not production setups. Compose refuses to start when a password or the token is unset, and the reader user may connect only from loopback and private addresses (`HOST IP` in the SQL file; narrow it to ShipLean's address). Keep the store ports on a private network, add TLS and back up the volumes. The ClickHouse container's user is the collector's writer; it has broad rights inside that container, so give a production collector only `CREATE DATABASE, CREATE TABLE, INSERT, SELECT, ALTER` on `otel`.
