@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "url": "https://support.google.com/cloud/answer/15549257",
+    "statuses": [429],
+    "reason": "Google support rate-limits GitHub-hosted runners; the page exists"
+  },
+  {
+    "url": "https://support.google.com/cloud/answer/15549945",
+    "statuses": [429],
+    "reason": "Google support rate-limits GitHub-hosted runners; the page exists"
+  }
+]
