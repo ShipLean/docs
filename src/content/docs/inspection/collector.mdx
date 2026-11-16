@@ -1,0 +1,145 @@
+---
+title: "Collector reference configs"
+description: "Reference OpenTelemetry collector configs for ClickHouse and for Tempo and Loki, with redaction, batching and Docker Compose files."
+sidebar:
+  order: 3
+---
+
+ShipLean has no OTLP endpoint. Your agents send telemetry to a collector that you run, and the collector writes it to the store ShipLean reads. These reference configs are the part in the middle: they authenticate senders, remove prompts and secrets, batch, and write to ClickHouse or to Tempo and Loki.
+
+Checked on 2026-11-15 with OpenTelemetry Collector contrib 0.165.0, ClickHouse 26.3, Tempo 2.10 and Loki 3.7. Each config was validated with `otelcol-contrib validate`, then run from the Compose file below. We sent one fixture run through each, read it back from the store and checked that the secrets and prompts were gone. Re-check the config when you change the collector image: the ClickHouse exporter's options change between versions.
+
+| File | What it is |
+|---|---|
+| [`collector-clickhouse.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/collector-clickhouse.yaml) | Collector to ClickHouse. |
+| [`collector-tempo-loki.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/collector-tempo-loki.yaml) | Collector to Tempo (traces) and Loki (logs). |
+| [`docker-compose.clickhouse.yml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/docker-compose.clickhouse.yml) | Collector and ClickHouse, for a team starting from nothing. |
+| [`docker-compose.tempo-loki.yml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/docker-compose.tempo-loki.yml) | Collector, Tempo and Loki, with [`tempo.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/tempo.yaml) and [`loki.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/loki.yaml). |
+| [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql) | The ShipLean user: reads `otel`, writes only `inspection`. |
+
+Both configs share the same receiver and processors, in this order: `memory_limiter`, the redaction processors, `batch`.
+
+## Receiver and token
+
+The collector listens for OTLP/HTTP on port 4318 and requires `Authorization: Bearer <token>` from every sender. Without the header it answers 401; we checked that. The token is `COLLECTOR_TOKEN`, a long random string you generate (`openssl rand -hex 24`). It is a send-only token: it lets a sender write telemetry and nothing else. Do not reuse a ShipLean API token or a store password for it.
+
+Hand the token to agents through `OTEL_EXPORTER_OTLP_HEADERS` in the user's own settings, or fetch it with Claude Code's `otelHeadersHelper`. Do not put it on a command line, where `ps` shows it to other users on the machine, and do not commit it to a repository. See [Set up Claude Code](/inspection/claude-code/#collector-token).
+
+The Compose files publish port 4318 on `127.0.0.1` only. Put a TLS reverse proxy in front of it before agents on other machines send to it; a bearer token over plain HTTP can be read on the wire.
+
+## To ClickHouse
+
+`collector-clickhouse.yaml` uses the `clickhouse` exporter, which creates the tables `otel.otel_traces` and `otel.otel_logs` itself (`create_schema: true`). ShipLean reads those tables and never writes to them.
+
+```yaml
+exporters:
+  clickhouse:
+    endpoint: ${env:CLICKHOUSE_ENDPOINT}     # tcp://clickhouse:9000
+    username: ${env:CLICKHOUSE_USER}
+    password: ${env:CLICKHOUSE_PASSWORD}
+    database: otel
+    create_schema: true
+    ttl: 720h                                # 30 days
+    traces_table_name: otel_traces
+    logs_table_name: otel_logs
+```
+
+### Retention
+
+`ttl: 720h` makes the exporter create the tables with a 30-day TTL, so ClickHouse drops older rows itself. Set ShipLean's `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` to the same number of days (default 30), so ShipLean knows when a run is gone and shows "no longer available" instead of an error. The exporter sets the TTL only when it creates a table. To change it for existing tables, alter them in ClickHouse (`ALTER TABLE otel.otel_traces MODIFY TTL toDateTime(Timestamp) + INTERVAL 14 DAY`, and the same for `otel_logs`).
+
+### The ClickHouse user for ShipLean
+
+Give ShipLean its own user, not the collector's. [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql) creates `shiplean_reader`:
+
+- `SELECT` on `otel.otel_traces` and `otel.otel_logs`, and nothing else on `otel`;
+- rights to create and fill tables and views in a separate `inspection` database, which holds ShipLean's small run index. It is built from the telemetry by materialized views, so ShipLean never copies spans or logs.
+
+We checked in ClickHouse 26.3 that this user cannot insert into `otel` and that the collector's inserts still fill the views, with no grant on `inspection` for the collector. Put its password in `SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION`; see [Turn on agent inspection](/inspection/turn-on/).
+
+## To Tempo and Loki
+
+`collector-tempo-loki.yaml` sends traces to Tempo over OTLP/gRPC and logs to Loki's native OTLP endpoint (`/otlp`), which needs Loki 3 with structured metadata on (the supplied `loki.yaml` has it).
+
+```yaml
+exporters:
+  otlp_grpc/tempo:
+    endpoint: ${env:TEMPO_ENDPOINT}          # tempo:4317
+    tls: { insecure: true }                  # inside one Docker network only
+  otlp_http/loki:
+    endpoint: ${env:LOKI_OTLP_ENDPOINT}      # http://loki:3100/otlp
+```
+
+If your Tempo and Loki are multi-tenant, uncomment the `X-Scope-OrgID` header in each exporter and set the same tenant in ShipLean (`SHIPLEAN_INSPECTION_TEMPO_TENANT`, `SHIPLEAN_INSPECTION_LOKI_TENANT`). If you use Grafana Cloud or another hosted stack, point the endpoints at it, turn TLS on and add its auth header.
+
+### Retention
+
+The supplied `tempo.yaml` sets `block_retention: 720h` and `loki.yaml` sets `retention_period: 720h` with the compactor's `retention_enabled: true`. Loki ignores `retention_period` unless the compactor retention is on. With your own Tempo and Loki, the retention is whatever your organisation set; ShipLean shows "no longer available" for a run whose telemetry has expired.
+
+### Search lag
+
+Tempo finds a trace by attribute only after the trace has been flushed from the ingester, and the collector's `batch` processor holds data first. With the supplied settings (`batch` 5 s, Tempo `trace_idle_period: 1s`, `max_block_duration: 5s`) a fixture run was searchable about 16 seconds after we sent it. With Tempo's defaults it takes longer. A run that has just finished can take a minute or so to appear. Runs are linked only by tagging them with `shiplean.item`; linking through a ShipLean tool call works for no agent today. If a finished run is missing, wait a minute and reload before you troubleshoot.
+
+## Redaction
+
+Prompts, tool input and secrets must not reach your store unless you decided they should. Every reference config drops them in the collector, whatever the agent was set to capture. This is the safety net behind [Privacy](/inspection/privacy/): the agents' own switches are off by default, but a developer can turn them on.
+
+The default pipeline:
+
+1. `transform/redact` deletes content attributes with one regular expression that mirrors the rule ShipLean applies when a project hides content. A key goes when its last dotted segment is `prompt`, `prompt_text`, `user_prompt`, `input`, `tool_input`, `tool_parameters`, `arguments`, `output`, `tool_output`, `response`, `result`, `content`, `command`, `full_command` or `authorization` (so `tool.input` and `foo.prompt` go too), or when it is a `gen_ai.*` key with a segment that starts with `prompt`, `completion`, `message` or `system_instruction`. Token counts and model names stay. The rule runs on span attributes, span events, log attributes and resource attributes. Keys are deleted, not hashed: a hash of a prompt still fingerprints it.
+2. The same processor empties the attributes of the `tool.output` span event, where Claude Code puts a tool's output when `OTEL_LOG_TOOL_CONTENT` is on.
+3. `transform/redact_secrets` replaces secret patterns inside values that stay: `Authorization: Bearer …` and bare bearer tokens, API-key shapes (`sk-`, `ghp_`, `github_pat_`, `xox*-`, `AKIA…`) and `.env`-style lines (`NAME=value` on a line of its own). It covers span and log attributes and the log body.
+
+Test it the way we did: send a log record whose body is `Authorization: Bearer x` and whose `error.message` contains `curl failed: Authorization: Bearer x ghp_abcdefghijklmnop1234`. In the store the body is `<REDACTED>` and the message reads `curl failed: <REDACTED> <REDACTED>`. The `user_prompt`, `prompt` and `tool_parameters` attributes of the fixture were absent from ClickHouse, Tempo and Loki.
+
+Patterns are a net, not a guarantee. A secret that does not look like a token, or sits in the middle of a longer line of `NAME=value` pairs, passes through. Keep content capture off, and use the allow-list below if you need more than that.
+
+### Options
+
+These processors are defined in the configs but not in the pipelines. Add them to the `processors:` list of the pipeline, before `batch`.
+
+- **Drop the signed-in user** (`attributes/drop_user` and `resource/drop_user`, together). Claude Code puts `user.email`, `user.id` and `organization.id` on every record. ShipLean does not read them, so dropping them costs nothing; keep them only if your team wants to tell developers apart in the store. Change `delete` to `hash` to keep a stable pseudonym. We checked that the email was gone from the stored resource attributes.
+- **Attribute allow-list** (`transform/allow_list`). Keeps only the attributes ShipLean reads and removes everything else, including custom ones such as `team`. Strict by design: add the keys your own dashboards need.
+- **Force the project** (`resource/force_project`). See below.
+
+## Forcing shiplean.project
+
+A run belongs to a ShipLean project through the `shiplean.project` resource attribute that the agent sends. An agent can send the wrong one. To make the collector authoritative, run one collector per project (or per team that maps to one project), set `SHIPLEAN_PROJECT_KEY` and add `resource/force_project`, which overwrites the attribute on everything that passes. We checked that a record sent as `SHIP` was stored as the forced key. Without the processor, an unset `SHIPLEAN_PROJECT_KEY` is harmless.
+
+## The Arize tee
+
+To send the same telemetry to Arize as well, uncomment the `otlp_grpc/arize` exporter in the config, set `ARIZE_SPACE_ID` and `ARIZE_API_KEY`, and add the exporter to both pipelines. Redaction runs before the exporters, so Arize gets the redacted data too. We have not run this exporter against Arize; it ships commented out.
+
+## Docker Compose snippets
+
+Both Compose files start the collector with the matching store. You need Docker with Compose and a token.
+
+```sh
+cd examples/inspection
+# Secrets live in an env file outside the repo, never on a command line.
+mkdir -p ~/.config/shiplean && (umask 077 && printf 'COLLECTOR_TOKEN=%s\nCLICKHOUSE_WRITER_PASSWORD=%s\nSHIPLEAN_READER_PASSWORD=%s\n' \
+  $(openssl rand -hex 24) $(openssl rand -hex 24) $(openssl rand -hex 24) > ~/.config/shiplean/inspection.env)
+set -a; . ~/.config/shiplean/inspection.env; set +a   # for the curl test below; compose reads the same file
+
+# ClickHouse mode
+docker compose --env-file ~/.config/shiplean/inspection.env -f docker-compose.clickhouse.yml up -d --wait
+# after the first telemetry arrives; the container's own CLICKHOUSE_USER and CLICKHOUSE_PASSWORD env log the client in
+docker compose --env-file ~/.config/shiplean/inspection.env -f docker-compose.clickhouse.yml exec -T clickhouse sh -c \
+  'sed "s/__READER_PASSWORD__/$SHIPLEAN_READER_PASSWORD/" | clickhouse-client -n' < clickhouse-users.sql
+
+# or Tempo and Loki mode
+docker compose -f docker-compose.tempo-loki.yml up -d   # needs only COLLECTOR_TOKEN, exported above
+curl -s http://127.0.0.1:3200/ready; curl -s http://127.0.0.1:3100/ready   # both say `ready` after about 15 seconds
+```
+
+The published ports are 4318 (collector), 8123 (ClickHouse), 3200 (Tempo) and 3100 (Loki). If one is taken, or you run a second stack beside this one, set `COLLECTOR_PORT`, `CLICKHOUSE_HTTP_PORT`, `TEMPO_PORT` or `LOKI_PORT` in the env file (or the shell) and give the stack its own name with `-p <name>`; then use the new ports in the commands and settings below.
+
+Send a test record to confirm the collector accepts it. A 200 means it was accepted; the collector then batches for up to 5 seconds before it writes.
+
+```sh
+curl -i http://127.0.0.1:4318/v1/logs -H 'content-type: application/json' \
+  -H "Authorization: Bearer $COLLECTOR_TOKEN" \
+  --data '{"resourceLogs":[{"resource":{"attributes":[{"key":"service.name","value":{"stringValue":"claude-code"}},{"key":"shiplean.project","value":{"stringValue":"SHIP"}}]},"scopeLogs":[{"logRecords":[{"timeUnixNano":"'$(date +%s)'000000000","body":{"stringValue":"hello"}}]}]}]}'
+```
+
+These are starting points, not production setups. Compose refuses to start when a password or the token is unset, and the reader user may connect only from loopback and private addresses (`HOST IP` in the SQL file; narrow it to ShipLean's address). Keep the store ports on a private network, add TLS and back up the volumes. The ClickHouse container's user is the collector's writer; it has broad rights inside that container, so give a production collector only `CREATE DATABASE, CREATE TABLE, INSERT, SELECT, ALTER` on `otel`.

@@ -1,0 +1,113 @@
+---
+title: "Set up Codex CLI"
+description: "Send Codex CLI telemetry to your collector so its runs show on the item."
+sidebar:
+  order: 5
+checkedWith: "Codex CLI <version>"
+checkedOn: "<yyyy-mm-dd>"
+---
+
+import CheckedWith from '@/components/CheckedWith.astro';
+
+Send Codex CLI telemetry to your collector so its runs show on the item.
+
+<CheckedWith agent="codex-cli" checkedWith={frontmatter.checkedWith} checkedOn={frontmatter.checkedOn} />
+
+:::caution[Not yet checked by a real run]
+This page is written from OpenAI's published Codex CLI documentation only. Nobody has run Codex CLI against ShipLean's Inspection yet, so the service name, the attribute names and whether the item tag reaches the records are unconfirmed. Where this page says "not documented", that is what OpenAI's pages say; a real run will settle it and replace this notice with the version and date checked.
+:::
+
+Sources used: OpenAI's [advanced configuration](https://learn.chatgpt.com/docs/config-file/config-advanced) page (the `[otel]` section), the [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference) (the `otel.*` keys) and the `codex-otel` crate README in the [openai/codex](https://github.com/openai/codex/tree/main/codex-rs/otel) repository.
+
+## What it emits
+
+Codex CLI sends logs, and with a trace exporter set it also sends traces. Nothing is sent by default: `otel.exporter` defaults to `none`, which records events but exports none.
+
+Documented log events:
+
+| Event | What it is |
+|---|---|
+| `codex.conversation_starts` | The session starts: model, reasoning settings, sandbox and approval policy. |
+| `codex.user_prompt` | A prompt. Its length is sent; the text only when `log_user_prompt` is on. |
+| `codex.api_request` | One model request: attempt, status, duration, error details. |
+| `codex.sse_event` | One streamed response event, with its duration. Token counts arrive on `response.completed`. |
+| `codex.websocket_request`, `codex.websocket_event` | The same for the WebSocket transport. |
+| `codex.tool_decision` | A tool call approved or denied, and whether config or the user decided. |
+| `codex.tool_result` | A tool call finished: duration, success, an output snippet (2048 bytes by default). |
+| `codex.agent_response` | The final answer, only with `log_agent_responses = true`. |
+| `codex.guardian_assessment` | An automatic approval review, only with `log_guardian_assessments = true`. |
+| `codex.skill_invocation` | A skill was used. Carries no skill content, prompt or tool output. |
+
+Every event carries the service name, the CLI version, the `environment` tag, the conversation id, the model and the sandbox and approval settings. OpenAI's pages do not list the exact attribute names of each event, and do not say which attribute holds a tool call's name or input. The `codex-otel` README does document `conversation.id` and `turn.id` (on `skill_invocation` and agent response events, with `parent.conversation.id` and similar), not the `session.id` and `prompt.id` ShipLean groups a run by. ShipLean will need to map them to its session and prompt fields; that mapping is wave 2 work. Whether every event carries them is unchecked.
+
+Traces are set up separately with `trace_exporter`. OpenAI's pages do not list the span names. Metrics are a third, independent pipeline; ShipLean does not read them.
+
+## Set up
+
+Codex CLI reads `~/.codex/config.toml`. Add an `[otel]` section to that user file: a project's `.codex/config.toml` cannot set `[otel]`. ShipLean's Agent setup tab and the `agent_setup` tool print it with your collector's address filled in.
+
+```toml
+[otel]
+environment = "shiplean"
+log_user_prompt = false
+exporter = { otlp-http = { endpoint = "http://localhost:4318/v1/logs", protocol = "binary" } }
+trace_exporter = { otlp-http = { endpoint = "http://localhost:4318/v1/traces", protocol = "binary" } }
+```
+
+- `exporter` takes `none`, `otlp-http` or `otlp-grpc`. Each takes `endpoint`, `headers` and `protocol`, and has `tls.ca-certificate`, `tls.client-certificate` and `tls.client-private-key` settings.
+- For `otlp-http` the endpoint is the full signal path (`/v1/logs`, `/v1/traces`), unlike the `OTEL_EXPORTER_OTLP_ENDPOINT` variable other agents use. `protocol` is `binary` or `json`.
+- `otlp-grpc` takes the collector's gRPC address (`https://otel.example.com:4317`) and `headers`.
+- Exporters batch in the background and flush when Codex CLI exits.
+
+Point the endpoint at your own collector (see [Collector](/inspection/collector/)). ShipLean has no OTLP endpoint of its own. If the collector needs a token, take it from an environment variable so it never sits in the file, as OpenAI's example does: `headers = { authorization = "Bearer ${OTLP_TOKEN}" }`. Use a narrow, send-only collector token, never a ShipLean API token or a store credential.
+
+An administrator can enforce exporters and logging settings in `requirements.toml` so developers cannot turn them off.
+
+## Tag the item
+
+ShipLean links a run to an item through a `shiplean.item` attribute. How to put it on Codex CLI's records is not settled by the documentation:
+
+- `OTEL_RESOURCE_ATTRIBUTES`: OpenAI's pages do not say whether Codex CLI reads it. The Agent setup tab prints it in `run.sh` as the first thing to try, marked unverified. If it does not reach the records, the run is not tagged.
+- `otel.span_attributes`: a documented map that "adds string attributes to every exported trace span". It tags spans only, not log events, and it lives in `~/.codex/config.toml` (a project's `.codex/config.toml` cannot set `[otel]`), so it is per user; tag a single run with `-c`. Use the dotted-key form, which sets one key and keeps the others such as `shiplean.project` (Agent setup's `run.sh` passes it on every run): `codex -c 'otel.span_attributes."shiplean.item"="SHIP-123"'`. Unverified: OpenAI documents `-c` with dot notation and TOML values, but gives no example for an `[otel]` key. Do not pass the whole map, which replaces it.
+
+```toml
+[otel.span_attributes]
+"shiplean.project" = "SHIP"
+"shiplean.item" = "SHIP-123"
+```
+
+The other way ShipLean links a run is from a ShipLean MCP tool call that names the item. That needs the tool name and its input on the record; see "Known gaps".
+
+## Content and privacy
+
+By default prompt text is redacted. The switches, all under `[otel]`:
+
+| Setting | What it adds |
+|---|---|
+| (none) | Event names, durations, models, token counts, tool names and success. |
+| `log_user_prompt = true` | The prompt text on `codex.user_prompt`. |
+| `log_agent_responses = true` | The final answer on `codex.agent_response` (up to 64 KiB). |
+| `log_guardian_assessments = true` | The rationale of each approval review. |
+| `tool_result.max_bytes` | How much of each tool's output is logged (default 2048). Tool output is on by default, truncated, so check this one. |
+
+ShipLean shows none of this unless the project turns content display on, and "What it did" never shows prompt text. Leave the switches off unless your collector redacts. See [Privacy](/inspection/privacy/).
+
+## Check it works
+
+Run a short session with `[otel]` set:
+
+```sh
+codex exec "list the files in this directory"
+```
+
+Within a few seconds the run should appear under Agent runs on the item, as flat event rows grouped by turn with a banner saying Codex CLI sends events, not spans (or a waterfall, if your release sends traces). If it does not, see [Troubleshooting](/inspection/troubleshooting/). To look at the collector's side, read the newest rows of `otel_logs` for the service name Codex CLI sends.
+
+## Known gaps
+
+- This page has not been checked against a real run. The points below are what the documentation leaves open, and what ShipLean assumes until a run says otherwise.
+- The service name is not documented. The `codex-otel` README example uses `codex-cli`; ShipLean's synthetic fixture and its agent detection use `codex_cli_rs`. Read it from your collector and report it.
+- The `codex-otel` README documents `conversation.id` and `turn.id`, not `session.id` and `prompt.id`; ShipLean will need to map them (wave 2), and whether every event carries them is unchecked. A tool call's name and input are not documented. ShipLean's synthetic fixture assumes `session.id`, `prompt.id`, `tool_name`, `tool_input` and `duration_ms`.
+- ShipLean's tool-call link needs a tool name and a JSON input naming the item. Whether Codex CLI logs an MCP call that way is not documented.
+- Whether `OTEL_RESOURCE_ATTRIBUTES` is honoured is not documented; `otel.span_attributes` tags spans only. Keep `trace_exporter` on: a run with only the log exporter may be untagged, so the item will not show it.
+- The span names, and whether spans carry the tool name, are not documented.
+- Codex CLI sends token counts on `codex.sse_event` (`response.completed`), not on `codex.api_request`.

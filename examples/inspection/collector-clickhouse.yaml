@@ -1,0 +1,156 @@
+# Reference OpenTelemetry collector config: agents -> this collector -> ClickHouse, for ShipLean Agent runs.
+# Checked with opentelemetry-collector-contrib 0.165.0 (the clickhouse exporter's options differ between versions: re-check
+# when you change the image) and ClickHouse 26.3. ShipLean has no OTLP endpoint; it only reads what this collector writes.
+#
+# Environment variables used:
+#   COLLECTOR_TOKEN      the send-only token agents present as "Authorization: Bearer <token>" (required)
+#   CLICKHOUSE_ENDPOINT  tcp://clickhouse:9000
+#   CLICKHOUSE_USER / CLICKHOUSE_PASSWORD   the collector's own writer user, NOT the user ShipLean reads with
+#   SHIPLEAN_PROJECT_KEY only for the optional "force the project" processor below
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  bearertokenauth:
+    scheme: Bearer
+    token: ${env:COLLECTOR_TOKEN}
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+        auth:
+          authenticator: bearertokenauth
+
+processors:
+  # First, so a burst cannot take the collector down.
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 400
+    spike_limit_mib: 100
+
+  # --- Redaction: content is dropped by default. -------------------------------------------------------------------------
+  # One rule, mirroring ShipLean's own list of content keys (ContentKeys.IsHidden): an attribute is content when its last dotted
+  # segment is prompt, prompt_text, user_prompt, input, tool_input, tool_parameters, arguments, output, tool_output, response,
+  # result, content, command or full_command (so tool.input and foo.prompt go too), or when it is a gen_ai.* key whose segment
+  # starts with prompt, completion, message or system_instruction. Token counts and model names stay. Authorization keys go too.
+  # It runs on span attributes, span events, log attributes and resource attributes. Keys are deleted, not hashed: a hash of a
+  # prompt is still a fingerprint of it. The `tool.output` span event (Claude Code with OTEL_LOG_TOOL_CONTENT=1) is emptied whole.
+  # Then secret patterns run over the values that stay, and over the log body.
+  transform/redact:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          - 'delete_matching_keys(span.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
+          - 'replace_all_patterns(span.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_all_patterns(span.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_all_patterns(span.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_all_patterns(span.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+      - context: spanevent
+        statements:
+          - 'delete_matching_keys(spanevent.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
+          - 'delete_matching_keys(spanevent.attributes, ".*") where spanevent.name == "tool.output"'
+          - 'replace_all_patterns(spanevent.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_all_patterns(spanevent.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_all_patterns(spanevent.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_all_patterns(spanevent.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+      - context: resource
+        statements:
+          - 'delete_matching_keys(resource.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+    log_statements:
+      - context: log
+        statements:
+          - 'delete_matching_keys(log.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
+          - 'replace_all_patterns(log.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_all_patterns(log.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_all_patterns(log.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_all_patterns(log.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+          - 'replace_pattern(log.body, "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_pattern(log.body, "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_pattern(log.body, "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_pattern(log.body, "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+      - context: resource
+        statements:
+          - 'delete_matching_keys(resource.attributes, "(?i)^(([^.]+\\.)*(prompt|prompt_text|user_prompt|input|tool_input|tool_parameters|arguments|output|tool_output|response|result|content|command|full_command|authorization)|gen_ai\\.([^.]+\\.)*(prompt|completion|message|system_instruction)[^.]*(\\..*)?)$")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?i)(authorization:\\s*)?bearer\\s+[A-Za-z0-9._~+/=-]+", "<REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?i)authorization:\\s*\\S+", "Authorization: <REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "\\b(sk|pk|ghp|gho|ghs|github_pat|xox[abprs]|AKIA)[-_A-Za-z0-9]{12,}", "<REDACTED>")'
+          - 'replace_all_patterns(resource.attributes, "value", "(?m)^[A-Z][A-Z0-9_]*=.+$", "<REDACTED_ENV_LINE>")'
+
+  # --- Options, not in the pipelines below. Add them to `processors:` of the pipelines, before `batch`. ----------------------
+  # Drop the signed-in account's personal data (every Claude Code record carries user.email, user.id, organization.id).
+  # ShipLean does not read these. Use `hash` instead of `delete` to keep telling developers apart without the address.
+  attributes/drop_user:
+    actions:
+      - { key: user.email, action: delete }
+      - { key: user.id, action: delete }
+      - { key: organization.id, action: delete }
+  # The same keys when an agent puts them on the resource (the test fixtures do; Claude Code 2.1.323 sent them on each record).
+  resource/drop_user:
+    attributes:
+      - { key: user.email, action: delete }
+      - { key: user.id, action: delete }
+      - { key: organization.id, action: delete }
+
+  # Attribute allow-list: keep only what ShipLean reads, drop everything else. Strict; add keys your own dashboards need.
+  transform/allow_list:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          - 'keep_matching_keys(span.attributes, "^(session\\.id|prompt\\.id|tool_name|tool_use_id|duration_ms|model|input_tokens|output_tokens|cache_read_tokens|cache_creation_tokens|ttft_ms|attempt|stop_reason|success|error_class|decision|source|status_code|event\\.name|file_path|gen_ai\\..*|codex\\..*)$")'
+    log_statements:
+      - context: log
+        statements:
+          - 'keep_matching_keys(log.attributes, "^(session\\.id|prompt\\.id|event\\.name|tool_name|tool_use_id|duration_ms|model|input_tokens|output_tokens|cache_read_tokens|ttft_ms|attempt|success|decision|source|status_code|file_path|anthropic\\.mcp\\.server\\.name|conversation\\.id)$")'
+
+  # Force the project: every record from agents behind this collector belongs to one ShipLean project, whatever the agent
+  # says. Run one collector per project, or one per team that maps to a project.
+  resource/force_project:
+    attributes:
+      - { key: shiplean.project, value: "${env:SHIPLEAN_PROJECT_KEY}", action: upsert }
+
+  batch:
+    timeout: 5s
+    send_batch_size: 2048
+
+exporters:
+  clickhouse:
+    endpoint: ${env:CLICKHOUSE_ENDPOINT}
+    username: ${env:CLICKHOUSE_USER}
+    password: ${env:CLICKHOUSE_PASSWORD}
+    database: otel
+    create_schema: true            # the exporter makes otel_traces and otel_logs
+    ttl: 720h                      # 30 days; ShipLean's retention setting should match (SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS)
+    traces_table_name: otel_traces
+    logs_table_name: otel_logs
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 30s
+      max_elapsed_time: 300s
+  # Tee to Arize (or any second OTLP backend) as well: uncomment, add `otlp_grpc/arize` to the exporters of both pipelines.
+  # otlp_grpc/arize:
+  #   endpoint: otlp.arize.com:443
+  #   headers:
+  #     space_id: ${env:ARIZE_SPACE_ID}
+  #     api_key: ${env:ARIZE_API_KEY}
+
+service:
+  extensions: [health_check, bearertokenauth]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, transform/redact, batch]
+      # Options, added before batch: attributes/drop_user and resource/drop_user (together), transform/allow_list, resource/force_project
+      exporters: [clickhouse]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, transform/redact, batch]
+      exporters: [clickhouse]

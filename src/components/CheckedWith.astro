@@ -1,0 +1,36 @@
+---
+import { checkedState } from '@/lib/inspection-checked';
+
+interface Props {
+  agent: string;
+  checkedWith: string;
+  checkedOn: string;
+}
+
+const { agent, checkedWith, checkedOn } = Astro.props;
+// INSPECTION_TODAY (yyyy-mm-dd) lets a build pretend to be run on another day.
+const today = process.env.INSPECTION_TODAY ? new Date(`${process.env.INSPECTION_TODAY}T00:00:00Z`) : new Date();
+const state = checkedState(agent, checkedWith, checkedOn, today);
+---
+
+{
+  state.checked ? (
+    <p class="checked-with" data-checked-with={agent}>
+      <strong>Checked with {checkedWith} on {checkedOn}.</strong>
+    </p>
+  ) : (
+    <p class="checked-with" data-checked-with={agent}>
+      <strong>Not yet checked against a real run.</strong>
+    </p>
+  )
+}
+{
+  state.outOfDate && (
+    <aside class="starlight-aside starlight-aside--caution" data-out-of-date={agent}>
+      <p class="starlight-aside__title">Out of date</p>
+      <div class="starlight-aside__content">
+        <p>This page may no longer match the agent: {state.reasons.join(', and ')}. Check it against a current run before relying on it.</p>
+      </div>
+    </aside>
+  )
+}

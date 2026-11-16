@@ -1,0 +1,38 @@
+# Collector + ClickHouse, for a team starting from nothing. Agents send OTLP/HTTP to port 4318 with a bearer token;
+# ShipLean reads ClickHouse over HTTP (8123). Both ports are published on localhost only: put a reverse proxy with TLS in
+# front of 4318 (and keep 8123 on a private network) before anyone else uses it.
+# Secrets come from an env file kept out of the repo (see the docs page); compose refuses to start when one is unset:
+#   docker compose --env-file ~/.config/shiplean/inspection.env -f docker-compose.clickhouse.yml up -d --wait
+name: shiplean-inspection-clickhouse
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.3.63
+    environment:
+      CLICKHOUSE_USER: otel_writer
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_WRITER_PASSWORD:?set CLICKHOUSE_WRITER_PASSWORD in the env file}
+      SHIPLEAN_READER_PASSWORD: ${SHIPLEAN_READER_PASSWORD:?set SHIPLEAN_READER_PASSWORD in the env file}   # used by clickhouse-users.sql
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"   # lets this user run the grants in clickhouse-users.sql
+    volumes: ["clickhouse-data:/var/lib/clickhouse"]
+    ports: ["127.0.0.1:${CLICKHOUSE_HTTP_PORT:-8123}:8123"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8123/ping"]
+      interval: 2s
+      retries: 60
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.165.0
+    command: ["--config=/etc/collector.yaml"]
+    environment:
+      COLLECTOR_TOKEN: ${COLLECTOR_TOKEN:?set a send-only token}
+      CLICKHOUSE_ENDPOINT: tcp://clickhouse:9000
+      CLICKHOUSE_USER: otel_writer
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_WRITER_PASSWORD:?set CLICKHOUSE_WRITER_PASSWORD in the env file}
+      SHIPLEAN_PROJECT_KEY: ${SHIPLEAN_PROJECT_KEY:-}
+    volumes: ["./collector-clickhouse.yaml:/etc/collector.yaml:ro"]
+    ports: ["127.0.0.1:${COLLECTOR_PORT:-4318}:4318"]
+    restart: unless-stopped
+    depends_on:
+      clickhouse: { condition: service_healthy }
+
+volumes:
+  clickhouse-data:

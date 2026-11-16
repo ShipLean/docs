@@ -1,0 +1,112 @@
+---
+title: "Set up Cursor"
+description: "Feed Cursor hook events to your collector so its runs show on the item."
+sidebar:
+  order: 6
+checkedWith: "Cursor <version>"
+checkedOn: "<yyyy-mm-dd>"
+---
+
+import CheckedWith from '@/components/CheckedWith.astro';
+
+Cursor has no OpenTelemetry export of its own that ShipLean relies on. Instead, a small hook script turns each of Cursor's hook events into one log record and sends it to your collector, tagged with the item.
+
+<CheckedWith agent="cursor" checkedWith={frontmatter.checkedWith} checkedOn={frontmatter.checkedOn} />
+
+:::caution[Not yet checked against a real Cursor run]
+This page is written from Cursor's published [hooks documentation](https://cursor.com/docs/agent/hooks). The hook script was driven with payloads built from that documentation and its records were read back from ClickHouse, but nobody has run it inside a signed-in Cursor yet. Event payloads in a real session may differ from the documentation. A real run will settle it and replace this notice with the version and date checked.
+:::
+
+## What it emits
+
+Hooks are commands Cursor runs at fixed points in an agent session, passing the event as JSON on stdin. The ShipLean script sends one OTLP log record per event, for these events:
+
+| Hook event | What the record carries |
+|---|---|
+| `beforeSubmitPrompt` | A prompt was sent. The text only with content on. |
+| `beforeShellExecution`, `afterShellExecution` | A shell command starts and ends. The end carries the duration. |
+| `beforeMCPExecution`, `afterMCPExecution` | An MCP tool call starts and ends, with the tool name, the MCP server name (`mcp_server_name`, when Cursor sends it) and the duration. |
+| `afterFileEdit` | A file was edited, with its path. |
+| `stop` | The agent stopped, with its status (`completed`, `aborted`, `error`). |
+
+Every record carries the event name (`cursor.hook.<event>`), the conversation id as `session.id` and the generation id as `prompt.id`. The resource carries `service.name = cursor`, the item and project, the repository URL (credentials stripped) and branch read from git, the model (`gen_ai.request.model`) and Cursor version (`service.version`) when Cursor sends them, and the signed-in user's email when Cursor sends it.
+
+ShipLean shows these runs as flat event rows grouped by turn, with a banner saying what Cursor does not send. Bars are drawn back from an event by its duration where there is one; other events are single marks.
+
+## Set up
+
+The Agent setup tab (or the `agent_setup` tool) prints the files below with your collector's address filled in. Put them in your project:
+
+1. Save the script as `.cursor/hooks/shiplean-cursor-hook.mjs`. It has no dependencies and needs Node 18 or newer.
+2. Save `.cursor/hooks.json`. Cursor reads project hooks from `<project>/.cursor/hooks.json` and runs relative commands from the project root. A user-level file at `~/.cursor/hooks.json` also works: user hooks run from `~/.cursor/`, so with the script saved in `~/.cursor/hooks/` the command is `node ./hooks/shiplean-cursor-hook.mjs`. With a user-level file you still need a `.shiplean` file or `SHIPLEAN_ITEM` per project.
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "beforeShellExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "afterShellExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "beforeMCPExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "afterMCPExecution": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "afterFileEdit": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }],
+    "stop": [{ "command": "node .cursor/hooks/shiplean-cursor-hook.mjs", "timeout": 5 }]
+  }
+}
+```
+
+`timeout` is in seconds and is a documented hook field; the script also gives up on its own after three seconds.
+
+3. Tell the script where your collector is, in the environment Cursor starts with:
+
+```sh
+export SHIPLEAN_INSPECTION_AGENT_OTLP_ENDPOINT=https://otel.example.com:4318   # the /v1/logs path is added
+export SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS="authorization=Bearer <send-only token>"   # optional, k=v,k=v
+```
+
+Point it at your own collector (see [Collector](/inspection/collector/)); ShipLean has no OTLP endpoint of its own. Use a narrow, send-only collector token, never a ShipLean API token or a store credential.
+
+The script never blocks Cursor. It answers "allow" for `before*` hooks (and `continue` for prompts), drops a failed post silently, and gives up after three seconds. If the endpoint is unset it sends nothing.
+
+## Tag the item
+
+ShipLean links a run to an item through a `shiplean.item` attribute. The script reads it from, in order:
+
+- `SHIPLEAN_ITEM` and `SHIPLEAN_PROJECT` in the environment, which win over the file, or
+- a `.shiplean` file in the workspace root or any parent folder:
+
+```text
+item=SHIP-123
+project=SHIP
+```
+
+An item from `SHIPLEAN_ITEM` is a plain tag (Tagged) and overrides the file. Only a value that came from a `.shiplean` file is marked with `shiplean.link_source = file`, so ShipLean shows that link as coming from the file (ShipleanFile). Commit the file only if the whole team works on that item; otherwise keep it local. Without an item the run is not tagged and is not linked (see "Known gaps").
+
+## Content and privacy
+
+By default the script sends no content: no prompt text, no shell command, no tool input and no output. It sends event names, ids, tool names, file paths, durations and status. The signed-in user's email is personal data and goes on every record when Cursor sends it; set `SHIPLEAN_USER_EMAIL` to replace it.
+
+Set `SHIPLEAN_LOG_CONTENT=1` to add the prompt text, the shell command or MCP tool input, and the shell or MCP output. These can hold secrets. Leave it off unless your collector redacts. File edits are never sent, only the path, and the agent's reply text is never sent.
+
+ShipLean shows none of this unless the project turns content display on, and "What it did" never shows prompt text. See [Privacy](/inspection/privacy/).
+
+## Check it works
+
+Start an agent session in the project and ask it to run a command, then look under Agent runs on the item. To test the script without Cursor, pipe an event into it:
+
+```sh
+echo '{"hook_event_name":"stop","conversation_id":"test-1","generation_id":"g-1","status":"completed","workspace_roots":["."]}' \
+  | SHIPLEAN_INSPECTION_AGENT_OTLP_ENDPOINT=http://localhost:4318 SHIPLEAN_ITEM=SHIP-123 \
+    node .cursor/hooks/shiplean-cursor-hook.mjs
+```
+
+It prints `{}` and, within a few seconds, a record for service `cursor` should be in your collector's store. If the run does not appear, see [Troubleshooting](/inspection/troubleshooting/).
+
+## Known gaps
+
+- This page has not been checked against a real Cursor run. Payload fields are as Cursor's documentation lists them.
+- No model-call timing. Hooks fire around tools, prompts and stops, not around model requests, so there are no model-call rows and no token counts. The run page's banner says so.
+- Events are points, not spans. A tool call is two records (before and after); only the after record has a duration, and only shell and MCP calls have one.
+- ShipLean does not link Cursor runs from tool calls: Cursor sends the bare tool name, and the item is only in the tool input, which is content. Tag the run with `SHIPLEAN_ITEM` or `.shiplean`; that is the supported path.
+- Only the events in the table are hooked. Cursor also offers `afterAgentResponse`, `afterAgentThought`, `beforeReadFile`, `preToolUse`, `postToolUse`, `sessionStart`, `sessionEnd`, `subagentStart` and `subagentStop`, `postToolUseFailure`, `preCompact`, `beforeTabFileRead`, `afterTabFileEdit` and `workspaceOpen`, among others, which this setup does not use, so reads, thinking and subagents do not show.
+- Hooks run only where Cursor's agent runs; Tab completions and the other editor features are not covered.

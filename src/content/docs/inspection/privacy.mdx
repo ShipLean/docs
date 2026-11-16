@@ -1,0 +1,60 @@
+---
+title: "Privacy"
+description: "What each agent can capture, the switches, the collector redaction and ShipLean content display."
+sidebar:
+  order: 7
+---
+
+Telemetry from a coding agent can hold prompts, file contents, shell commands and secrets. Inspection is built so none of that reaches a ShipLean screen unless you choose it, and so, with the reference collector's redaction, the default path never stores it either. Codex CLI sends tool output by default, so keep the redaction on. Three separate layers control it, and each one is a separate decision.
+
+## What each agent can capture
+
+By default each agent sends counts, names, timings and statuses, not content. Each agent has its own switches to add content; they are set in the agent's environment, not in ShipLean.
+
+| | Default | Switches that add content |
+|---|---|---|
+| Claude Code | Prompt, user prompt and response text are the literal `<REDACTED>` | `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_ASSISTANT_RESPONSES`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT`, `OTEL_LOG_RAW_API_BODIES` (all content). See [Claude Code](/inspection/claude-code/#content-and-privacy). |
+| Codex CLI | Prompt text is not sent, only its length. Tool output is on by default, truncated (`tool_result.max_bytes`) | `log_user_prompt`, `log_agent_responses` and `log_guardian_assessments` under `[otel]` in `~/.codex/config.toml`. Not yet checked with a real run. See [Codex CLI](/inspection/codex-cli/#content-and-privacy). |
+| Cursor | The hook script sends no prompt, command, tool input or output | `SHIPLEAN_LOG_CONTENT=1`. Not yet checked with a real run. See [Cursor](/inspection/cursor/#content-and-privacy). |
+
+Anyone who can set a developer's environment can turn content capture on, so do not rely on the defaults alone.
+
+## The switches
+
+| Layer | Where it is set | What it does |
+|---|---|---|
+| Capture | The agent's environment (a shell profile, `~/.claude/settings.json`, managed settings, `~/.codex/config.toml`) | What the agent puts in its telemetry. |
+| Redaction | Your collector | What is deleted before storage, whatever the agent sent. |
+| Display | ShipLean, **Show content** per project | Whether the run page may show prompts and tool input and output that the store holds. |
+
+The agent environment is the only place capture is set. A repository's `.claude/settings.json` cannot switch Claude Code telemetry or content on (see [Troubleshooting](/inspection/troubleshooting/#my-settings-env-block-is-ignored)).
+
+## Redaction in the collector
+
+The reference collector configs delete content attributes and secret-shaped values before anything is stored, whatever the agents were set to send. This is the safety net: an agent switch set by mistake stores nothing it should not. What the rule deletes, what it keeps, how to test it, and the options for an allow-list are on the [collector page](/inspection/collector/#redaction). Patterns are a net, not a guarantee, so keep capture off unless you need it. If you write your own collector config, copy the redaction first.
+
+## Content display in ShipLean
+
+Content is hidden by default. A project admin turns on **Show content** in the project's Inspection settings, and the screen warns that prompts and tool output can contain secrets. Turning it on:
+
+- lets the run page and span panel show prompt text, tool input and tool output that the store holds;
+- does not change what is stored: if your collector redacts, there is nothing to show;
+- never puts prompt text in a run's "What it did" line. That line only reflects ShipLean tool calls.
+
+## What ShipLean stores
+
+ShipLean stores no span, log or content data. It never writes to the collector's telemetry tables (`otel.*`). It keeps only run-link rows: the item key, project, session and trace ids, the source, and the "What it did" summary.
+
+- **ClickHouse mode:** the run index lives in an `inspection` database in your own ClickHouse. `clickhouse-users.sql` grants ShipLean create, insert and drop on `inspection.*` only.
+- **Tempo and Loki mode:** ShipLean caches run links in its own Postgres for about ten minutes. Spans and logs stay in your Tempo and Loki.
+
+## Personal data on every record
+
+Claude Code puts the signed-in account's `user.email`, `user.id` and `organization.id` on every span and log record, and other agents may do the same. Treat them as personal data in a shared store. To drop them, add the reference configs' `attributes/drop_user` and `resource/drop_user` processors together, before `batch` (see [Options](/inspection/collector/#options); change `delete` to `hash` for a stable pseudonym). Cursor's hook script sends the email too; set `SHIPLEAN_USER_EMAIL` to replace it. ShipLean does not need them: it links runs through `shiplean.item`, `shiplean.project` and `session.id`.
+
+## Credentials
+
+- Give developers a **send-only collector token**, set as `OTEL_EXPORTER_OTLP_HEADERS` in their own environment. It lets them send telemetry and read nothing. Never put a ShipLean API token or a store credential there.
+- Give ShipLean its own store user: in ClickHouse mode the user from `clickhouse-users.sql`, which can read the exporter's tables, cannot change or delete them, and can create and fill tables only in `inspection`; in Tempo and Loki mode, read-only credentials. See [turn on](/inspection/turn-on/#clickhouse-mode).
+- Headers entered in the instance settings are shown to anyone who can open the Agent setup tab, so use the send-only token there too.
+- The retention of stored telemetry is the store's own (30 days in the reference configs). Shorten it if your policy requires.

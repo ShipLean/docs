@@ -243,6 +243,43 @@ export const sidebar = [
     ]
   },
   {
+    "label": "Inspection",
+    "items": [
+      {
+        "label": "Agent inspection overview",
+        "link": "/inspection/overview/"
+      },
+      {
+        "label": "Turn on agent inspection",
+        "link": "/inspection/turn-on/"
+      },
+      {
+        "label": "Collector reference configs",
+        "link": "/inspection/collector/"
+      },
+      {
+        "label": "Set up Claude Code",
+        "link": "/inspection/claude-code/"
+      },
+      {
+        "label": "Set up Codex CLI",
+        "link": "/inspection/codex-cli/"
+      },
+      {
+        "label": "Set up Cursor",
+        "link": "/inspection/cursor/"
+      },
+      {
+        "label": "Privacy",
+        "link": "/inspection/privacy/"
+      },
+      {
+        "label": "Troubleshooting: my run does not show",
+        "link": "/inspection/troubleshooting/"
+      }
+    ]
+  },
+  {
     "label": "Reference",
     "items": [
       {
