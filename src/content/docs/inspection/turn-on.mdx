@@ -5,20 +5,82 @@ sidebar:
   order: 2
 ---
 
-For admins: switch Inspection on for the instance and for a project.
+Inspection is off until an instance admin turns it on, and then off per project until that project's admin turns it on. ShipLean only reads telemetry that your own collector already stored; set that up first with the [collector reference configs](/inspection/collector/).
 
-## ClickHouse mode
+## Instance settings
 
-To be written.
+ShipLean reads these as environment variables when it starts. Anything but `off` or `on` in `SHIPLEAN_INSPECTION` stops the start.
 
-## Tempo and Loki mode
+| Variable | Meaning |
+|---|---|
+| `SHIPLEAN_INSPECTION` | `off` (default) or `on`. |
+| `SHIPLEAN_INSPECTION_STORE` | `clickhouse` or `tempo-loki`. Required when Inspection is on. |
+| `SHIPLEAN_INSPECTION_AGENT_OTLP_ENDPOINT`, `SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS` | Your collector's address and headers. They fill in the Agent setup tab, so developers copy a working configuration. Headers are shown to anyone who can open the tab: use a send-only collector token, never a store credential. |
+| `SHIPLEAN_INSPECTION_MAX_SEARCH_DAYS` | How far back a search looks (default 30). |
+| `SHIPLEAN_INSPECTION_GRAFANA_URL_TEMPLATE` | A link to the trace in Grafana, with a `{traceId}` placeholder. No link when unset. |
 
-To be written.
+### ClickHouse mode
+
+```sh
+SHIPLEAN_INSPECTION=on
+SHIPLEAN_INSPECTION_STORE=clickhouse
+SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION=<connection string, a secret>
+```
+
+| Variable | Meaning |
+|---|---|
+| `SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION` | The connection string for ClickHouse's HTTP port (8123), with the read-only user below. |
+| `SHIPLEAN_INSPECTION_CLICKHOUSE_DATABASE`, `_TRACES_TABLE`, `_LOGS_TABLE` | The exporter's names. Defaults `otel`, `otel_traces`, `otel_logs`. Letters, digits and `_` only. |
+| `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` | Default 30. Match the exporter's `ttl`. |
+
+Create the user ShipLean reads with from [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql). Do not use the collector's user. The grants are:
+
+- `SELECT` on `otel.otel_traces` and `otel.otel_logs`: ShipLean can read the telemetry and cannot change or delete it;
+- create, insert, select, alter and drop of tables and views in the `inspection` database, which ShipLean creates the first time it needs it. It holds only a run index, built by materialized views from the exporter's tables.
+
+ShipLean never writes to `otel`, never creates an OTLP endpoint and never copies spans or logs.
+
+### Tempo and Loki mode
+
+```sh
+SHIPLEAN_INSPECTION=on
+SHIPLEAN_INSPECTION_STORE=tempo-loki
+SHIPLEAN_INSPECTION_TEMPO_URL=http://tempo:3200
+SHIPLEAN_INSPECTION_LOKI_URL=http://loki:3100
+```
+
+| Variable | Meaning |
+|---|---|
+| `SHIPLEAN_INSPECTION_TEMPO_URL`, `_TEMPO_AUTH`, `_TEMPO_TENANT` | Tempo's address, its auth (`none`, `basic:<user>:<password>` or `bearer:<token>`) and the `X-Scope-OrgID` tenant. |
+| `SHIPLEAN_INSPECTION_LOKI_URL`, `_LOKI_AUTH`, `_LOKI_TENANT` | The same for Loki. |
+| `SHIPLEAN_INSPECTION_LOKI_SELECTOR` | The base stream selector for log queries. Default `{service_name=~".+"}`. |
+
+Use read-only credentials for both. Retention is whatever your Tempo and Loki are set to. Because Tempo and Loki have no run index, ShipLean looks runs up when someone opens an item and keeps what it found for about ten minutes in a small table of its own.
+
+## Per project
+
+Once the instance has Inspection on, each project admin opens the project's settings, then Inspection, and chooses:
+
+- **Enabled**: show Agent runs on the project's items.
+- **Show content**: whether the run page may show prompts, tool input and output. Off by default, and a prompt's text never appears in a run row whatever this is set to. This only hides what ShipLean would show: what your collector stored is governed by [redaction](/inspection/collector/#redaction). Turn it on only if you capture content and accept the risk of secrets in it.
+- In Tempo and Loki mode, an optional **tenant** and **selector override**, for a project whose telemetry sits under another tenant or stream selector.
 
 ## Field mapping
 
-To be written.
+ShipLean finds the item, project, session and so on by attribute name. The defaults match what ShipLean's own setup tab prints; change them only if your telemetry uses other names.
+
+| Variable | Default attribute | What it identifies |
+|---|---|---|
+| `SHIPLEAN_INSPECTION_FIELD_ITEM` | `shiplean.item` | The work item key. |
+| `SHIPLEAN_INSPECTION_FIELD_PROJECT` | `shiplean.project` | The project key. |
+| `SHIPLEAN_INSPECTION_FIELD_SESSION` | `session.id` | The agent session. |
+| `SHIPLEAN_INSPECTION_FIELD_PROMPT` | `prompt.id` | One prompt and its turn. |
+| `SHIPLEAN_INSPECTION_FIELD_REPO` | `vcs.repository.url.full` | The repository. |
+| `SHIPLEAN_INSPECTION_FIELD_BRANCH` | `vcs.ref.head.name` | The branch. |
+| `SHIPLEAN_INSPECTION_FIELD_PR` | `vcs.change.id` | The pull request. |
+
+If you rename an attribute in the collector, set the matching variable. The ClickHouse run index is rebuilt when the names change.
 
 ## The health panel
 
-To be written.
+The instance's Inspection settings show a health panel: whether Inspection is on and in which mode, whether the store answered and how long it took, how far the run index lags behind the newest telemetry (ClickHouse), and, for each field in the table above, whether recent telemetry carries that attribute. A field that shows as not found usually means the agent is not sending it, or the collector renamed it. See [Troubleshooting](/inspection/troubleshooting/). The panel's problem text is also what a run page shows when the store is down.
