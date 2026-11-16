@@ -1,0 +1,81 @@
+---
+title: "ShipLean in a phone browser"
+description: "How the ShipLean web app changes on phones and narrow screens: the top bar and menu, touch gestures, sheets, and the pages that stay desktop-only."
+sidebar:
+  order: 24
+---
+
+import ProductShot from '@/components/ProductShot.astro';
+
+The ShipLean web app adapts to narrow screens. You don't install anything: open your server's address in a phone or tablet browser and sign in as usual.
+
+This is not the [phone app](/ui/mobile/). The phone app is a separate, installed app with Inbox, voice commands and its own screens. The web app in a browser has the same screens and features as on a desktop, laid out for touch. Use the web app when you need something the phone app sends you to the web for.
+
+## When the touch layout applies
+
+The touch layout applies when the browser window is 900 pixels wide or less. A phone is under 600 pixels. A tablet or a narrowed desktop window is 600 to 900. The layout changes as you resize the window.
+
+## Get around
+
+At this width the side menu and top strip are replaced by one top bar:
+
+- **Menu** opens the navigation drawer.
+- The title shows where you are. It is the breadcrumbs unless the page sets its own title.
+- Presence and the live status sit to the right of the title. A page can add one action there.
+- **Quick search** opens [Quick search](/ui/navigation/).
+
+On a page that has somewhere to go back to, such as an item opened from a list, the left side of the bar is a back arrow and **Menu** moves to the right.
+
+<div style="max-width: 18rem">
+<ProductShot name="touch-drawer" alt="The navigation drawer on a phone: the project picker, then Backlogs, Boards, Sprints, Retrospectives, Jira import and Settings with their sub-pages, and the signed-in user at the bottom." />
+</div>
+
+The drawer holds the same menu as the desktop side menu, including the project picker and your account at the bottom. Close it with **Close menu**, with **Esc**, or by tapping outside it. It also closes when you go to another page. Swiping from the screen edge does not open it.
+
+## Dialogs, sheets and the Save bar
+
+- Menus that are popovers on a desktop open as sheets that slide up from the bottom.
+- The **⋯** button on a row or card opens a sheet of actions. Choose an action to run it, or one marked **›** to open a second sheet, such as **Sprint ›** or **Parent ›**.
+- Settings and other forms open as full-screen dialogs.
+- While a form has unsaved changes, a bar fixed to the bottom of the screen shows **Discard** and **Save**.
+- Lists that are columns on a desktop, such as the states of a board, become pages you swipe sideways. A row of chips above the pages jumps to one.
+
+## Backlogs
+
+The backlog toolbar is a single row: **+ New**, the **List**, **Planning** and **Tree** switch where the level offers them, **Filter**, and **⋯ More**. Everything else is in **More**, for example **Search this list** and **Show completed**. The **Columns** and **Keys** options are not offered at this width. See [Backlogs](/ui/backlogs/).
+
+### Move a row
+
+Each row has a handle, a rank number with a grip under it, at its left edge. Press and hold the handle for about half a second until the row lifts, then drag it to a new place and let go. A swipe that starts anywhere else, or on the handle before the hold, scrolls the page. The handle does nothing while a filter, a search or Select mode is on.
+
+In Planning, drop a row on a sprint header to move it into that sprint.
+
+### Row actions
+
+Tap **⋯** on a row for **Open**, **Points**, **Sprint ›**, **Parent ›**, **Move to top**, **Move to bottom** and **Select**. A **?** in place of the points means the item has no estimate. Tap it to open the Points sheet.
+
+### Select mode
+
+There is no multi-select with a modifier key on a phone. Choose **Select** from a row's **⋯** or from **More** to enter Select mode. A bar under the toolbar shows **Select all** (or **Clear all**), how many rows are selected, and **Done**. Tap rows to select them. A bar for the selection offers bulk actions such as **Parent ›**, **Tags ›**, **Move to top** and **Move to bottom**. Choose **Done** to clear the selection and leave Select mode.
+
+## Boards and the taskboard
+
+On a board, press and hold a card until it lifts, drag it to a column and let go, the same move as with a mouse. A card also has a **⋯** button with actions such as **Open**, **Move to**, **Lane** and **Move to top**. Tapping a card opens its item.
+
+On the sprint Taskboard, a long press lifts a task card. While you hold a card at the left or right edge of the screen, the board turns to the next page. If you press and release without moving, the card's actions open: **Move to another story ›**, **Assignee** and **Open** with the task's key.
+
+## Item pages and images
+
+Item pages use the same touch layout. Tap an image attached to an item to open it in a full-screen viewer. Pinch or double-tap to zoom, drag to pan while zoomed, and swipe to move between images when not zoomed. **Close** closes the viewer. Its **⋯** menu offers **Download**, **Copy link** and **Open original**.
+
+## Pages that need a larger screen
+
+These pages are built for a desktop screen and are not adapted for touch:
+
+- New project, Import start and Jira import
+- Authorize
+- Instance settings
+- The [Feature timeline](/ui/feature-timeline/). Its **Open timeline** link is hidden on the Feature page.
+- Task changes. A narrow screen shows **Changes need a wider screen.**, with a link back to the item. The task itself still opens without its changes.
+
+Open these on a computer.
