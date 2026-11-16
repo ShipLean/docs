@@ -5,7 +5,7 @@ sidebar:
   order: 9
 ---
 
-Connect GitHub or GitLab to show live pull request, merge request, and issue details on Feature links. Webhooks can add pull or merge request links to Stories, Tasks, Bugs, and Action items automatically. They also complete linked work when all requests are closed and at least one is merged. You can also send application logs to Seq.
+Connect GitHub or GitLab to show live pull request, merge request, and issue details on Feature links. Webhooks can add pull or merge request links to Stories, Tasks, Bugs, and Action items automatically. They also complete linked work when all requests are closed and at least one is merged. [Task changes](/ui/task-changes/) read commits from the same hosts. You can also send application logs to Seq.
 
 ## Connect GitHub and GitLab link cards
 
@@ -30,6 +30,23 @@ SHIPLEAN_GITLAB_TOKEN=<gitlab-read-token>
 ```
 
 Omit the GitLab settings if you do not use GitLab. To use GitHub Enterprise Server, point `SHIPLEAN_GITHUB_API_URL` at its API endpoint. The integration makes API requests only to configured HTTPS hosts.
+
+## Show Task changes from GitHub and GitLab
+
+[Task changes](/ui/task-changes/) read commits and their diffs from GitHub or GitLab. They use the same token and URL settings as the link cards above, and no extra settings.
+
+- **GitHub.** Commits on `github.com` or on the host of `SHIPLEAN_GITHUB_API_URL` are read through that API. A private repository needs `SHIPLEAN_GITHUB_TOKEN` (or the token saved in **Instance settings**) that can read the repository.
+- **GitLab.** Commits on the host of `SHIPLEAN_GITLAB_URL` are read through its v4 API. Without a GitLab URL, no GitLab commit can be read. A private project needs `SHIPLEAN_GITLAB_TOKEN`.
+- **Other hosts.** A commit address on any other host is refused with "ShipLean has no GitHub or GitLab connection for" that host.
+- **Network.** ShipLean connects only to hosts whose addresses are public. A GitLab or GitHub Enterprise server that resolves to a private, loopback or link-local address cannot be read. It does not follow redirects, waits up to 15 seconds for an answer, and gives up on a reply larger than 8 MB.
+
+ShipLean reads a commit's details when someone or an agent adds it to a Task or Bug. If it cannot read the repository, it adds nothing and says so. When a repository answers "not found", ShipLean checks the repository itself to tell a missing commit from a token that cannot see the repository. The Changes page reads diffs again when you open it. A reader that is refused or fails shows **Can't show this diff** for that commit and does not affect the rest of the page.
+
+Diffs are cached for 24 hours. A "commit not found" answer is cached for 5 minutes, in case the push is still arriving. A refused or failed read is never cached, so fixing a token takes effect at once. The cache is shared through Redis when `SHIPLEAN_REDIS_CONNECTION` is set (see [scaling](/start/scaling/)). Otherwise each instance keeps its own in memory, up to 500 entries.
+
+When ShipLean starts, it moves old `commit <sha7>` link cards on Tasks and Bugs into Changes, reading each commit once from its host. Startup waits for this to finish. Only one instance does it at a time. A card whose repository cannot be read, or whose commit is missing, stays a link card, so set the tokens before you upgrade if the repositories are private.
+
+Agents add commits with `add_commits` and `report_task`. See [agents doing the work](/work/build/#send-commits-and-answer-code-comments).
 
 ## Turn on pull request webhooks
 

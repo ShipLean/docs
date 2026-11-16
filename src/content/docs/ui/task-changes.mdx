@@ -1,0 +1,97 @@
+---
+title: "Task changes"
+description: "See the commits a Task or Bug was done in, review their diffs, comment on lines, and approve the work or send it back."
+sidebar:
+  order: 18.5
+---
+
+import ProductShot from '@/components/ProductShot.astro';
+
+A Task or Bug lists the commits it was done in. The **Changes** page shows their diffs and lets you comment on lines, then approve the work or send it back. Agents send commits and answer your comments through the [agent tools](/agents/tools/). People can add a commit by hand.
+
+Only Tasks and Bugs take commits. A Story or Feature has no Changes section, and its Changes page address returns an error.
+
+## The Changes section
+
+The **Changes** section sits on the work item page below the description and above **Tasks**. It shows:
+
+- The totals: commits, files, and added and removed lines.
+- One row per commit with its short sha (a link to the commit on GitHub or GitLab), subject, repository, who added it, when it was authored, and its added and removed lines.
+- The number of open comments, and how many files you have marked viewed.
+- **Review changes**, which opens the Changes page.
+- A line, "Sent by *agent name* through `report_task`", when an agent added commits.
+
+<ProductShot name="task-changes-section" alt="A Task's Changes section listing three commits from two repositories, with 1 open comment, 0 of 3 files viewed, and a Review changes button." />
+
+A Task or Bug with no commits shows **No commits yet** and a short note about how commits arrive. Choose **+ Add commit** to add one yourself. Enter a **Repository** and a **Commit sha or URL**, then choose **Add commit**. If you paste a commit URL, you can leave **Repository** empty. The **+ Add commit** button appears only while the item has no commits. After that, further commits come from agents.
+
+ShipLean reads each commit from GitHub or GitLab when it is added. If it cannot read the repository, or the commit does not exist, nothing is added and you see the reason. See [GitHub and GitLab integrations](/start/integrations/#show-task-changes-from-github-and-gitlab) for what an administrator must set up.
+
+The section appears only on a screen 900px wide or more. On a phone it is not shown.
+
+## The Changes page
+
+Choose **Review changes** to open `/p/:key/items/:itemKey/changes`. The page has a toolbar over three columns.
+
+<ProductShot name="task-changes" alt="The Changes page for a Task. A toolbar with the commit picker, Unified and Split buttons and Approve and Request changes buttons sits over a file list, two file diffs and a Comments column with one thread." />
+
+**Toolbar.** The commit picker shows **All n commits** or one commit. Choose a commit under **One commit** to see only its diff. The repositories, the file count and the added and removed lines follow. **Unified** and **Split** switch the diff layout. A progress bar counts the files you have marked viewed. **Approve** and **Request changes** are at the right.
+
+**Files.** The changed files, grouped by folder, and by repository when the commits come from more than one. Each row has a letter for the change (A added, M modified, D deleted, R renamed), the number of open comments on that file, and a tick once you mark it viewed. Choose a row to scroll to that file.
+
+**Diff.** One block per file. Each block has a **Viewed** checkbox and, for files that still exist, a link to the file on GitHub or GitLab. Marking a file viewed collapses its diff. Viewed marks are kept in your browser, not on the server. A viewed mark carries over to a new commit when that file's patch did not change.
+
+With **All** selected, commits in one repository that follow one another (each is the child of the one before) show as one combined diff. Other commits show one diff each.
+
+The address holds the commit, file and layout you chose, so you can share a link to a spot: `?commit=`, `?file=` and `?layout=split`.
+
+If ShipLean cannot read a commit, its place in the diff shows **Can't show this diff** with the reason ("the instance token was refused" or "the commit is no longer there") and a link to open the commit on the host.
+
+When someone adds a commit while the page is open, a banner reads **A new commit since you looked**. Choose **Reload** to load it.
+
+## Comment on a line
+
+Choose the **+** that appears in the gutter beside a line, write your comment, and choose **Comment**. Press **Ctrl+Enter** or **⌘+Enter** to post, or **Esc** to cancel. A comment belongs to one side of the diff (old or new) and one commit. Comments use Markdown.
+
+The **Comments** column lists threads under two tabs, **Open (n)** and **All (n)**. Each thread shows the repository, file, line and side, the line's text, and its messages. An agent's messages are marked "(agent)".
+
+- **Reply** adds a message to the thread.
+- **Resolve** closes the thread. **Reopen** opens it again.
+- **Outdated** appears when a commit added later changes the lines the comment is on. The thread says "The line changed. Resolve it, or reply to keep it open."
+- **Sent back** appears on a comment that was open when someone chose **Request changes**.
+
+Comments stay in ShipLean. They are not posted to GitHub or GitLab.
+
+## Approve or request changes
+
+Both actions are on the Changes page.
+
+**Approve.** The dialog is titled "Approve and close *KEY*?". It moves the item to the first Completed state for its type, and History records "Approved" with the commits. You can add a note, which is posted as a comment on the item. If comments are still open, the dialog warns you. They stay open on the item. Approve fails with "A newer commit arrived while you were reviewing" if a commit was added after you loaded the page. Reload and look again.
+
+**Request changes.** The button is available only while at least one comment is open, and shows the count, such as **Request changes · 2**. The dialog sends the item back:
+
+- The item moves to the first Proposed state for its type and is unassigned.
+- Every open comment is marked **Sent back**.
+- History records "Changes requested" with the number of comments.
+- Your optional note is posted as a comment on the item.
+
+To keep the assignee and move the item to the first In progress state instead, select **Keep the assignee and move to Active**.
+
+The next agent or person who picks the item up gets the open comments. An agent reads them with `get_brief` or `get_work_item`, fixes them, and answers each one when it reports. The answer is a reply on the thread, and the thread is resolved. See [Agents doing the work](/work/build/#send-commits-and-answer-code-comments). The new commit also marks comments Outdated when it touches their lines.
+
+## Who can do what
+
+Any member of the project can view the Changes page, add a commit, comment, reply, resolve, approve and request changes. There is no separate reviewer role, and the person who wrote the work can approve it. Instance admins have no extra access to a project they are not in.
+
+## Phones and narrow screens
+
+The Changes page needs a screen 900px wide or more. Under that width it shows **Changes need a wider screen.** with a link back to the item, and loads nothing. The Changes section is hidden on the work item page.
+
+## Old commit link cards
+
+Before Task changes, commits an agent reported were saved as link cards titled `commit <sha7> …`. When ShipLean starts, it moves each such card on a Task or Bug into the Changes section and archives the card. A card whose repository ShipLean cannot read, or whose commit is missing, stays a link card. See [GitHub and GitLab integrations](/start/integrations/#show-task-changes-from-github-and-gitlab) for what the move needs.
+
+## Options and shortcuts
+
+- **Ctrl+Enter** or **⌘+Enter** posts a comment or a reply.
+- **Esc** cancels a new line comment or a reply.
