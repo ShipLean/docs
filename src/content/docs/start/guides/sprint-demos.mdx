@@ -33,16 +33,16 @@ Create demo is off, with the reason shown, when the sprint isn't closed, when an
 | `requested` | Requested | A demo was asked for and no agent session is live yet. |
 | `working` | Working | An agent session is live on the demo's BAU item. The band links to the item. |
 | `ready` | Ready | A video arrived after the last request and the agent's session has ended. The tab stays Working while the session is live, so the agent must finish its run once the upload succeeds; the tab turns Ready when it does. |
-| `failed` | Failed | The upload link expired before a video came back, or the agent session ended as failed, canceled or stale without one. The message says which. |
+| `failed` | Failed | The upload link expired before a video came back, or the demo item's agent session ended after the request without a video, whatever state it ended in. A session that completed reads "The agent session ended without uploading a video." One that failed, was canceled or went stale reads "The agent session ended as <state> before a video came back." The message goes on with `It said: "…"` and the start of the session's last response or error, when it has one (see below). |
 | `blocked` | Blocked | The demo could not start. The message says why: no agent connection, no repository, no base URL on the instance, or "The demo could not be started. Start it again from the sprint's demo panel." |
 
-The first match wins, in this order: blocked, working, ready, failed, requested. The band also shows when the demo was asked for and, while it works, when the upload link runs out. Create demo reads **Create demo again** after a failure and **Remake demo** when Ready.
+The first match wins, in this order: blocked, working, ready, failed (the upload link expired, then the session ended), requested. A session that ends without uploading shows Failed as soon as it ends, and Create demo works again at once, without waiting for the link to expire. The band also shows when the demo was asked for and, while it works, when the upload link runs out, in [your time zone](/ui/profile/#set-your-time-zone). Create demo reads **Create demo again** after a failure and **Remake demo** when Ready.
 
 ## What an agent gets
 
 The prompt, as Markdown, plus a one-time upload link. There are two ways an agent receives it:
 
-- **ShipLean starts the agent** (Create demo, or Automatic demos). It starts a session on the demo's BAU item through the project's agent connection, and the prompt is the session's body. The relay is unchanged.
+- **ShipLean starts the agent** (Create demo, or Automatic demos). It starts a session on the demo's BAU item through the project's agent connection, and the prompt is the session's body. Through agent-relay this is a demo session with its own tool profile; see [Demos made through agent-relay](#demos-made-through-agent-relay).
 - **An agent asks** with the MCP tool `create_sprint_demo` ([agent tools](/agents/tools/)). It always works: no closed-sprint check and no agent check. The one refusal is a live agent session already making this demo. With no `sprint` it takes the most recently closed sprint, else the current one. It fails, like `attach_file`, when the only host ShipLean knows is a cluster service name; set `base_url`.
 
 What the prompt holds, in order:
@@ -62,6 +62,8 @@ Each Feature needs a `## Why` section in its description for the demo to say any
 
 The video has a chapter for each Feature with work in the sprint. Stories without a Feature and Bugs without a Feature go together in an **Other work** chapter; the intro names how many Stories and Bugs are in that group. Each Feature chapter follows its own stories. With three or fewer Stories in a Feature, the demo uses one before-and-after pair for the Feature. With more than three, it pairs each Story back to back in the order shown in the data; a Story with no visible change, such as tests or documentation, gets a spoken line instead. Every Bug gets its own before-and-after pair, whether it is under a Feature or in Other work. Each pair is kept to about 10–20 seconds.
 
+**What the quote holds.** The first paragraph of the session's last response or error, as plain text, cut at a word to at most 280 characters. Anything that looks like a credential, such as a token, an API key or an upload or download link with a query string, is replaced with `[removed]`.
+
 ### The upload
 
 The prompt ends with one `curl`:
@@ -78,7 +80,32 @@ curl --fail-with-body -F chapters=@chapters.json -F script=@script.md -F video=@
 - **All or nothing.** The three files and the sprint's pointers are committed together. If anything fails, the old files and pointers stay, and the same link can be tried again until it expires. Replacing a video frees its space against the work item's attachment total (`SHIPLEAN_ATTACHMENT_MAX_ITEM_BYTES`). The files are kept as `sprint-demo.mp4`, `sprint-demo-script.md` and `sprint-demo-chapters.json` on the BAU item.
 - **Answers.** 404 "That upload link is not valid." for every link that isn't live: unknown, expired, spent, replaced by a retry, a person who has left the project, a revoked agent authorization, a disabled user. 400 names the part that is missing, out of order, too big or invalid; after a 400 the link is live again. The route is rate limited per client address like other uploads (60 a minute).
 - **Behind a proxy**, `/api/uploads/` must skip sign-in ([identity proxy sign-in](/start/sign-in/#keep-the-backend-private)), and **the proxy's request body limit must allow the demo size** on that path. nginx's default `client_max_body_size` is 1 MB, which stops a demo; set it to at least `SHIPLEAN_DEMO_MAX_BYTES` there. ShipLean lifts Kestrel's own cap on this route.
-- **A proxy's access log can hold the upload link's query string**, and with it the token. The token works once and for 24 hours, so a spent or expired link in a log is dead, but keep access logs away from people who shouldn't upload demos while one is live, or drop the query string from the log format for `/api/uploads/`. ShipLean itself logs no token, puts none in a trace tag or a usage event, and the agent panel never shows the prompt. The prompt, link included, stays in plain text in the agent delivery's body, because the relay doesn't change.
+- **A proxy's access log can hold the upload link's query string**, and with it the token. The token works once and for 24 hours, so a spent or expired link in a log is dead, but keep access logs away from people who shouldn't upload demos while one is live, or drop the query string from the log format for `/api/uploads/`. ShipLean itself logs no token, puts none in a trace tag or a usage event, and the agent panel never shows the prompt. The prompt, link included, stays in plain text in the agent delivery's body.
+
+## Demos made through agent-relay
+
+[agent-relay](https://github.com/ShipLean/agent-relay) can run the agent that makes the demo. When ShipLean starts a demo through a relay connection, the session is marked as a demo: the `created` webhook carries `"shipleanMode": "demo"`. The relay never guesses it from the prompt. This needs an agent-relay that includes demo sessions. The repository is resolved as for any implement session, so it must be on the relay's `RELAY_REPOS`.
+
+**What a demo session may do.** The relay gives it a fixed tool profile that no setting widens:
+
+- The tools are Bash, Read, Write, Edit, Glob and Grep.
+- Bash may run only `demo-python`, `ffmpeg`, `ffprobe`, `curl`, `mkdir` and `ls`. The prompt's commands use no other command and no `$`, backquote or `~`.
+- No web tools, no notebooks, nothing that starts or schedules other work.
+- No settings file is loaded and hooks are off.
+- Each turn runs in a fresh detached checkout of the base branch, with an empty temporary home and no GitHub token. The checkout is removed when the turn ends. Nothing is committed, pushed or opened as a pull request.
+- A demo turn has up to 200 turns (`RELAY_DEMO_MAX_TURNS`) and 7200 seconds (`RELAY_DEMO_TIMEOUT`).
+
+A demo session is still code execution as the relay's run user: `demo-python` runs any Python, and the run user's own files stay readable by absolute path. Keep that user's GitHub token fine-grained and limited to the repositories the relay serves.
+
+**Install the demo tools on the relay host.** The session installs nothing. Without the tools the first call of a demo is denied, the demo ends without a video, and the tab shows Failed. In the agent-relay repository, `deploy/demo-tools.sh` does the install:
+
+- `deploy/demo-tools.sh` is a wizard for a user with sudo. It shows each step that needs root and runs it after you confirm. It installs `ffmpeg` and `ffprobe`, a root-owned Python environment in `/opt/demo-tools` with pinned `kokoro-onnx`, `soundfile` and Playwright with Chromium, the Kokoro model files (checked against a SHA-256), and a `demo-python` wrapper in `/usr/local/bin`.
+- `deploy/demo-tools.sh --check` runs as the run user (`--user NAME`, default `agent-relay`) and prints one line per tool, `ok` or `MISSING` with the fix. It exits 1 if anything is missing.
+- `deploy/demo-tools.sh --smoke` runs Claude Code as that user with the demo tool flags and checks that the allow-list works. It makes a few model calls.
+
+Run the install, then `--check`, restart the relay, then `--smoke`. The agent-relay repository's `deploy/HOST-SETUP.md` has the steps.
+
+**What you see.** The relay posts the session's final response as a comment on the demo item, so the closing comment (duration, size, anything left out) lands there. Its activities show only the tool name and, for Bash, the command's first word (`Bash: curl`), so the upload link never reaches the item. If the session ends without uploading, the Demo tab shows Failed with the start of that last response. A missing tool therefore shows up there as the exact failure the agent reported.
 
 ## BAU explained
 
