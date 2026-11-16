@@ -495,6 +495,93 @@ Number of seconds between background indexer passes.
 - **Example:** `60`
 - **Set it when:** You need to change the interval between indexing passes.
 
+## Inspection
+
+These settings turn on Agent runs, which show traces and logs of coding agents that your own collector stored. ShipLean reads the store and never writes to it. [Turn on agent inspection](/inspection/turn-on/) explains setup, and the [collector reference configs](/inspection/collector/) cover the collector. The collector reference configs and the turn-on page also describe the optional store details, such as database and table names, authentication and tenants. A value ShipLean cannot read stops startup with a message that names the setting.
+
+### `SHIPLEAN_INSPECTION`
+
+Turns Inspection on for the instance. Project admins then turn it on for each project.
+
+- **Default:** `off`.
+- **Allowed values:** `off` or `on`. Any other value stops startup.
+- **Example:** `on`
+- **Set it when:** You want Agent runs. With `on`, also set `SHIPLEAN_INSPECTION_STORE`.
+
+### `SHIPLEAN_INSPECTION_STORE`
+
+The kind of store that holds your agents' telemetry.
+
+- **Default:** Not set. Required when `SHIPLEAN_INSPECTION` is `on`.
+- **Allowed values:** `clickhouse` or `tempo-loki`.
+- **Example:** `clickhouse`
+- **Set it when:** `SHIPLEAN_INSPECTION` is `on`. With `clickhouse`, `SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION` is required. With `tempo-loki`, `SHIPLEAN_INSPECTION_TEMPO_URL` and `SHIPLEAN_INSPECTION_LOKI_URL` are required.
+
+### `SHIPLEAN_INSPECTION_AGENT_OTLP_ENDPOINT`
+
+The address of your collector, shown to developers on the Agent setup tab so they can copy a working configuration.
+
+- **Default:** Not set.
+- **Example:** `https://collector.example.com`
+- **Set it when:** You want the Agent setup tab to show your collector's address.
+
+### `SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS`
+
+The headers that agents send to your collector, shown on the Agent setup tab to anyone who can open it.
+
+- **Default:** Not set.
+- **Example:** `Authorization=Bearer <collector-token>`
+- **Set it when:** Your collector needs a header. Use a send-only collector token, never a store credential.
+
+### `SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION`
+
+Connection string for the ClickHouse HTTP port, used with the `clickhouse` store. Treat it as a secret.
+
+- **Default:** Not set. Required when `SHIPLEAN_INSPECTION_STORE` is `clickhouse`.
+- **Example:** `Host=clickhouse;Port=8123;Protocol=http;Username=shiplean_reader;Password=<reader-password>`
+- **Set it when:** You use the `clickhouse` store. Use the read-only user from the [collector reference configs](/inspection/collector/#the-clickhouse-user-for-shiplean), not the collector's user.
+
+### `SHIPLEAN_INSPECTION_TEMPO_URL`
+
+Address of Tempo, which holds traces in the `tempo-loki` store.
+
+- **Default:** Not set. Required when `SHIPLEAN_INSPECTION_STORE` is `tempo-loki`.
+- **Example:** `http://tempo:3200`
+- **Set it when:** You use the `tempo-loki` store.
+
+### `SHIPLEAN_INSPECTION_LOKI_URL`
+
+Address of Loki, which holds logs in the `tempo-loki` store.
+
+- **Default:** Not set. Required when `SHIPLEAN_INSPECTION_STORE` is `tempo-loki`.
+- **Example:** `http://loki:3100`
+- **Set it when:** You use the `tempo-loki` store.
+
+### `SHIPLEAN_INSPECTION_FIELD_ITEM`
+
+The attribute name in your telemetry that carries the work item key.
+
+- **Default:** `shiplean.item`.
+- **Example:** `shiplean.item`
+- **Set it when:** Your collector renames the attribute. The attributes for the project, session, prompt, repository, branch and pull request have their own settings; see [field mapping](/inspection/turn-on/#field-mapping).
+
+### `SHIPLEAN_INSPECTION_MAX_SEARCH_DAYS`
+
+How many days back a search for runs looks.
+
+- **Default:** `30`.
+- **Allowed values:** A positive whole number.
+- **Example:** `14`
+- **Set it when:** You want a shorter or longer search window than 30 days.
+
+### `SHIPLEAN_INSPECTION_GRAFANA_URL_TEMPLATE`
+
+A link to the trace in Grafana. ShipLean replaces `{traceId}` with the trace's ID.
+
+- **Default:** Not set. ShipLean shows no Grafana link.
+- **Example:** `https://grafana.example.com/explore?traceId={traceId}`
+- **Set it when:** You want a link from a run to its trace in Grafana.
+
 ## Compose-only
 
 ### `SHIPLEAN_PORT`

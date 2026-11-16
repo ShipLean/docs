@@ -33,7 +33,7 @@ SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION='Host=clickhouse;Port=8123;Protocol=ht
 | `SHIPLEAN_INSPECTION_CLICKHOUSE_DATABASE`, `_TRACES_TABLE`, `_LOGS_TABLE` | The exporter's names. Defaults `otel`, `otel_traces`, `otel_logs`. Letters, digits and `_` only. |
 | `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` | Default 30. Match the exporter's `ttl`. |
 
-Create the user ShipLean reads with from [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql). Do not use the collector's user. The grants are:
+Create the user ShipLean reads with from [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/main/examples/inspection/clickhouse-users.sql). Do not use the collector's user. The grants are:
 
 - `SELECT` on `otel.otel_traces` and `otel.otel_logs`: ShipLean can read the telemetry and cannot change or delete it;
 - create, insert, select, alter and drop of tables and views in the `inspection` database, which ShipLean creates the first time it needs it. It holds only a run index, built by materialized views from the exporter's tables.
