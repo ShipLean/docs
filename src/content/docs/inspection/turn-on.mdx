@@ -24,7 +24,7 @@ ShipLean reads these as environment variables when it starts. Anything but `off`
 ```sh
 SHIPLEAN_INSPECTION=on
 SHIPLEAN_INSPECTION_STORE=clickhouse
-SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION=<connection string, a secret>
+SHIPLEAN_INSPECTION_CLICKHOUSE_CONNECTION='Host=clickhouse;Port=8123;Protocol=http;Username=shiplean_reader;Password=<reader password>'   # a secret
 ```
 
 | Variable | Meaning |

@@ -123,8 +123,10 @@ Run a tiny session with the variables set:
 
 ```sh
 OTEL_RESOURCE_ATTRIBUTES="shiplean.project=SHIP,shiplean.item=SHIP-123" \
-  claude -p "list the files in this directory" --max-turns 3
+  claude -p "list the files in this directory" --max-turns 3 --allowedTools "Bash(ls:*)"
 ```
+
+Or use the per-run settings file from the Agent setup tab, which already holds the tag: `claude -p "list the files in this directory" --max-turns 3 --allowedTools "Bash(ls:*)" --settings shiplean-telemetry.json`. Without `--allowedTools`, `-p` cannot ask permission to run `ls`, and the run shows only a denied tool call.
 
 Within a few seconds the run appears under Agent runs on SHIP-123, with an interaction, model calls and the tool call. If it does not, see [Troubleshooting](/inspection/troubleshooting/). To look at the collector's side directly, read the newest rows of `otel_traces` where `ServiceName = 'claude-code'`.
 
