@@ -11,11 +11,11 @@ Checked on 2026-11-15 with OpenTelemetry Collector contrib 0.165.0, ClickHouse 2
 
 | File | What it is |
 |---|---|
-| [`collector-clickhouse.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/collector-clickhouse.yaml) | Collector to ClickHouse. |
-| [`collector-tempo-loki.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/collector-tempo-loki.yaml) | Collector to Tempo (traces) and Loki (logs). |
-| [`docker-compose.clickhouse.yml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/docker-compose.clickhouse.yml) | Collector and ClickHouse, for a team starting from nothing. |
-| [`docker-compose.tempo-loki.yml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/docker-compose.tempo-loki.yml) | Collector, Tempo and Loki, with [`tempo.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/tempo.yaml) and [`loki.yaml`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/loki.yaml). |
-| [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql) | The ShipLean user: reads `otel`, writes only `inspection`. |
+| [`collector-clickhouse.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/collector-clickhouse.yaml) | Collector to ClickHouse. |
+| [`collector-tempo-loki.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/collector-tempo-loki.yaml) | Collector to Tempo (traces) and Loki (logs). |
+| [`docker-compose.clickhouse.yml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/docker-compose.clickhouse.yml) | Collector and ClickHouse, for a team starting from nothing. |
+| [`docker-compose.tempo-loki.yml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/docker-compose.tempo-loki.yml) | Collector, Tempo and Loki, with [`tempo.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/tempo.yaml) and [`loki.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/loki.yaml). |
+| [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/main/examples/inspection/clickhouse-users.sql) | The ShipLean user: reads `otel`, writes only `inspection`. |
 
 Both configs share the same receiver and processors, in this order: `memory_limiter`, the redaction processors, `batch`.
 
@@ -50,7 +50,7 @@ exporters:
 
 ### The ClickHouse user for ShipLean
 
-Give ShipLean its own user, not the collector's. [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/feat/1463-inspection-docs/examples/inspection/clickhouse-users.sql) creates `shiplean_reader`:
+Give ShipLean its own user, not the collector's. [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/main/examples/inspection/clickhouse-users.sql) creates `shiplean_reader`:
 
 - `SELECT` on `otel.otel_traces` and `otel.otel_logs`, and nothing else on `otel`;
 - rights to create and fill tables and views in a separate `inspection` database, which holds ShipLean's small run index. It is built from the telemetry by materialized views, so ShipLean never copies spans or logs.
