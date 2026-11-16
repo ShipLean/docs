@@ -7,7 +7,7 @@ sidebar:
 
 import Shot from '@/components/Shot.astro';
 
-Sign in with your account, then use **Your profile** to manage your identity, appearance, password, sessions, project memberships, and agent connections.
+Sign in with your account, then use **Your profile** to manage your identity, appearance, time zone, password, sessions, project memberships, and agent connections.
 
 The profile is at `/profile`. The sign-in page is `/login`.
 
@@ -26,6 +26,22 @@ In the identity section, edit your name, choose an avatar colour, or upload or r
 Use the account section to change your password and manage signed-in sessions. If you sign in only with Google and have no password, the account section has no password form, because the form asks for a current password you do not have. The sessions and appearance sections still appear. An instance admin can give you a password with **Set up sign-in…** in the users list, and an admin with no password uses it on their own row. You can sign out other sessions to end them. In the appearance section, choose a theme and density. ShipLean saves the selection to your account.
 
 <Shot name="ui-profile-appearance" alt="Account appearance settings with theme and density choices." />
+
+## Set your time zone
+
+ShipLean shows dates and times in your own time zone. The **Time zone** section in the account part of your profile says "Every date and time in ShipLean is shown in this zone" and shows the current zone beside **Zone**, for example `Asia/Bangkok (UTC+07:00)`. The offset is the one in force now. A zone you have not set reads "Not set: times show in UTC".
+
+- **First sign-in.** Until a zone is saved, ShipLean takes it from your browser the first time a page loads, then saves it. Your browser's zone only fills an empty setting. It never replaces a zone you chose.
+- **Change it.** Pick a zone from the list. The list holds every zone the server knows, ordered by offset and then name, and a pick is saved at once. If your browser's zone differs from the saved one, **Use this device's zone (…)** saves the browser's zone.
+- **If saving fails**, the zone stays as it was and the message says why. If the list cannot load, the section says "The list of time zones could not be loaded. Reload the page to try again."
+- **Existing users.** When an instance first got this setting, every user who already existed was given `Asia/Bangkok`. Change it here if that is not where you are. Users created later start with no zone.
+
+Your zone decides how the server writes labels such as when a comment or a history entry was made, how long ago an ask was raised, the times in the Inbox and on link cards, and the dates on a sprint's Demo tab. Everything refreshes when you change it. A few things do not follow it:
+
+- Sprint start and end dates are UTC days. See [the sprint backlog](/ui/sprint-backlog/).
+- Insights **By week** columns run Monday to Sunday in UTC. See [Retrospectives](/ui/retrospectives/).
+- The backup schedule is in UTC. See [Back up and restore ShipLean](/start/guides/backups/#schedule).
+- The [Feature timeline](/ui/feature-timeline/) uses the server's time zone.
 
 ## Manage connected agents
 
