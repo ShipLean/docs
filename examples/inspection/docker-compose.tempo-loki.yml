@@ -1,0 +1,33 @@
+# Collector + Tempo + Loki, for a team starting from nothing. Agents send OTLP/HTTP to port 4318 with a bearer token;
+# ShipLean reads Tempo (3200) and Loki (3100). Ports are on localhost only: put TLS in front of 4318 and keep 3200/3100
+# on a private network (or add auth) before anyone else uses it.
+#   COLLECTOR_TOKEN=$(openssl rand -hex 24) docker compose -f docker-compose.tempo-loki.yml up -d
+name: shiplean-inspection-tempo-loki
+
+services:
+  tempo:
+    image: grafana/tempo:2.10.10
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes: ["./tempo.yaml:/etc/tempo.yaml:ro", "tempo-data:/var/tempo"]
+    ports: ["127.0.0.1:3200:3200"]
+  loki:
+    image: grafana/loki:3.7.10
+    command: ["-config.file=/etc/loki.yaml"]
+    volumes: ["./loki.yaml:/etc/loki.yaml:ro", "loki-data:/loki"]
+    ports: ["127.0.0.1:3100:3100"]
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.165.0
+    command: ["--config=/etc/collector.yaml"]
+    environment:
+      COLLECTOR_TOKEN: ${COLLECTOR_TOKEN:?set a send-only token}
+      TEMPO_ENDPOINT: tempo:4317
+      LOKI_OTLP_ENDPOINT: http://loki:3100/otlp
+      SHIPLEAN_PROJECT_KEY: ${SHIPLEAN_PROJECT_KEY:-}
+    volumes: ["./collector-tempo-loki.yaml:/etc/collector.yaml:ro"]
+    ports: ["127.0.0.1:4318:4318"]
+    restart: unless-stopped
+    depends_on: [tempo, loki]
+
+volumes:
+  tempo-data:
+  loki-data:
