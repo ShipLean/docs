@@ -1,5 +1,5 @@
 // Fails when a page in src/content/docs/inspection/ is missing from the sidebar,
-// or an agent page lacks a heading or frontmatter key from _agent-template.md.
+// or an agent page lacks a heading or frontmatter key from the fixed list below (the template must match it).
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -50,6 +50,7 @@ for (const slug of agentPages) {
   const text = readFileSync(join(root, file), 'utf8');
   const have = headings(text);
   for (const h of fixedHeadings) if (!have.includes(h)) errors.push(`${file}: missing heading "${h}"`);
+  for (const h of new Set(have)) if (have.indexOf(h) !== have.lastIndexOf(h)) errors.push(`${file}: duplicate heading "${h}"`);
   for (const h of have) if (!fixedHeadings.includes(h)) errors.push(`${file}: "${h}" must be a ### subsection of one of the standard headings, not an H2`);
   const positions = fixedHeadings.map((h) => have.indexOf(h)).filter((i) => i >= 0);
   if (positions.some((p, i) => i > 0 && p < positions[i - 1])) {

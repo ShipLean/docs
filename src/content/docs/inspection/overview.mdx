@@ -17,6 +17,8 @@ Agent inspection shows what a coding agent did on a work item: its turns, model 
 
 Only items that runs are linked to directly show them. A planning run on a Feature shows on the Feature, and there is no roll-up of children's runs.
 
+![A run page: a waterfall of turns, model calls and tool calls on one time axis.](/inspection/run-page.png)
+
 ## The two store modes
 
 The instance picks one mode when an admin [turns Inspection on](/inspection/turn-on/).
@@ -24,12 +26,14 @@ The instance picks one mode when an admin [turns Inspection on](/inspection/turn
 | | ClickHouse | Tempo and Loki |
 |---|---|---|
 | Where the collector writes | ClickHouse, through the collector's `clickhouse` exporter | Tempo (traces) and Loki (logs) |
-| Who writes | The collector only; ShipLean never writes | The collector only |
-| How ShipLean finds an item's runs | A run index it builds in its own `inspection` database from the exporter's tables | A search by `shiplean.item` when someone opens the item, cached for about ten minutes |
+| Who writes | The collector writes all telemetry. ShipLean writes only its run index, in an `inspection` database in your ClickHouse, never to `otel.*` | The collector writes all telemetry. ShipLean caches run links (no span or log data) in its own Postgres for about ten minutes |
+| How ShipLean finds an item's runs | A run index it builds in an `inspection` database in your ClickHouse, from the exporter's tables | A search by `shiplean.item` when someone opens the item, cached for about ten minutes |
 | Retention | The exporter's `ttl` (30 days in the reference config) | Your Tempo and Loki retention |
-| ShipLean's credentials | A read-only ClickHouse user | Read-only Tempo and Loki credentials |
+| ShipLean's credentials | Read-only on the exporter's tables, plus create, insert and drop on `inspection.*` only | Read-only Tempo and Loki credentials |
 
 In both modes you run your own collector; ShipLean has no OTLP endpoint. The [collector page](/inspection/collector/) has reference configs for both modes, with redaction and batching.
+
+![An item page with its Agent runs section listing runs, each with a short summary of what it did.](/inspection/agent-runs-section.png)
 
 ## What each agent gives you
 
@@ -43,9 +47,9 @@ This table says what we know, and how we know it. Only Claude Code has been chec
 | Model-call timing and tokens | Yes: `llm_request` spans with `ttft_ms` and token counts | Per request (`codex.api_request`); tokens arrive on `codex.sse_event` | None: hooks do not fire around model requests |
 | Link by tagging `shiplean.item` | Supported, and what to use | Documented only for spans; unconfirmed for logs | Supported, through `SHIPLEAN_ITEM` or a `.shiplean` file |
 | Link from a ShipLean tool call | Does not work today | Does not work today | Does not work today |
-| Content by default | Redacted by the agent | Off | Not sent |
+| Content by default | Redacted by the agent | Prompt text off; tool output on, truncated (`tool_result.max_bytes`) | Not sent |
 
-Tool-call linking means linking a run because it called a ShipLean tool such as `pick_up` on an item. It does not work for any of the three agents today: Claude Code's spans carry the tool name but no input and its logs name the tool `mcp_tool`; Codex CLI's tool input is not documented; Cursor sends the bare tool name with the item only inside the tool input. Tag the run with `shiplean.item` instead. agent-relay does this for every run it starts.
+Tool-call linking means linking a run because it called a ShipLean tool such as `pick_up` on an item. It does not work for any of the three agents today: Claude Code's spans carry the tool name but no input and its logs name the tool `mcp_tool`; Codex CLI's tool input is not documented; Cursor sends the bare tool name with the item only inside the tool input. Tag the run with `shiplean.item` instead; it is the only way runs are linked today. agent-relay does this for every run it starts.
 
 Each agent's own page has the detail and its known gaps: [Claude Code](/inspection/claude-code/), [Codex CLI](/inspection/codex-cli/), [Cursor](/inspection/cursor/). Those pages show a "Checked with" line, and an Out of date banner when the check is more than 90 days old or older than the recorded run.
 

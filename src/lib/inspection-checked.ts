@@ -5,6 +5,7 @@
 export const maxAgeDays = 90;
 
 // The agent version of each recorded fixture (Recorded/<agent>-recorded in ShipLean's test support).
+// Update this when the fixture is re-recorded (record-run.sh).
 // Codex CLI and Cursor have no recorded run yet, so their pages stay marked unchecked.
 export const recordedVersions: Readonly<Record<string, string>> = {
   'claude-code': '2.1.323',
