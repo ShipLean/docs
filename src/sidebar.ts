@@ -87,6 +87,10 @@ export const sidebar = [
         "link": "/ui/mobile/"
       },
       {
+        "label": "ShipLean in a phone browser",
+        "link": "/ui/mobile-web/"
+      },
+      {
         "label": "Sign in and your profile",
         "link": "/ui/profile/"
       },

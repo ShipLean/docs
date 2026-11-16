@@ -7,7 +7,7 @@ sidebar:
 
 The ShipLean phone app is for quick project updates, answers and voice commands. It is available for iOS and Android. The documented release path distributes iOS builds through TestFlight and Android builds through Google Play internal testing. Ask your ShipLean administrator or team for the current tester invitation; production store availability depends on the separate store review and release process.
 
-The app is a companion to the web app. It currently focuses on **Inbox**, **Backlog**, **Features** and **Retro**. Use the web app for screens or actions the phone app directs you to open there.
+The app is a companion to the web app. It currently focuses on **Inbox**, **Backlog**, **Features** and **Retro**. Use the web app for screens or actions the phone app directs you to open there. The web app also works in a phone browser; see [ShipLean in a phone browser](/ui/mobile-web/).
 
 ## Install and sign in
 
@@ -29,6 +29,30 @@ The app uses the microphone only while you hold the microphone control. Speech r
 The voice models take substantial storage and download time. Setup selects **Auto** by default and shows the selected model, download size and free space; you can choose another model offered for your phone. Keep the app online while setup finishes, and use Wi-Fi if you prefer not to download over mobile data. The app verifies downloaded files. If a download pauses for Wi-Fi, choose **Wait** to continue on Wi-Fi or **Use mobile data** to allow the current download to proceed. A dropped connection is retried; a restarted download can continue from its partial file. iOS can continue a download in the background, but force-quitting the app can restart the file currently in progress. Android uses a foreground service to continue the initial model download. On Android 13 and later, its notification appears in Task Manager rather than the notification shade. Android may limit long-running background work, in which case leave ShipLean open until it finishes.
 
 In **Account → Voice**, you can review voice status and change or download models. **Model licences** lists the licences for the bundled speech and command models. If voice is unavailable, check that setup is complete, a model is ready and microphone permission is granted. You can still use the rest of the app without voice.
+
+### Mic tuning
+
+If voice does not hear you, tune the microphone. The app counts silent holds in a row. After the second one, the "Didn't hear anything" message has a **Tune mic** action. After the third, the app opens **Mic tuning** for you, and **Back** returns you to the screen you were on. The count starts again after two minutes without a silent hold. You can also open it any time from **Account → Voice → Mic tuning**, which shows the input in use and when you last tested.
+
+Voice records from the phone's own microphone and plays through its loudspeaker. The top card of **Mic tuning** names the input in use. Choose **Change** to pick another from **Listen through**. If the input you picked is disconnected, the app falls back to the phone. Each input keeps its own sensitivity, so test again after you change it.
+
+To run the test, choose **Start the test**. It takes about 10 seconds:
+
+1. **Stay quiet.** The app measures the room for 3 seconds.
+2. **Hold the mic and say** the phrase on screen, for example "Move SHIP-123 to Done", at your usual distance. Release when you have finished.
+
+The result is one of these:
+
+- **Your mic is working.** The app sets the sensitivity from your voice and the room, and shows what it heard.
+- **Your voice was coming through quietly.** It was too quiet for the old setting, so voice heard nothing. The app makes voice more sensitive.
+- **The room is too noisy.** Move closer to the mic and away from the noise, then test again.
+- **No sound is reaching ShipLean.** The app lists things to check, such as microphone access being off, another app using the microphone, or something covering the mic.
+
+If the phone recorded from a different input than the one you picked, the result says **Wrong input** and names both.
+
+Under **Adjust by hand**, **Automatic** is on by default and uses the sensitivity the test set. Turn it off to move the sensitivity yourself on a scale of 1 to 10, from **Less sensitive** to **More sensitive**, while the meter shows your voice. Choose **Save** to keep it. The setting on **Voice** then shows **Manual** instead of **Automatic**.
+
+Mic tuning is touch only. It does not take voice commands.
 
 ### Use the microphone
 
