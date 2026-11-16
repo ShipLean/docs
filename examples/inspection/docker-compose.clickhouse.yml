@@ -14,7 +14,7 @@ services:
       SHIPLEAN_READER_PASSWORD: ${SHIPLEAN_READER_PASSWORD:?set SHIPLEAN_READER_PASSWORD in the env file}   # used by clickhouse-users.sql
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"   # lets this user run the grants in clickhouse-users.sql
     volumes: ["clickhouse-data:/var/lib/clickhouse"]
-    ports: ["127.0.0.1:8123:8123"]
+    ports: ["127.0.0.1:${CLICKHOUSE_HTTP_PORT:-8123}:8123"]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8123/ping"]
       interval: 2s
@@ -29,7 +29,7 @@ services:
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_WRITER_PASSWORD:?set CLICKHOUSE_WRITER_PASSWORD in the env file}
       SHIPLEAN_PROJECT_KEY: ${SHIPLEAN_PROJECT_KEY:-}
     volumes: ["./collector-clickhouse.yaml:/etc/collector.yaml:ro"]
-    ports: ["127.0.0.1:4318:4318"]
+    ports: ["127.0.0.1:${COLLECTOR_PORT:-4318}:4318"]
     restart: unless-stopped
     depends_on:
       clickhouse: { condition: service_healthy }

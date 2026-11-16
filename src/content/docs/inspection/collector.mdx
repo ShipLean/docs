@@ -129,7 +129,10 @@ docker compose --env-file ~/.config/shiplean/inspection.env -f docker-compose.cl
 
 # or Tempo and Loki mode
 docker compose -f docker-compose.tempo-loki.yml up -d   # needs only COLLECTOR_TOKEN, exported above
+curl -s http://127.0.0.1:3200/ready; curl -s http://127.0.0.1:3100/ready   # both say `ready` after about 15 seconds
 ```
+
+The published ports are 4318 (collector), 8123 (ClickHouse), 3200 (Tempo) and 3100 (Loki). If one is taken, or you run a second stack beside this one, set `COLLECTOR_PORT`, `CLICKHOUSE_HTTP_PORT`, `TEMPO_PORT` or `LOKI_PORT` in the env file (or the shell) and give the stack its own name with `-p <name>`; then use the new ports in the commands and settings below.
 
 Send a test record to confirm the collector accepts it. A 200 means it was accepted; the collector then batches for up to 5 seconds before it writes.
 
