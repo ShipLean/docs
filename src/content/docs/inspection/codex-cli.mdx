@@ -7,7 +7,11 @@ checkedWith: "Codex CLI <version>"
 checkedOn: "<yyyy-mm-dd>"
 ---
 
+import CheckedWith from '@/components/CheckedWith.astro';
+
 Send Codex CLI telemetry to your collector so its runs show on the item.
+
+<CheckedWith agent="codex-cli" checkedWith={frontmatter.checkedWith} checkedOn={frontmatter.checkedOn} />
 
 :::caution[Not yet checked by a real run]
 This page is written from OpenAI's published Codex CLI documentation only. Nobody has run Codex CLI against ShipLean's Inspection yet, so the service name, the attribute names and whether the item tag reaches the records are unconfirmed. Where this page says "not documented", that is what OpenAI's pages say; a real run will settle it and replace this notice with the version and date checked.

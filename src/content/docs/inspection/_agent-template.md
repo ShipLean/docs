@@ -5,8 +5,11 @@ checkedWith: "<agent> <version>"
 checkedOn: "<yyyy-mm-dd>"
 ---
 
-Every agent page follows these headings in this order. The build check
-(`pnpm check:inspection`) fails when an agent page lacks one. `checkedWith` and
+Every agent page has exactly these H2 headings, in this order; agent-specific
+material goes in ### subsections under them (for example under "Set up"). The
+build check (`pnpm check:inspection`) fails when a page lacks one, reorders them
+or adds another H2, and when this template stops matching the list in the script.
+A page also shows its checked line with `<CheckedWith>`. `checkedWith` and
 `checkedOn` in the frontmatter hold the line "Checked with <agent> <version> on
 <date>"; a recorded run that no longer matches the agent's release marks the page
 out of date.

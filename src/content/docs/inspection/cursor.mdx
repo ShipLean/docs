@@ -7,7 +7,11 @@ checkedWith: "Cursor <version>"
 checkedOn: "<yyyy-mm-dd>"
 ---
 
+import CheckedWith from '@/components/CheckedWith.astro';
+
 Cursor has no OpenTelemetry export of its own that ShipLean relies on. Instead, a small hook script turns each of Cursor's hook events into one log record and sends it to your collector, tagged with the item.
+
+<CheckedWith agent="cursor" checkedWith={frontmatter.checkedWith} checkedOn={frontmatter.checkedOn} />
 
 :::caution[Not yet checked against a real Cursor run]
 This page is written from Cursor's published [hooks documentation](https://cursor.com/docs/agent/hooks). The hook script was driven with payloads built from that documentation and its records were read back from ClickHouse, but nobody has run it inside a signed-in Cursor yet. Event payloads in a real session may differ from the documentation. A real run will settle it and replace this notice with the version and date checked.

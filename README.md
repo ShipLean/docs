@@ -15,7 +15,7 @@ pnpm dev
 
 ## Pages and links
 
-Pages live in `src/content/docs/`. All initial pages use MDX so they can import components and shared configuration. Keep each page's slug and title when you replace its outline. `src/sidebar.ts` declares the six sections and their order.
+Pages live in `src/content/docs/`. All initial pages use MDX so they can import components and shared configuration. Keep each page's slug and title when you replace its outline. `src/sidebar.ts` declares the seven sections and their order.
 
 Use root-relative links with trailing slashes, such as `/start/quickstart/`. Link runnable examples to their file in `https://github.com/ShipLean/docs/blob/main/examples/` or to their download at `https://raw.githubusercontent.com/ShipLean/docs/main/examples/`. Repository files are not copied into the website automatically.
 
