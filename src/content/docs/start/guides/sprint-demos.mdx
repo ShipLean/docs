@@ -84,7 +84,7 @@ curl --fail-with-body -F chapters=@chapters.json -F script=@script.md -F video=@
 
 ## Demos made through agent-relay
 
-[agent-relay](https://github.com/ShipLean/agent-relay) can run the agent that makes the demo. When ShipLean starts a demo through a relay connection, the session is marked as a demo: the `created` webhook carries `"shipleanMode": "demo"`. The relay never guesses it from the prompt. This needs an agent-relay that includes demo sessions. The repository is resolved as for any implement session, so it must be on the relay's `RELAY_REPOS`.
+agent-relay can run the agent that makes the demo. When ShipLean starts a demo through a relay connection, the session is marked as a demo: the `created` webhook carries `"shipleanMode": "demo"`. The relay never guesses it from the prompt. This needs an agent-relay that includes demo sessions. The repository is resolved as for any implement session, so it must be on the relay's `RELAY_REPOS`.
 
 **What a demo session may do.** The relay gives it a fixed tool profile that no setting widens:
 
