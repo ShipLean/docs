@@ -7,6 +7,8 @@ sidebar:
 
 ShipLean registers these tools on `/mcp`. Start with `list_projects` to find the project key you need. Each tool entry says which of the [read, write, and plan scopes](/agents/scopes/) it needs.
 
+Agents put commits on a Task or Bug with `add_commits` or `report_task`, and answer review comments with `report_task`. See [Send commits and answer code comments](/work/build/#send-commits-and-answer-code-comments).
+
 The argument summaries below come from the server's tool registrations in the source code. Two tools record and read how a Feature was delivered. A reviewer calls `log_review` once per review round on a task, after its `Review · ` comment. A conductor or lead calls `feature_timeline` on a Feature to read its bars, waits, review rounds, and critical path, for example when writing a retro. The [Feature timeline](/ui/feature-timeline/) page shows the same data.
 
 For connection and authentication, see [Connect an agent](/agents/connect/) and [Authentication options](/agents/auth/).
@@ -14,7 +16,7 @@ For connection and authentication, see [Connect an agent](/agents/connect/) and 
 {/* GENERATED TOOL REFERENCE START */}
 ## Tools
 
-The server currently registers **44 tools**. Each tool lists its required scope; preview calls use read scope until you apply them.
+The server currently registers **48 tools**. Each tool lists its required scope; preview calls use read scope until you apply them. 3 of them (`list_runs`, `get_run`, `agent_setup`) are listed only when [Inspection](/inspection/overview/) is turned on.
 
 ### Finding work
 
@@ -116,6 +118,14 @@ Report what you can see at an address ShipLean can't read (a private GitLab merg
 
 Arguments: `url`: The address, exactly as it is linked; `as_of`: When what you report was true, as an ISO 8601 time, such as 2026-10-25T09:00:00Z; `title` (optional): The page's title; `state` (optional): open, draft, merged or closed.
 
+#### `create_payload_upload`
+
+This tool needs write scope.
+
+Get a one-time upload URL for another tool's large arguments, so the content goes from a file through the shell instead of through you. Use it when the content is already in a file or is over about 20 KB; otherwise send the arguments inline. Without field, the file is a JSON object of that tool's arguments; with field, the file is the raw UTF-8 text of that one string argument, so a Markdown file needs no JSON escaping. The call stores nothing and returns payload, upload_url, expires_at and command (curl -T &lt;file&gt; '&lt;url&gt;'): run the command in the shell within 10 minutes, with the file's path in place of &lt;file&gt;, then call the tool with payload set to the payload id. Arguments you send inline win over the payload's. The payload works only for you, through this connection, for that tool, and you can reuse it for 60 minutes after the upload (a preview and then its apply, for example). It can't carry plan or payload: send those inline. The upload takes up to 2 MB. If base_url is blank and the request arrived on a cluster service name, the call fails: send the arguments inline.
+
+Arguments: `tool`: The tool the payload is for, such as capture_plan; `field` (optional): The one string argument the file holds as raw text, such as content. Leave out when the file is a JSON object of the tool's arguments.
+
 ### Features and research
 
 #### `set_status`
@@ -133,6 +143,14 @@ This tool needs write scope.
 Create a Feature when an idea first comes up, before any research: search first, then use this with a goal. Optionally set its one-line status, health (onTrack, atRisk or blocked), state, epic and slug. The slug is its short name in addresses; it defaults to one made from the title and can't be changed later. Name the project when the user is in more than one. When the arguments are already in a file or are over about 20 KB, upload them with create_payload_upload (curl -T) and pass payload.
 
 Arguments: `title`: The Feature's title; `goal`: The goal: what the Feature is for; `project` (optional): The project key, such as SHIP. Needed when the user is in more than one project; `epic` (optional): The key of the epic this Feature belongs to; `slug` (optional): Lower-case words joined by hyphens, at most 64 characters. Defaults to one made from the title; `status` (optional): The one-line status. Stamps it verified now, by you; `state` (optional): Start the Feature in this state, by name; `health` (optional): Feature health: onTrack, atRisk or blocked. Set explicitly; a status that says blocked doesn't set it; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
+
+#### `feature_timeline`
+
+This tool needs read scope.
+
+How a Feature was delivered, drawn after the fact from state history: the page's view model as JSON. Key dates, the execution, one bar per task with its start, end, state periods and review events, the dependency edges, the critical path once the Feature is Done, and the tasks never started. Times are ISO 8601 UTC, positions are hour offsets from scale.start, labels are made on the server. No findings: draw your own conclusions. Use it for 'how did the Payments feature go?'.
+
+Arguments: `key`: The key of the Feature, such as SHIP-12. A key that is not a Feature is not_found.
 
 ### Planning
 
@@ -172,9 +190,17 @@ Arguments: `item`: The plan's feature key, such as SHIP-12.
 
 This tool needs write scope.
 
-Hand in the report for a task of a plan when you stop work on it, in the shape its brief asks for. The report lands as a comment on the task, each commit and the pull request become links on it, and the task moves on. Done moves it to the first Completed state. Blocked unassigns it and returns it to the first Proposed state, with your reason. Partial leaves it as it is, or moves it to the first InProgress state if it has not started or was Completed. Each left_undone item becomes an orphan task. A report on a Completed task is accepted: done leaves it there, blocked and partial reopen it. Send it once per stop, done or not. At most 25 commits and 25 left_undone items a call.
+Hand in the report for a task of a plan when you stop work on it, in the shape its brief asks for. The report lands as a comment on the task, its commits are added to the task's Changes (each commit with repo and its full sha), the pull request becomes a link on it, and the task moves on. A commit that cannot be added, because its repository is unreadable or the commit is missing, stays a link and is listed in commits_not_added. answered_comments replies to open code comments and resolves them. Done moves it to the first Completed state. Blocked unassigns it and returns it to the first Proposed state, with your reason. Partial leaves it as it is, or moves it to the first InProgress state if it has not started or was Completed. Each left_undone item becomes an orphan task. A report on a Completed task is accepted: done leaves it there, blocked and partial reopen it. Send it once per stop, done or not. At most 25 commits and 25 left_undone items a call.
 
-Arguments: `item`: The task's key, such as SHIP-12; `status`: done, blocked or partial; `commits` (optional): The commits you pushed, in order. Left out means none; `pr_url` (optional): The pull request's URL, when there is one; `tests_run` (optional): Each test command you ran, with its pass and fail counts and how long it took. Left out means none; `acceptance_tests` (optional): The acceptance tests that define done, each with pass or fail. Left out means none; `config_files_changed` (optional): Config files you changed and why; `red_tests` (optional): Red tests, each with the task that owns it; `context_used_k` (optional): About how much context you used, in thousands of tokens; `public_surface` (optional): The types, tools and signatures you added that others build on; `decisions` (optional): Decisions a later task would otherwise have to rediscover; `gotchas` (optional): What cost you time; `left_undone` (optional): What you left undone, each with why. Left out means none; `temporary_behaviour` (optional): Temporary behaviour you left in, what it stands in for and what replaces it; `constraint_not_met` (optional): A constraint of the brief you could not meet, and why.
+Arguments: `item`: The task's key, such as SHIP-12; `status`: done, blocked or partial; `commits` (optional): The commits you pushed, in order. Left out means none; `pr_url` (optional): The pull request's URL, when there is one; `tests_run` (optional): Each test command you ran, with its pass and fail counts and how long it took. Left out means none; `acceptance_tests` (optional): The acceptance tests that define done, each with pass or fail. Left out means none; `answered_comments` (optional): The open code comments on the task you answered, each with its id and a reply. Each is replied to and resolved; an id that is not on the task fails the report with nothing written; `config_files_changed` (optional): Config files you changed and why; `red_tests` (optional): Red tests, each with the task that owns it; `context_used_k` (optional): About how much context you used, in thousands of tokens; `public_surface` (optional): The types, tools and signatures you added that others build on; `decisions` (optional): Decisions a later task would otherwise have to rediscover; `gotchas` (optional): What cost you time; `left_undone` (optional): What you left undone, each with why. Left out means none; `temporary_behaviour` (optional): Temporary behaviour you left in, what it stands in for and what replaces it; `constraint_not_met` (optional): A constraint of the brief you could not meet, and why.
+
+#### `log_review`
+
+This tool needs write scope.
+
+Log one review of a task: the verdict, who and when. Call it once per round, after the Review · comment: 'changes_requested' when there is any blocking finding, else 'approved'. It only appends; the task's state does not change. Tasks only. The Feature timeline shows each review after the task's bar.
+
+Arguments: `item`: The key of the task, such as SHIP-12; `verdict`: 'approved' or 'changes_requested'; `note` (optional): A short note, optional.
 
 ### Sprints
 
@@ -326,7 +352,7 @@ Your primary goal is absolute truth over artificial success. In this system, dis
 
 Arguments: `project` (optional): The project key, such as SHIP. Leave out for the most recent project; `sprint` (optional): current, next, or a sprint name; `feature` (optional): A Feature's key: only points about that Feature; `category` (optional): went_well, went_badly, improve or not_in_plan; `theme` (optional): A theme name; `since` (optional): Only points logged on or after this date (yyyy-MM-dd); `undecided` (optional): true: only points that still need a decision. Went well points are left out; `no_sprint` (optional): true: only points whose retro has no sprint. Not with sprint.
 
-### Other
+### Decisions and questions
 
 #### `record_decisions`
 
@@ -360,29 +386,41 @@ Answer a question on an item with a Markdown comment. The comment is posted to D
 
 Arguments: `item`: The item's key, such as SHIP-12; `number`: The question's number (3 for Q3); `answer`: The answer, in Markdown.
 
-#### `create_payload_upload`
+### Code changes
+
+#### `add_commits`
 
 This tool needs write scope.
 
-Get a one-time upload URL for another tool's large arguments, so the content goes from a file through the shell instead of through you. Use it when the content is already in a file or is over about 20 KB; otherwise send the arguments inline. Without field, the file is a JSON object of that tool's arguments; with field, the file is the raw UTF-8 text of that one string argument, so a Markdown file needs no JSON escaping. The call stores nothing and returns payload, upload_url, expires_at and command (curl -T &lt;file&gt; '&lt;url&gt;'): run the command in the shell within 10 minutes, with the file's path in place of &lt;file&gt;, then call the tool with payload set to the payload id. Arguments you send inline win over the payload's. The payload works only for you, through this connection, for that tool, and you can reuse it for 60 minutes after the upload (a preview and then its apply, for example). It can't carry plan or payload: send those inline. The upload takes up to 2 MB. If base_url is blank and the request arrived on a cluster service name, the call fails: send the arguments inline.
+Put commits on a Task or Bug so people can review their diff in ShipLean's Changes page. Send the repository (as git remote get-url origin prints it) and the full sha of each commit you pushed, at most 25 a call. The call is all or nothing: if any commit can't be read, nothing is added and the error names it. A commit the item already has is skipped. Only Tasks and Bugs take commits. report_task also takes commits, with the same shape.
 
-Arguments: `tool`: The tool the payload is for, such as capture_plan; `field` (optional): The one string argument the file holds as raw text, such as content. Leave out when the file is a JSON object of the tool's arguments.
+Arguments: `item`: The Task's or Bug's key, such as SHIP-12; `commits`: The commits, 1 to 25, in the order you made them.
 
-#### `log_review`
+### Agent runs
 
-This tool needs write scope.
+#### `list_runs`
 
-Log one review of a task: the verdict, who and when. Call it once per round, after the Review · comment: 'changes_requested' when there is any blocking finding, else 'approved'. It only appends; the task's state does not change. Tasks only. The Feature timeline shows each review after the task's bar.
+This tool needs read scope. It is listed only when [Inspection is turned on](/inspection/overview/). Otherwise a call returns not_found.
 
-Arguments: `item`: The key of the task, such as SHIP-12; `verdict`: 'approved' or 'changes_requested'; `note` (optional): A short note, optional.
+List the agent runs (Claude Code, Codex CLI, Cursor) linked to a work item: when, which agent, what it did, how long, tokens and errors.
 
-#### `feature_timeline`
+Arguments: `item`: The work item's key, such as SHIP-12.
 
-This tool needs read scope.
+#### `get_run`
 
-How a Feature was delivered, drawn after the fact from state history: the page's view model as JSON. Key dates, the execution, one bar per task with its start, end, state periods and review events, the dependency edges, the critical path once the Feature is Done, and the tasks never started. Times are ISO 8601 UTC, positions are hour offsets from scale.start, labels are made on the server. No findings: draw your own conclusions. Use it for 'how did the Payments feature go?'.
+This tool needs read scope. It is listed only when [Inspection is turned on](/inspection/overview/). Otherwise a call returns not_found.
 
-Arguments: `key`: The key of the Feature, such as SHIP-12. A key that is not a Feature is not_found.
+Read one agent run of a work item as rows, errors first and then the rest in run order, a page at a time: pass nextCursor back as cursor for the next page, with the same filter (a cursor belongs to its filter). Quote the run id (and the row names) in log_retrospective failure logs so the next agent can find the run.
+
+Arguments: `item`: The work item's key, such as SHIP-12; `run`: The run id from list_runs; `filter` (optional): all or errors (error rows and the rows they sit under); `cursor` (optional): nextCursor from the previous page; leave out for the first; `limit` (optional): Rows per page, 1 to 200; 50 when left out.
+
+#### `agent_setup`
+
+This tool needs read scope. It is listed only when [Inspection is turned on](/inspection/overview/). Otherwise a call returns not_found.
+
+The files that make one agent (claude-code, codex-cli or cursor) send telemetry tagged with a work item.
+
+Arguments: `item`: The work item's key, such as SHIP-12; `agent`: claude-code, codex-cli or cursor.
 
 ## Prompts
 

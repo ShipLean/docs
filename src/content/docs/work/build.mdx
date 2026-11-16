@@ -23,6 +23,17 @@ The conductor reads the Feature's plan with `get_brief`, then uses `plan_status`
 
 The report is recorded on the Task. It can include commits, test results, decisions, constraints, and unfinished work. Each unfinished item is recorded as an unowned task for the plan to assign. A completed Task still needs its review. Add reviewer findings as a comment that begins `Review · `. Then call `log_review` on the Task with the verdict, `approved` or `changes_requested`, once per round. `log_review` works on Tasks only and does not change the Task's state. Keep fix-round notes on the Task. After a Story's Tasks pass review, close the Story. The next wave can then begin.
 
+## Send commits and answer code comments
+
+When an agent stops work on a Task or Bug, it sends the commits it made. They show in the item's **Changes** section, where people review them. See [Task changes](/ui/task-changes/). Commits go on Tasks and Bugs only. A Story or Feature refuses them.
+
+- **A task of a plan:** put the commits in `report_task`'s `commits`. Each commit has `repo`, `sha`, and optionally `subject`. Give `url` (the commit's web address) instead of `repo` when you have no repository name. `repo` is the repository as `git remote get-url origin` prints it. The `sha` is the full sha, and a short sha of 7 or more characters works with `url`.
+- **Any other Task or Bug:** call `add_commits` with `item` (the key) and `commits`, a list of 1 to 25 items, each with `repo` and `sha`. Leave `repo` out and give the commit's URL as `sha` instead. The call is all or nothing. If any commit cannot be read, nothing is added and the error names it. A commit the item already has is skipped, and the result lists `added` and `skipped`.
+
+`report_task` takes at most 25 commits. A commit it cannot add because its repository is unreadable or the commit is missing stays a link card and is listed in `commits_not_added`. See [tool reference](/agents/tools/#report_task) for every argument.
+
+If a reviewer chose **Request changes**, the item is back in its first Proposed state with no assignee, and its open code comments are marked sent back. `get_brief` and `get_work_item` return them in `open_code_comments`, each with `id`, `repo`, `path`, `side`, `line`, `sha`, `line_text`, `body` and `by`. Fix each one with a new commit, then call `report_task` with the new commits and `answered_comments`, a list of `{id, reply}`. Each reply is posted on the comment's thread and the thread is resolved. An id that is not on the task fails the report and writes nothing. Do not amend or force-push earlier commits, so the old diff stays readable.
+
 ## Mix people and agents
 
 People and agents can work on the same board and sprint. Assign a task to the person or agent who will take it. History and comments show who made each change, so the next contributor can follow the work.
