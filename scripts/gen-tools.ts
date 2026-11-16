@@ -16,7 +16,10 @@ type Tool = { name: string; scope: string; preview: boolean; area: string; descr
 const groups: Record<string, string> = {
   Orient: 'Finding work', Capture: 'Capturing and editing', Attach: 'Capturing and editing', Links: 'Capturing and editing',
   Feature: 'Features and research', Planning: 'Planning', Sprint: 'Sprints', Backlog: 'Sprints', Status: 'Status and reporting', Work: 'Status and reporting', Retros: 'Retrospectives',
+  Asks: 'Decisions and questions', Code: 'Code changes', Reviews: 'Planning', Timeline: 'Features and research', Payload: 'Capturing and editing', Inspection: 'Agent runs',
 };
+// Tools the server lists only while Inspection is turned on (InspectionToolFilter in the product).
+const inspectionTools = new Set(['list_runs', 'get_run', 'agent_setup']);
 const files = (await (await import('node:fs/promises')).readdir(toolsDir, { recursive: true, withFileTypes: true }))
   .filter((entry) => entry.isFile() && entry.name.endsWith('.cs'))
   .map((entry) => resolve(entry.parentPath, entry.name)).sort();
@@ -118,14 +121,15 @@ const doc = await readFile(mcpDoc, 'utf8');
 const docNames = new Set([...doc.matchAll(/`([a-z][a-z0-9_]+)`/g)].map((match) => match[1]));
 const docsMissing = names.filter((name) => !docNames.has(name));
 const docsListed = names.filter((name) => docNames.has(name));
-const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and research', 'Planning', 'Sprints', 'Status and reporting', 'Retrospectives', 'Other'];
+const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and research', 'Planning', 'Sprints', 'Status and reporting', 'Retrospectives', 'Decisions and questions', 'Code changes', 'Agent runs', 'Other'];
 function scopeLine(tool: Tool): string {
-  return tool.preview ? `This tool needs ${tool.scope} scope. A preview call uses read scope.` : `This tool needs ${tool.scope} scope.`;
+  const scope = tool.preview ? `This tool needs ${tool.scope} scope. A preview call uses read scope.` : `This tool needs ${tool.scope} scope.`;
+  return inspectionTools.has(tool.name) ? `${scope} It is listed only when [Inspection is turned on](/inspection/overview/). Otherwise a call returns not_found.` : scope;
 }
 function escapeMdx(text: string): string {
   return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('{', '&#123;').replaceAll('}', '&#125;');
 }
-let generated = `## Tools\n\nThe server currently registers **${tools.length} tools**. Each tool lists its required scope; preview calls use read scope until you apply them.\n`;
+let generated = `## Tools\n\nThe server currently registers **${tools.length} tools**. Each tool lists its required scope; preview calls use read scope until you apply them. ${tools.filter((tool) => inspectionTools.has(tool.name)).length} of them (${[...inspectionTools].map((name) => `\`${name}\``).join(', ')}) are listed only when [Inspection](/inspection/overview/) is turned on.\n`;
 for (const group of groupsInOrder) {
   const inGroup = tools.filter((tool) => tool.area === group);
   if (!inGroup.length) continue;

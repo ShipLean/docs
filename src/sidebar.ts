@@ -99,6 +99,10 @@ export const sidebar = [
         "link": "/ui/work-items/"
       },
       {
+        "label": "Task changes",
+        "link": "/ui/task-changes/"
+      },
+      {
         "label": "Features and the Feature editor",
         "link": "/ui/features/"
       },

@@ -35,3 +35,31 @@ test('generator includes payload tools and escapes MDX in their descriptions', a
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('generator groups the Inspection tools and says they need Inspection', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'shiplean-tool-reference-'));
+  try {
+    const scripts = join(root, 'scripts');
+    const pages = join(root, 'src/content/docs/agents');
+    const product = join(root, 'product');
+    const tools = join(product, 'src/ShipLean.WebApi/Features/Mcp/Tools/Inspection');
+    await Promise.all([mkdir(scripts, { recursive: true }), mkdir(pages, { recursive: true }),
+      mkdir(tools, { recursive: true }), mkdir(join(product, 'docs'), { recursive: true }),
+      mkdir(join(product, 'src/ShipLean.WebApi/Features/Mcp/Payloads'), { recursive: true })]);
+    await copyFile(resolve(import.meta.dirname, 'gen-tools.ts'), join(scripts, 'gen-tools.ts'));
+    await writeFile(join(pages, 'tools.mdx'), '{/* GENERATED TOOL REFERENCE START */}\n{/* GENERATED TOOL REFERENCE END */}\n');
+    await writeFile(join(product, 'docs/mcp.md'), '`list_runs`');
+    await writeFile(join(product, 'src/ShipLean.WebApi/Features/Mcp/Payloads/McpPayloadTargets.cs'), 'class McpPayloadTargets { }');
+    await writeFile(join(tools, 'InspectionTools.cs'), `
+      [McpServerTool(Name = "list_runs"), McpScope(McpScopes.Read)]
+      [Description("List the runs.")]
+      public async Task<CallToolResult> ListRunsAsync([Description("The key.")] string item) { }
+    `);
+    execFileSync(process.execPath, [join(scripts, 'gen-tools.ts'), `--product-dir=${product}`]);
+    const page = await readFile(join(pages, 'tools.mdx'), 'utf8');
+    assert.match(page, /### Agent runs/);
+    assert.match(page, /listed only when \[Inspection is turned on\]\(\/inspection\/overview\/\)/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
