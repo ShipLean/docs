@@ -5,6 +5,8 @@ sidebar:
   order: 7
 ---
 
+import ProductShot from '@/components/ProductShot.astro';
+
 Telemetry from a coding agent can hold prompts, file contents, shell commands and secrets. Inspection is built so none of that reaches a ShipLean screen unless you choose it, and so, with the reference collector's redaction, the default path never stores it either. Codex CLI sends tool output by default, so keep the redaction on. Three separate layers control it, and each one is a separate decision.
 
 ## What each agent can capture
@@ -40,6 +42,10 @@ Content is hidden by default. A project admin turns on **Show content** in the p
 - lets the run page and span panel show prompt text, tool input and tool output that the store holds;
 - does not change what is stored: if your collector redacts, there is nothing to show;
 - never puts prompt text in a run's "What it did" line. That line only reflects ShipLean tool calls.
+
+With content hidden, the span panel shows a note in place of the input and output, and each turn says "prompt hidden":
+
+<ProductShot name="agent-run-panel-hidden" alt="A run page with content hidden: both turns say prompt hidden, and the panel for an Edit tool call shows the edited file, then the note Prompts, responses and tool input and output are hidden in SHIP. A project admin can show them in Project settings › Inspection, then the attributes and one log." />
 
 ## What ShipLean stores
 

@@ -8,6 +8,7 @@ checkedOn: "2026-11-15"
 ---
 
 import CheckedWith from '@/components/CheckedWith.astro';
+import ProductShot from '@/components/ProductShot.astro';
 
 Send Claude Code telemetry to your collector so its runs show on the item.
 
@@ -35,7 +36,9 @@ Every record carries `session.id`; the logs of a turn carry `prompt.id` and the 
 
 ## Set up
 
-Turn on telemetry with these variables. ShipLean's Agent setup tab and the `agent_setup` tool print them with your project and item filled in.
+Turn on telemetry with these variables. ShipLean's Agent setup tab and the `agent_setup` tool print them with your project and item filled in. The tab has one tab per agent, an optional item to tag runs with, each file with a **Copy** button, and a link to the agent's guide:
+
+<ProductShot name="agent-run-setup" alt="The Agent setup tab with Claude Code, Codex CLI and Cursor tabs, an Item to tag runs with (optional) box, a settings.json file with a Copy button, the note Set the item before you start the agent, and a Claude Code setup guide link. The file holds sample settings." />
 
 ```sh
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
@@ -101,7 +104,7 @@ export OTEL_RESOURCE_ATTRIBUTES="shiplean.project=SHIP,shiplean.item=SHIP-123,vc
 
 Claude Code copies them onto every span and log record, and ShipLean reads `shiplean.item` and `shiplean.project`. The `vcs.*` attributes are optional context.
 
-The other way ShipLean links a run is from a ShipLean MCP tool call that names the item. Do not rely on it for Claude Code: its tool-call records do not carry what the link rule looks for (see "Known gaps"). Set the resource attributes.
+The other way ShipLean links a run is from a ShipLean MCP tool call that names the item. Do not rely on it for Claude Code: it needs `OTEL_LOG_TOOL_DETAILS=1`, which also sends every tool's input, and it has not been checked with a real run (see "Known gaps"). Set the resource attributes.
 
 ## Content and privacy
 
@@ -128,14 +131,18 @@ OTEL_RESOURCE_ATTRIBUTES="shiplean.project=SHIP,shiplean.item=SHIP-123" \
 
 Or use the per-run settings file from the Agent setup tab, which already holds the tag: `claude -p "list the files in this directory" --max-turns 3 --allowedTools "Bash(ls:*)" --settings shiplean-telemetry.json`. Without `--allowedTools`, `-p` cannot ask permission to run `ls`, and the run shows only a denied tool call.
 
-Within a few seconds the run appears under Agent runs on SHIP-123, with an interaction, model calls and the tool call. If it does not, see [Troubleshooting](/inspection/troubleshooting/). To look at the collector's side directly, read the newest rows of `otel_traces` where `ServiceName = 'claude-code'`.
+Within a few seconds the run appears under Agent runs on SHIP-123, with an interaction, model calls and the tool call. Its run page is a waterfall like this one; [Read a run](/inspection/reading-a-run/) explains it:
+
+<ProductShot name="agent-run-page" alt="A Claude Code run page: the header with a Linked: Tagged chip and totals, a whole-run strip with two turns, and a waterfall of a model call, an Edit tool call that waited for permission, and a subagent." />
+
+The screenshot uses sample data, not the check run. If it does not, see [Troubleshooting](/inspection/troubleshooting/). To look at the collector's side directly, read the newest rows of `otel_traces` where `ServiceName = 'claude-code'`.
 
 Claude Code batches telemetry; a short session can exit before the batch goes out. Lower `OTEL_TRACES_EXPORT_INTERVAL` and `OTEL_LOGS_EXPORT_INTERVAL` (milliseconds) if a run is missing its tail.
 
 ## Known gaps
 
 - Claude Code's log records have no severity (the number is 0), so ShipLean reports their severity as UNSPECIFIED, not as a level. Failures show on the spans (status Error on `claude_code.tool.execution`), not in the log level. A failed tool call is `success=false` on its `tool_result` log and an error on the execution span.
-- ShipLean's tool-call link (a run linked because it called `pick_up` on an item) does not work with Claude Code today. The span names the tool (`mcp__shiplean__pick_up`) but carries no input; the log has the input only when `OTEL_LOG_TOOL_DETAILS` is on, and names the tool `mcp_tool`. Use `shiplean.item`.
+- ShipLean's tool-call link (a run linked because it called `pick_up` on an item) does not happen with default settings. The span names the tool (`mcp__shiplean__pick_up`) but carries no input. The `tool_result` log names the tool `mcp_tool`, and only with `OTEL_LOG_TOOL_DETAILS=1` does it carry the server name and the call's input, which ShipLean reads to link the run. Our recorded run used default settings and was linked by its tag only; the tool-call link with `OTEL_LOG_TOOL_DETAILS=1` has not been checked with a real run. Use `shiplean.item`.
 - The spans have no `prompt.id`; only the logs do.
 - Subagent spans were not in our run, so this page does not describe them.
 - The signed-in account's email, user id and organization id are on every record.

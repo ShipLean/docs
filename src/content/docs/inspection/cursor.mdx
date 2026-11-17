@@ -8,6 +8,7 @@ checkedOn: "<yyyy-mm-dd>"
 ---
 
 import CheckedWith from '@/components/CheckedWith.astro';
+import ProductShot from '@/components/ProductShot.astro';
 
 Cursor has no OpenTelemetry export of its own that ShipLean relies on. Instead, a small hook script turns each of Cursor's hook events into one log record and sends it to your collector, tagged with the item.
 
@@ -101,6 +102,12 @@ echo '{"hook_event_name":"stop","conversation_id":"test-1","generation_id":"g-1"
 ```
 
 It prints `{}` and, within a few seconds, a record for service `cursor` should be in your collector's store. If the run does not appear, see [Troubleshooting](/inspection/troubleshooting/).
+
+A Cursor run shows as hook events grouped by turn, with a banner saying Cursor sends hook events only. [Read a run](/inspection/reading-a-run/) explains the page.
+
+<ProductShot name="agent-run-cursor" alt="A Cursor run as events: the banner Cursor sends hook events only: no model-call timing and no token counts, and rows of cursor.hook events grouped by turn, with bars and diamonds." />
+
+The screenshot uses sample data built from Cursor's hooks documentation, not a real run.
 
 ## Known gaps
 
