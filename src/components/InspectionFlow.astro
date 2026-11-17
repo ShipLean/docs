@@ -1,0 +1,112 @@
+---
+// The path of one agent run, from the coding agent to the run page. Top to bottom so it stays readable on a phone.
+// Colours come from currentColor and Starlight's --sl-color-* variables, so it follows the light and dark themes.
+---
+
+<figure class="inspection-flow">
+  <svg viewBox="0 0 360 500" role="img" aria-labelledby="inspection-flow-title inspection-flow-desc">
+    <title id="inspection-flow-title">The path of an agent run</title>
+    <desc id="inspection-flow-desc">
+      1, the coding agent sends spans and log records over OTLP/HTTP to port 4318 with the send-only collector token. 2, your
+      collector checks the token, redacts and batches, then writes with the store writer credential. 3, your store holds the
+      telemetry. 4, ShipLean reads the store with its own read-only user and shows the run on the item. Nothing flows from the
+      agent or the collector to ShipLean.
+    </desc>
+    <defs>
+      <marker id="inspection-flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path>
+      </marker>
+    </defs>
+
+    <g class="box">
+      <rect x="4" y="4" width="352" height="78" rx="8"></rect>
+      <circle cx="30" cy="30" r="14"></circle>
+      <text class="num" x="30" y="35">1</text>
+      <text class="name" x="54" y="35">Coding agent</text>
+      <text class="sub" x="54" y="56">Claude Code, Codex CLI or Cursor</text>
+      <text class="sub" x="54" y="73">on a developer's machine or CI runner</text>
+    </g>
+
+    <line class="flow" x1="40" y1="84" x2="40" y2="140" marker-end="url(#inspection-flow-arrow)"></line>
+    <text class="label" x="58" y="106">spans and log records, OTLP/HTTP</text>
+    <text class="label" x="58" y="124">port 4318, send-only collector token</text>
+
+    <g class="box">
+      <rect x="4" y="142" width="352" height="78" rx="8"></rect>
+      <circle cx="30" cy="168" r="14"></circle>
+      <text class="num" x="30" y="173">2</text>
+      <text class="name" x="54" y="173">Collector (yours)</text>
+      <text class="sub" x="54" y="194">checks the token, redacts,</text>
+      <text class="sub" x="54" y="211">batches, writes to the store</text>
+    </g>
+
+    <line class="flow" x1="40" y1="222" x2="40" y2="278" marker-end="url(#inspection-flow-arrow)"></line>
+    <text class="label" x="58" y="254">store writer credential</text>
+
+    <g class="box">
+      <rect x="4" y="280" width="352" height="78" rx="8"></rect>
+      <circle cx="30" cy="306" r="14"></circle>
+      <text class="num" x="30" y="311">3</text>
+      <text class="name" x="54" y="311">Store (yours)</text>
+      <text class="sub" x="54" y="332">ClickHouse, or Tempo (traces)</text>
+      <text class="sub" x="54" y="349">and Loki (logs)</text>
+    </g>
+
+    <line class="flow" x1="40" y1="416" x2="40" y2="360" marker-end="url(#inspection-flow-arrow)"></line>
+    <text class="label" x="58" y="384">ShipLean reads with its own</text>
+    <text class="label" x="58" y="402">read-only user</text>
+
+    <g class="box">
+      <rect x="4" y="418" width="352" height="78" rx="8"></rect>
+      <circle cx="30" cy="444" r="14"></circle>
+      <text class="num" x="30" y="449">4</text>
+      <text class="name" x="54" y="449">ShipLean</text>
+      <text class="sub" x="54" y="470">Agent runs on the item,</text>
+      <text class="sub" x="54" y="487">and the run page</text>
+    </g>
+  </svg>
+</figure>
+
+<style>
+  .inspection-flow {
+    margin: 1.5rem 0;
+    color: var(--sl-color-gray-2);
+  }
+  .inspection-flow svg {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    height: auto;
+  }
+  .box rect {
+    fill: var(--sl-color-gray-6);
+    stroke: var(--sl-color-accent);
+    stroke-width: 1.5;
+  }
+  .box circle {
+    fill: var(--sl-color-accent);
+  }
+  .num {
+    fill: var(--sl-color-black);
+    font-size: 15px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+  .name {
+    fill: var(--sl-color-white);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .sub {
+    fill: var(--sl-color-gray-2);
+    font-size: 13px;
+  }
+  .flow {
+    stroke: currentColor;
+    stroke-width: 2;
+  }
+  .label {
+    fill: currentColor;
+    font-size: 12.5px;
+  }
+</style>
