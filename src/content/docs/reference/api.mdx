@@ -13,7 +13,7 @@ ShipLean also serves `GET /health`, which reports whether the service is running
 
 ## Inspection metrics
 
-`GET /api/projects/{projectId}/inspection-metrics` returns the numbers behind the [Inspection page](/ui/inspection/) for one project, as JSON: the same data that the `inspection_metrics` MCP tool returns. Any member of the project can read it. It takes these query parameters, all optional:
+`GET /api/projects/{projectId}/inspection-metrics` returns the numbers behind the [Inspection page](/ui/inspection/) for one project, as JSON: the same data that the `inspection_metrics` MCP tool returns. `{projectId}` is the project's id (a GUID), not its key: a key answers `404`. Any member of the project can read it. It takes these query parameters, all optional:
 
 | Parameter | Values |
 | --- | --- |

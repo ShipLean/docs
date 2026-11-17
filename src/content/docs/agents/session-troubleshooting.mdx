@@ -24,10 +24,10 @@ A session that is still live has no reason yet. A session that was stale and the
 | --- | --- | --- |
 | `completed` | The agent finished. | The agent sent its final response. The session is **Completed**. |
 | `canceled` | The agent session was stopped. | Someone selected **Stop** and the agent answered, or ShipLean stopped the session itself after 10 minutes without an answer. The session is **Canceled**. |
-| `deliveryFailed` | The agent connection didn't take the job. | ShipLean could not hand the job to the receiver. The session is **Failed**. The detail is the receiver's error and the number of tries, such as "No answer within 5 seconds. (2 tries)". Only project admins see that detail. |
-| `agentError` | The agent reported an error. | The agent sent an error. The session is **Failed**. The panel adds the start of the agent's message, up to its first 1,000 characters. |
+| `deliveryFailed` | The agent connection didn't take the job. For a project admin the sentence ends with the detail: "The agent connection didn't take the job: No answer within 5 seconds. (2 tries)". Other members see it without the detail. | ShipLean could not hand the job to the receiver. The session is **Failed**. The detail is the receiver's error and the number of tries. Only project admins see it. |
+| `agentError` | The agent reported an error: and the first line of the agent's message. | The agent sent an error. The session is **Failed**. The longer message, up to its first 1,000 characters, shows separately under the sentence. |
 | `stale` | The agent went quiet for 30 minutes. | The agent did no work and said nothing for 30 minutes while the session was starting or working. The session is **Stale**. The detail says when the last activity was, as "No activity for 30 minutes since" and a time. |
-| `proposalWithoutIssue` | The agent session ended. | A session that was meant to post a proposal on a GitHub issue finished, but the item no longer has an issue to post on. The detail reads "The item has no GitHub issue to propose on." The session is **Failed**. |
+| `proposalWithoutIssue` | The agent session ended: The item has no GitHub issue to propose on. | A session that was meant to post a proposal on a GitHub issue finished, but the item no longer has an issue to post on. The sentence includes the detail. The session is **Failed**. |
 | `unknown` | The agent session ended before ShipLean recorded why. | The session ended before ShipLean kept end reasons. ShipLean fills this in for those older sessions. |
 
 Everyone on the project sees the reason and its sentence. A detail that comes from the receiver can name its host or port, so for `deliveryFailed` only project admins see it. The delivery attempts and the run log are also for project admins only. To other members they are not there.
@@ -69,11 +69,11 @@ Instance admins check a connection from **Instance settings**, on the **Agents**
 
 Select **Test connection** to send the receiver a signed ping with no item data. The button reads **Testing…** while it waits. ShipLean does not count the ping as a delivery attempt, so it does not change the health numbers. An archived connection has no Test connection button.
 
-The answer appears next to the button:
+Any HTTP answer from the receiver, a 4xx or 5xx included, proves ShipLean can reach it. Only a missing answer means it cannot. The answer appears next to the button:
 
 - **Answered 200 OK**, in green, or another 2xx status: the receiver is reachable and accepted the ping.
-- **Answered** and a status, such as **Answered 502 BadGateway**, in grey: something answered, but not with success. Check the receiver and anything in front of it, such as a proxy.
-- An error in red, such as no answer in time: ShipLean could not reach the receiver. Check the receiver URL and that the service is running.
+- **Answered** and a status, such as **Answered 404 NotFound**, in grey: the receiver is reachable but did not answer with success. This is neither good nor a failure. A ping carries no item, so a receiver may well refuse it. Check it only if real jobs also fail.
+- An error in red, such as "No answer within 5 seconds.": ShipLean could not reach the receiver. Check the receiver URL and that the service is running.
 
 ## Ask an agent instead
 
