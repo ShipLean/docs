@@ -5,4 +5,107 @@ sidebar:
   order: 26.3
 ---
 
-This page is being written.
+import ProductShot from '@/components/ProductShot.astro';
+
+Inspection shows three things about a project, sprint by sprint: how long its tasks take from the first move to an In-progress state (Active in the default states) to the last commit, how many bugs escaped to users, and how many agent tokens a task used. Use it to see where to look. Every Inspection page carries the same line at the top right: *These numbers tell you where to look, not what caused a change.*
+
+This page describes the screen. For the rules behind each number, see [How Inspection measures](/ui/inspection-measures/). Inspection is separate from [agent inspection](/inspection/overview/), which records what an agent did in each run. The Cost view uses those agent runs.
+
+## Open Inspection
+
+Select **Inspection** in the side menu. The address is `/p/:key/inspection`, where `:key` is the project key. Anyone who is a member of the project can open it. A person who is not a member gets a "not found" page.
+
+Inspection is for desktop screens for now.
+
+The tabs under the page title are **Overview**, **Lead time**, **Quality** and **Cost**. A view with more detail, **One sprint**, opens from a sprint on the Lead time tab, and **JSON for agents** opens from the Overview. Each view has its own address, and the range, split, sprint and selected task are kept in it, so you can share a link to what you see.
+
+## Choose a range
+
+On Lead time, Quality and Cost, a range picker sets which sprints the page covers. It offers the last 6 sprints (the default), this quarter, last quarter or all sprints.
+
+## Overview
+
+<ProductShot name="inspection-overview" alt="The Inspection Overview: a Velocity card showing lead time per task, a Quality card showing escaping bugs, a Cost card showing tokens per task, a chart of lead time by sprint, and a table of the longest tasks with a blue, red and amber bar each." />
+
+The Overview opens first. It has up to three cards and a list:
+
+- **Velocity · lead time per task.** The mean lead time of the last finished sprint, how it changed against the sprint before, the running sprint so far, and this quarter to date against last quarter.
+- **Quality · escaping bugs.** The number of escaping bugs, the rate per 100 merged pull requests, and the change against the sprint before.
+- **Cost · tokens per task.** The mean tokens per task, with this quarter and last quarter. This card appears only when [agent runs are on](#cost).
+- **Lead time by sprint.** A chart with one bar per sprint. Select a sprint to open it.
+- **Longest tasks.** The six slowest tasks of the range, each with a bar split into Active, Blocked and Rework.
+
+### Low coverage banner
+
+<ProductShot name="inspection-overview-low-coverage" alt="The Inspection Overview with a banner across the top that reads: 4 of 5 tasks have no commit time, so their lead time ends at Resolved. Below it are the same three cards and the lead time chart." />
+
+When fewer than 70% of the range's tasks have a commit time, a banner appears above the cards. It reads, for example, "4 of 5 tasks have no commit time, so their lead time ends at Resolved". Those tasks read longer than they were. See [Commit times and coverage](/ui/inspection-measures/#commit-times-and-coverage).
+
+## Lead time
+
+<ProductShot name="inspection-lead-time" alt="The Lead time view with a strip that shows how one task's lead time is measured from the first move to an In-progress state to the last commit, a chart of one bar per sprint with a dot for each task, and a table of sprints." />
+
+The strip at the top draws the rule on one example task: it starts at the first move to an In-progress state (the screen words it as Active), ends at the last commit, and does not count the time after it. The chart has one bar per sprint, which is the sprint's mean, and one dot per task. A dot over two days sits on the top edge of the chart. A dashed bar is a sprint that is still running ("so far").
+
+Below the chart is a row for each sprint with the mean split into **Active**, **Blocked** and **Rework**, and a row for each quarter. The **Commit times** chip next to the range picker shows how many tasks have a commit time. It takes the caution colour below 70%.
+
+Tasks that cannot be measured are listed under **Left out**, each with the reason.
+
+### Split by Feature or by who
+
+<ProductShot name="inspection-lead-time-who" alt="The Lead time view split by who did the work: a table with a row for each person and agent, a cell for each sprint with the mean lead time and the number of tasks, and a Tasks and Mean column. An agent is marked with an Agent badge." />
+
+The **Split by** control next to the range picker has **All tasks**, **By Feature** and **By who**. **By Feature** gives a row per Feature. **By who** gives a row per person or agent connection, and an agent carries an **Agent** badge. Each cell is the mean for that sprint, with the number of tasks under it.
+
+## One sprint
+
+<ProductShot name="inspection-period" alt="The one-sprint view for Sprint 23 with its dates and quarter, a summary strip of mean lead time and its Active, Blocked and Rework parts, a table of tasks slowest first, and a side panel for the selected task listing how it was measured, event by event." />
+
+Select a sprint on the Lead time tab to open it. The page shows the sprint's dates and quarter, with links to the sprint before and after. The strip has the mean lead time, the number of **Tasks ended**, the **Active**, **Blocked** and **Rework** means, and the count **Ended at Resolved**.
+
+The **Tasks** tab lists the sprint's tasks slowest first, with their Feature, who did them, the lead time bar, the number of review rounds (**Rev.**) and **Commits**. The **Features** tab lists the sprint's Features instead.
+
+Select a task to open the side panel. It shows the task's segments on one track and **How it was measured**: the start, then every commit, resolve, review, block and unblock, each with its time. The point where the lead time ends is marked, and anything after it is shown as not counted. The panel links to the task and to its [Feature timeline](/ui/feature-timeline/).
+
+## Quality
+
+<ProductShot name="inspection-quality" alt="The Quality view: four cards for escaping bugs, per 100 merged PRs, severity-weighted and found before release, a bar chart of escaping bugs by sprint stacked by severity with a dashed box for found before release, and a table with a row for each sprint and quarter." />
+
+Quality counts escaping bugs: every Bug that is not marked **Found before release**. It shows four cards for the last finished sprint:
+
+- **Escaping bugs**, with this quarter to date and last quarter.
+- **Per 100 merged PRs**, with the number of merged PRs and the rate over the range.
+- **Severity-weighted**, a weighted total. The weights are a [project setting](/ui/project-settings/#set-bug-severity-weights).
+- **Found before release**, the bugs in the range that did not escape. They are not counted as escaping.
+
+The chart has one bar per sprint, stacked by severity, with the rate per 100 merged PRs under each. Below it, a table has a row for each sprint and quarter, and the list of bugs counted in the range, newest first. Each bug shows its cause, or a **+ Caused by** link you can use to add one. See [mark a bug and add its cause](/ui/work-items/#mark-a-bug-and-add-its-cause).
+
+With no bug in the project, the view says **No bugs yet**.
+
+## Cost
+
+<ProductShot name="inspection-cost" alt="The Cost view: a note that this view shows tokens only, three cards for tokens per task, tokens per merged PR and tasks with agent runs, a bar chart of tokens per task by sprint, and a table with a row for each sprint and quarter." />
+
+Cost shows the tokens that agents used on each task. A note at the top reads **Tokens only in v1**: there is no money figure. The cards for the last finished sprint are **Tokens per task**, **Tokens per merged PR** and **Tasks with agent runs**, the share of tasks that had any. The chart shows the mean per sprint, and the table has a row for each sprint and quarter. The range's eight tasks with the most tokens are listed, and each opens the task, where the **Agent runs** section lists the runs. Tokens by Feature are listed too.
+
+A sprint that started before the store kept agent runs shows "—" and "not kept". Its runs are gone, so the tokens are unknown, not zero.
+
+### When Cost is off or empty
+
+Cost needs [agent inspection](/inspection/turn-on/) turned on for the instance and for the project. When it is off, the view says **Agent runs are off for this project**, and the Overview has no tokens card.
+
+<ProductShot name="inspection-cost-off" alt="The Cost view with only a heading and the line: Agent runs are off for this project." />
+
+Totals per task need the ClickHouse store, the database that keeps agent run data. On an install that uses Tempo and Loki instead, the view says **Tokens per task needs the ClickHouse store**. If the store cannot be reached, the view shows "—" with the reason.
+
+<ProductShot name="inspection-cost-unavailable" alt="The Cost view with only a heading and the line: Tokens per task needs the ClickHouse store." />
+
+## JSON for agents
+
+<ProductShot name="inspection-json" alt="The JSON view of Inspection: the data behind the page shown as JSON text." />
+
+On the Overview, select **JSON for agents**. The view shows the data the page is built from, as JSON. It is the same data an agent gets from the `inspection_metrics` tool.
+
+## Read it from an agent
+
+An agent can read the same view with the `inspection_metrics` tool. It takes the project, the range, the split and a sprint, and returns the data with a link to the page. See the [tool reference](/agents/tools/).
