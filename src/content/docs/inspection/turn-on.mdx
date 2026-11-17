@@ -5,6 +5,8 @@ sidebar:
   order: 2
 ---
 
+import ProductShot from '@/components/ProductShot.astro';
+
 Inspection is off until an instance admin turns it on, and then off per project until that project's admin turns it on. ShipLean only reads telemetry that your own collector already stored; set that up first with the [collector reference configs](/inspection/collector/).
 
 ## Instance settings
@@ -61,9 +63,11 @@ Use read-only credentials for both. Retention is whatever your Tempo and Loki ar
 
 Once the instance has Inspection on, each project admin opens the project's settings, then Inspection, and chooses:
 
-- **Enabled**: show Agent runs on the project's items.
-- **Show content**: whether the run page may show prompts, tool input and output. Off by default, and a prompt's text never appears in a run row whatever this is set to. This only hides what ShipLean would show: what your collector stored is governed by [redaction](/inspection/collector/#redaction). Turn it on only if you capture content and accept the risk of secrets in it.
+- **Show agent runs for this project**: show Agent runs on the project's items.
+- **Show prompts, responses and tool input and output**: whether the run page may show prompts, tool input and output. Off by default, and a prompt's text never appears in a run row whatever this is set to. This only hides what ShipLean would show: what your collector stored is governed by [redaction](/inspection/collector/#redaction). Turn it on only if you capture content and accept the risk of secrets in it.
 - In Tempo and Loki mode, an optional **tenant** and **selector override**, for a project whose telemetry sits under another tenant or stream selector.
+
+<ProductShot name="agent-run-settings" alt="A project's Inspection settings: Show agent runs for this project ticked, Show prompts, responses and tool input and output unticked with the note Off, runs show timing, tools and token counts only, Store: ClickHouse (set by the instance), and a Save button." />
 
 ## Field mapping
 
@@ -84,3 +88,5 @@ If you rename an attribute in the collector, set the matching variable. The Clic
 ## The health panel
 
 The health panel (Admin › Instance health) shows: whether Inspection is on and in which mode, whether the store answered and how long it took, how far the run index lags behind the newest telemetry (ClickHouse), and, after an admin presses "Check fields", for each field in the table above whether recent telemetry carries that attribute. A field that shows as not found usually means the agent is not sending it, or the collector renamed it. See [Troubleshooting](/inspection/troubleshooting/). The panel's problem text is also what a run page shows when the store is down.
+
+<ProductShot name="agent-run-health" alt="The Inspection health panel: Store ClickHouse, Reachable Yes, Latency 12 ms, View lag 3 s, a Check fields button, and three fields: item shiplean.item found, session session.id found, branch vcs.ref.head.name not found." />

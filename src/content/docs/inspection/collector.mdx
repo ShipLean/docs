@@ -81,7 +81,7 @@ The supplied `tempo.yaml` sets `block_retention: 720h` and `loki.yaml` sets `ret
 
 ### Search lag
 
-Tempo finds a trace by attribute only after the trace has been flushed from the ingester, and the collector's `batch` processor holds data first. With the supplied settings (`batch` 5 s, Tempo `trace_idle_period: 1s`, `max_block_duration: 5s`) a fixture run was searchable about 16 seconds after we sent it. With Tempo's defaults it takes longer. A run that has just finished can take a minute or so to appear. Runs are linked only by tagging them with `shiplean.item`; linking through a ShipLean tool call works for no agent today. If a finished run is missing, wait a minute and reload before you troubleshoot.
+Tempo finds a trace by attribute only after the trace has been flushed from the ingester, and the collector's `batch` processor holds data first. With the supplied settings (`batch` 5 s, Tempo `trace_idle_period: 1s`, `max_block_duration: 5s`) a fixture run was searchable about 16 seconds after we sent it. With Tempo's defaults it takes longer. A run that has just finished can take a minute or so to appear. Tag runs with `shiplean.item`: it is the recommended way to link a run to an item. Linking through a ShipLean tool call works only when the agent sends tool input, which the redaction below deletes; see the [overview](/inspection/overview/#what-each-agent-gives-you). If a finished run is missing, wait a minute and reload before you troubleshoot.
 
 ## Redaction
 
