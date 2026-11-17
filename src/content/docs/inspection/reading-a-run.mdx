@@ -25,9 +25,9 @@ The columns are:
 
 The footer names the store and how long it keeps runs, says whether prompts and tool output are hidden, and links to **Agent setup**.
 
-When the store cannot be reached, the section says so inside itself and the rest of the item still loads:
+When the store cannot be reached, the section shows "Can't reach the trace store right now." with the store's problem text and a **Try again** button, and the rest of the item still loads:
 
-<ProductShot name="agent-run-section-down" alt="The Agent runs section showing Can't reach the trace store right now, with the problem text, in place of the table." />
+<ProductShot name="agent-run-section-down" alt="The Agent runs section showing Can't reach the trace store right now, with the store's problem text and a Try again button, in place of the table." />
 
 The run page needs a screen at least 900 px wide. On a narrower screen it shows "Agent runs open on a wider screen." and a link back to the item.
 
@@ -57,9 +57,9 @@ The waterfall lists each turn with its prompt (or "prompt hidden" when content i
 - **ShipLean tool**: a call to a ShipLean tool such as `pick_up` or `report_task`.
 - **Subagent**: work the agent handed to a subagent. Its own spans are folded into the row, and a pill says how many.
 - **Waiting for permission**: a striped stretch before a tool's bar is the time the agent waited for someone to allow the tool. The row also has a "waited" pill.
-- **Error**: a red bar and a cross after the name.
+- **Error**: a red bar and a cross after the name. In the strip above, a red mark shows a turn with an error.
 
-The legend under the waterfall shows the same colours.
+The legend under the waterfall shows the same colours. The sample run above counts 4 errors in its header, but none of its visible rows failed, so it shows no error row; the [Codex CLI run below](#runs-with-events-only) shows one, a red bar with a cross.
 
 **All** and **Errors only** at the top right switch between every row and only the rows that failed, with the rows above them. Errors only shows its count.
 
@@ -75,11 +75,13 @@ Click a row to open its panel on the right. Click the same row again to close it
 - For a tool that waited, "Waited 3.0 s for permission" and "then ran for" the rest.
 - **Copy link**, and **Open in Grafana** when your instance has a Grafana link.
 - **Edited file**, for a tool that edited a file, and the commit when there is one.
-- **Input** and **Output**, when content is shown.
+- **Input** and **Output**, when content is shown. Long output is cut, with the note "Showing the first 40 lines."
 - **Attributes**: the span's other fields.
 - **Logs**: the log records that belong to the span, with their time and level.
 
 <ProductShot name="agent-run-panel" alt="The run page with the Edit row selected and its panel open: Edit, Tool, 10:00:12, 8.0 s, 12 s into the run, Waited 3.0 s for permission then ran for 5.0 s, Copy link, the edited file src/App/Foo.cs, the input and output, two attributes and one log." />
+
+In this sample the second turn has no rows and its prompt is marked hidden, so it reads "prompt hidden" even though content is shown.
 
 When the project hides content, Input and Output are replaced by a note: "Prompts, responses and tool input and output are hidden in SHIP. A project admin can show them in Project settings › Inspection; the agent or the team's collector decides whether they're captured at all." The turns say "prompt hidden". See [Privacy](/inspection/privacy/).
 
@@ -89,7 +91,9 @@ When the project hides content, Input and Output are replaced by a note: "Prompt
 
 Some agents send log records but no spans. Their run page has the same header and strip, and a banner that says what the agent does not send. Instead of the waterfall it lists one row per event, grouped by turn. An event with a duration draws a bar that ends at the event and reaches back by its duration; an event with no duration is a diamond.
 
-<ProductShot name="agent-run-codex-cli" alt="A Codex CLI run as events: a banner saying Codex CLI sends events, not spans, two turns of codex.user_prompt, codex.api_request and codex.tool_result rows with bars and diamonds, one failed tool result, and the panel for the selected event." />
+<ProductShot name="agent-run-codex-cli" alt="A Codex CLI run as events: a banner saying Codex CLI sends events, not spans, two turns of codex.user_prompt, codex.api_request and codex.tool_result rows with bars and diamonds, and one failed tool result marked with a cross." />
+
+Click an event to open its panel, as for a span. An event shows the fields its agent sent.
 
 The [Codex CLI](/inspection/codex-cli/) and [Cursor](/inspection/cursor/) pages show what their runs look like.
 

@@ -104,7 +104,7 @@ export OTEL_RESOURCE_ATTRIBUTES="shiplean.project=SHIP,shiplean.item=SHIP-123,vc
 
 Claude Code copies them onto every span and log record, and ShipLean reads `shiplean.item` and `shiplean.project`. The `vcs.*` attributes are optional context.
 
-The other way ShipLean links a run is from a ShipLean MCP tool call that names the item. Do not rely on it for Claude Code: it needs `OTEL_LOG_TOOL_DETAILS=1`, which also sends every tool's input, and it has not been checked with a real run (see "Known gaps"). Set the resource attributes.
+The other way ShipLean links a run is from a ShipLean MCP tool call that names the item. Do not rely on it for Claude Code: it needs `OTEL_LOG_TOOL_DETAILS=1`, which also sends every tool's input (commands, paths, possibly secrets) and which the reference collector's redaction deletes, and it has not been checked with a real run (see "Known gaps"). Set the resource attributes.
 
 ## Content and privacy
 
