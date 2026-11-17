@@ -1,0 +1,61 @@
+# Forwarding collector: agents on this machine (a developer laptop, a CI runner, a host inside a network segment) send to it on
+# localhost with no token; it adds the send-only token and forwards OTLP/HTTP to your central collector, so the token and the
+# TLS settings live in one place. It stores nothing and does no redaction: the central collector's redaction still applies.
+# Checked with opentelemetry-collector-contrib 0.165.0, forwarding to collector-clickhouse.yaml.
+#
+# Environment variables used:
+#   CENTRAL_OTLP_ENDPOINT  the central collector's base URL, e.g. https://otel.example.com (the exporter adds /v1/traces and /v1/logs).
+#                          Use https between machines: over http:// the token crosses the network in clear.
+#   COLLECTOR_TOKEN        the send-only token the central collector requires (required)
+#   FORWARDER_ENDPOINT     where this collector listens. Default 127.0.0.1:4318, so a plain binary is reachable from this
+#                          machine only. docker-compose.forwarder.yml sets 0.0.0.0:4318 inside the container and publishes
+#                          the port on 127.0.0.1 only. Never listen on a network address without the auth below: the
+#                          forwarder adds the token for whoever sends to it.
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        # No auth here: only processes on this machine can reach it, and on a shared host that is every local user. If you
+        # listen on a network address instead, add the bearertokenauth extension as in the central configs, or anyone who
+        # can reach the port can send with your token.
+        endpoint: ${env:FORWARDER_ENDPOINT:-127.0.0.1:4318}
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 100
+    spike_limit_mib: 25
+  batch:
+    timeout: 5s
+    send_batch_size: 2048
+
+exporters:
+  otlp_http/central:
+    endpoint: ${env:CENTRAL_OTLP_ENDPOINT}
+    headers:
+      Authorization: Bearer ${env:COLLECTOR_TOKEN}
+    # An https:// endpoint uses TLS with the system's trusted certificates. For a private CA, uncomment:
+    # tls:
+    #   ca_file: /etc/ssl/certs/company-ca.pem
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 300s
+    sending_queue:
+      enabled: true
+      queue_size: 1000
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp_http/central]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp_http/central]

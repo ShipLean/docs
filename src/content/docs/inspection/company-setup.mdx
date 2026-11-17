@@ -5,4 +5,143 @@ sidebar:
   order: 3.5
 ---
 
-This page is being written.
+This page is for the person rolling agent inspection out to many developers or teams. It assumes you know the parts from [How agent inspection works](/inspection/how-it-works/) and have read the [collector reference configs](/inspection/collector/). It covers where collectors go, how the token and TLS reach every machine, and how to roll out from one pilot team.
+
+## Decide the shape
+
+Two instance settings shape every choice below:
+
+- ShipLean reads **one store** per instance: one ClickHouse connection, or one Tempo and one Loki address. Every collector you run must write to that store.
+- The Agent setup tab prints **one collector address and one set of headers** for the whole instance (`SHIPLEAN_INSPECTION_AGENT_OTLP_ENDPOINT` and `SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS`, see [turn on](/inspection/turn-on/#instance-settings)).
+
+Within that, pick one of these.
+
+### One central collector
+
+One collector, behind TLS, receives from every agent and writes to the store. This is the simplest shape and matches what the Agent setup tab prints: one address, one token. Agents send whatever `shiplean.project` they are set to, so a project is only as right as each developer's settings.
+
+### One collector per team
+
+Each team, or each group of teams that works in one ShipLean project, gets its own collector, all writing to the same store. Turn on `resource/force_project` in each and set its `SHIPLEAN_PROJECT_KEY`, so every record that passes is stored under that team's project whatever the agent sent. See [Forcing shiplean.project](/inspection/collector/#forcing-shipleanproject).
+
+The cost is that the Agent setup tab still shows only the instance's one address. Tell each team its own collector's address, or put a forwarding collector on their machines (below) so the address agents use is the same for everyone.
+
+### Your company's existing Tempo and Loki, or a hosted stack
+
+If your company already runs Tempo and Loki, run the [Tempo and Loki collector config](/inspection/collector/#to-tempo-and-loki) and point its exporters at them. With a multi-tenant setup, set the tenant header in the collector and the same tenant in ShipLean; a project whose telemetry sits under another tenant can override it in the project's Inspection settings ([per project](/inspection/turn-on/#per-project)). For Grafana Cloud or another hosted stack, the collector page says what to change: point the endpoints at it, turn TLS on and add its auth header. We have not run the configs against a hosted stack.
+
+Keep the collector in the middle even then: it is where redaction happens. Give ShipLean read-only credentials for that Tempo and Loki.
+
+## Forwarding collectors
+
+A forwarding collector is a small collector beside the agent: on a developer machine, a CI runner, or a host inside a network segment. The agent sends to it on localhost with no token. It adds the send-only token and forwards OTLP/HTTP to your central collector, which still checks the token, redacts and writes to the store.
+
+| File | What it is |
+|---|---|
+| [`collector-forwarder.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/collector-forwarder.yaml) | The forwarding collector: receives on `127.0.0.1:4318` by default, batches, and forwards to `CENTRAL_OTLP_ENDPOINT` with `Authorization: Bearer ${COLLECTOR_TOKEN}`. |
+| [`docker-compose.forwarder.yml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/docker-compose.forwarder.yml) | Runs it in Docker. Inside the container it listens on all interfaces (`FORWARDER_ENDPOINT=0.0.0.0:4318`), and the port is published on `127.0.0.1:4318` only. |
+
+```sh
+cd examples/inspection
+# The env file holds the token: create it so only you can read it.
+mkdir -p ~/.config/shiplean && (umask 077 && printf 'CENTRAL_OTLP_ENDPOINT=%s\nCOLLECTOR_TOKEN=%s\n' \
+  https://otel.example.com '<send-only token>' > ~/.config/shiplean/forwarder.env)
+docker compose --env-file ~/.config/shiplean/forwarder.env -f docker-compose.forwarder.yml up -d
+```
+
+Use an `https://` address for `CENTRAL_OTLP_ENDPOINT` whenever the central collector is on another machine. Over `http://` the token crosses the network in clear. The token also ends up in the container's environment, where anyone who can run `docker inspect` on that host can read it, so keep Docker access to the people who may hold the token.
+
+Then point the agent at `http://localhost:4318` with no `OTEL_EXPORTER_OTLP_HEADERS`. The test record on the [collector page](/inspection/collector/#docker-compose-snippets) works against it without the `Authorization` header.
+
+Checked on 2026-11-17 with OpenTelemetry Collector contrib 0.165.0. We validated the config with `otelcol-contrib validate`, with and without the `tls` block, and ran the forwarder and the reference ClickHouse collector side by side in Docker. The central collector refused a record without the token (401). We sent the collector page's test log record, and one span, to the forwarder with no token; both were accepted (200) and both were read back from ClickHouse with their `shiplean.item` tag, and the central redaction had replaced `Authorization: Bearer x` in the log body with `<REDACTED>`.
+
+**When it helps:**
+
+- **The token stays in one file per machine.** Developers' agent settings hold only `http://localhost:4318`. Rotating the token means updating the forwarders, not every developer's agent settings.
+- **TLS lives in one place.** The forwarder talks to the central collector over `https://`, with the system's trusted certificates or a company CA file (the commented `tls.ca_file` in the config). Agents never need to trust a private CA.
+- **CI runners and closed network segments.** One forwarder per runner host or segment is the only thing that needs to reach the central collector through the firewall.
+- **One address for everyone.** With one forwarder per machine, the Agent setup tab can print `http://localhost:4318` for every team: set `SHIPLEAN_INSPECTION_AGENT_OTLP_ENDPOINT` to it and leave `SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS` empty, and the tab then shows no token at all.
+
+**When it is not needed:** a single team on one network, where every developer can reach the central collector over TLS and putting the token in their user settings is acceptable. A forwarder is one more process per machine to keep running; if it is down, the agent's telemetry has nowhere to go.
+
+The forwarder does no redaction: content passes through it to the central collector, over TLS, and is removed there. If content must not leave the machine at all, copy the `transform/redact` processor from a reference config into the forwarder's pipelines too. Its receiver has no token check because it listens on `127.0.0.1` only (the default for `FORWARDER_ENDPOINT`). Local only is not an identity check: on a shared host or a CI runner, every local user and every job can send through the forwarder, and the forwarder adds the token for them. Run one where everyone who can send through it may hold the token. Never set `FORWARDER_ENDPOINT` to a network address without adding the `bearertokenauth` extension as in the central configs, or the forwarder becomes an open relay that adds your token for anyone who can reach it.
+
+## TLS and the reverse proxy
+
+The reference Compose files publish port 4318 on `127.0.0.1` only. Before agents on other machines send to the central collector, put a reverse proxy with TLS in front of it, on an address such as `https://otel.example.com`, and forward to the collector's port 4318. A bearer token over plain HTTP can be read on the wire.
+
+- Pass the `Authorization` header through unchanged: the collector checks it, not the proxy.
+- Agents then use the `https://` address (Claude Code's `OTEL_EXPORTER_OTLP_ENDPOINT`, Codex CLI's `exporter` and `trace_exporter`, Cursor's `SHIPLEAN_INSPECTION_AGENT_OTLP_ENDPOINT`), or a forwarder does.
+- Keep the store's ports on a private network. Only the collector and ShipLean need to reach the store.
+
+## The send-only token
+
+The central collector accepts one token, `COLLECTOR_TOKEN`. It is a send-only token: it lets a sender write telemetry and nothing else. Generate it as a long random string (`openssl rand -hex 24`) and keep it out of repositories and command lines.
+
+**Hand it out** in one of these ways, never in a repository file:
+
+- to forwarders, in the env file next to the Compose file;
+- to developers without a forwarder, in their user settings: `OTEL_EXPORTER_OTLP_HEADERS` in `~/.claude/settings.json` or Claude Code's managed settings, or fetched by Claude Code's `otelHeadersHelper`; an environment variable read by `headers` in `~/.codex/config.toml` for Codex CLI; `SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS` in the environment Cursor starts with;
+- in `SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS`, so the Agent setup tab prints it. Anyone who can open the tab sees it, so only do this when every project member may send telemetry.
+
+**Rotate it** when it leaks or someone leaves who held it:
+
+1. Generate a new token.
+2. Change `COLLECTOR_TOKEN` for the central collector and restart it.
+3. Update every place you handed the old one: the forwarders' env files, managed settings, `SHIPLEAN_INSPECTION_AGENT_OTLP_HEADERS` (restart ShipLean to pick it up).
+
+The reference config holds one token, so from step 2 until a sender is updated, the collector refuses that sender's telemetry with 401 and its runs are not stored. Do it at a quiet time. With forwarders on every machine, step 3 is the forwarders only.
+
+## Getting the settings onto every machine
+
+Use the mechanisms each agent already has. The agent pages have the detail.
+
+- **Claude Code:** an admin sets the `env` block in Claude Code's managed settings file (on Linux `/etc/claude-code/managed-settings.json`), including the exporter selectors so a developer cannot turn a signal off. Or each developer merges the Agent setup tab's `user-claude-settings.json` into `~/.claude/settings.json`; it holds everything except the item. A repository's `.claude/settings.json` cannot turn telemetry on. See [Claude Code](/inspection/claude-code/#org-wide-managed-settings).
+- **Codex CLI:** an `[otel]` section in each user's `~/.codex/config.toml`, which the Agent setup tab prints. An administrator can enforce exporters and logging settings in `requirements.toml`. See [Codex CLI](/inspection/codex-cli/#set-up).
+- **Cursor:** the hook script and `hooks.json`, either in each project's `.cursor/` folder or once per user in `~/.cursor/`, plus `SHIPLEAN_INSPECTION_AGENT_OTLP_ENDPOINT` in the environment Cursor starts with. See [Cursor](/inspection/cursor/#set-up).
+- **agent-relay:** with `RELAY_OTEL_ENDPOINT` set, it sets Claude Code's variables and tags for every run it starts.
+
+The item changes from run to run, so it does not belong in shared settings. Tag each run as the agent page says, or let agent-relay do it.
+
+## Mapping teams to projects
+
+A run belongs to the ShipLean project in its `shiplean.project` attribute, and shows on the item in `shiplean.item`.
+
+- With one central collector, the project comes from each agent's settings. The Agent setup tab fills it in for the project it is opened from.
+- With one collector per team, `resource/force_project` makes the collector decide.
+- Each project admin turns Inspection on for their project, and decides whether the run page may show content ([per project](/inspection/turn-on/#per-project)).
+- In Tempo and Loki mode, a project can have its own tenant and stream selector.
+
+## Retention and what it costs to keep
+
+The store's retention decides how long a run can be opened. The reference configs keep 30 days: the ClickHouse exporter's `ttl`, or Tempo's `block_retention` and Loki's `retention_period`. In ClickHouse mode, set `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` to the same number so ShipLean shows "no longer available" for an expired run. See [Retention](/inspection/collector/#retention).
+
+Storage grows with the number of runs, how long each run is and how long you keep it. We do not publish a size per run: measure it in your store during the pilot, then multiply out for your developers and your retention. To store less:
+
+- keep content capture off, and the collector's redaction on;
+- add the optional allow-list, which keeps only the attributes ShipLean reads ([Options](/inspection/collector/#options));
+- shorten the retention, in the store and in ShipLean together.
+
+## What to tell developers
+
+Before you turn it on for a team, tell them:
+
+- what is collected (counts, names, timings and statuses, not prompts or tool output by default) and who can see it;
+- that the signed-in account's email and ids are on every record unless the collector drops them;
+- that content capture is a switch in their own agent settings, that the collector removes content anyway, and that they should not turn it on without asking;
+- never to commit the collector token or paste it on a command line.
+
+[Privacy](/inspection/privacy/) has all of this in one place: send them the link.
+
+## Roll-out checklist
+
+1. Pick the shape above and the store.
+2. Stand up the central collector and the store from the [reference configs](/inspection/collector/), with TLS in front of port 4318.
+3. Create ShipLean's read-only store user and [turn Inspection on](/inspection/turn-on/) for the instance. Set the Agent setup address and headers.
+4. Pick one pilot team and turn Inspection on for its project.
+5. Get the settings onto the pilot team's machines, with forwarders if you chose them, and send them [Privacy](/inspection/privacy/).
+6. Have one developer run a tagged session and find it under Agent runs on the item. If it is missing, work down [Troubleshooting](/inspection/troubleshooting/).
+7. Check that the stored records carry no content and no token, as the [Redaction](/inspection/collector/#redaction) section tests it.
+8. After a week or two, measure the store's growth and decide the retention.
+9. Add the next teams: their project switched on, their settings, their collector or forwarders.
+10. Write down where the token lives and who rotates it.
