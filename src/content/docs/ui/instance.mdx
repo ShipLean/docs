@@ -51,6 +51,10 @@ Open **Analytics** to send usage events to Umami or PostHog. Analytics is off un
 
 Open **Agents** to add, edit, regenerate the secrets of, or archive the Linear-compatible connections that cloud agents use. Each connection's signing secret and callback token appear once, when you create or regenerate them. See [cloud agent integration](/agents/cloud-agent-integration/#add-an-agent-connection).
 
+## Check an agent connection
+
+On the **Agents** tab, each connection shows when it last delivered a job and how many deliveries failed in the last 24 hours. Select **Test connection** to send the receiver a signed ping and see what it answers. The ping is not counted as a delivery. An archived connection has no button. See [Why an agent session ended](/agents/session-troubleshooting/#test-connection) for what each answer means.
+
 ## Access rule
 
 Instance-admin access is for managing the installation. It does not grant access to project data by itself. Join a project, or ask one of its admins to add you, before opening its work.

@@ -7,7 +7,9 @@ sidebar:
 
 ShipLean registers these tools on `/mcp`. Start with `list_projects` to find the project key you need. Each tool entry says which of the [read, write, and plan scopes](/agents/scopes/) it needs.
 
-Agents put commits on a Task or Bug with `add_commits` or `report_task`, and answer review comments with `report_task`. See [Send commits and answer code comments](/work/build/#send-commits-and-answer-code-comments).
+Agents put commits on a Task or Bug with `add_commits` or `report_task`, and answer review comments with `report_task`. See [Send commits and answer code comments](/work/build/#send-commits-and-answer-code-comments). Each commit in `report_task` can carry `committed_at`: the time the commit was authored, as `git log -1 --format=%aI <sha>` prints it. ShipLean stores it once, and the [Inspection page](/ui/inspection/) uses it to end a task's lead time at its last commit. `backfill_commit_times` fills that time in for commit links made before it was stored, and only an instance admin can use it.
+
+An agent asked why a run failed can answer from MCP alone: `get_work_item` lists the item's newest five agent sessions with the reason each ended, and `get_agent_session` reads one in full. See [Why an agent session ended](/agents/session-troubleshooting/#ask-an-agent-instead).
 
 The argument summaries below come from the server's tool registrations in the source code. Two tools record and read how a Feature was delivered. A reviewer calls `log_review` once per review round on a task, after its `Review · ` comment. A conductor or lead calls `feature_timeline` on a Feature to read its bars, waits, review rounds, and critical path, for example when writing a retro. The [Feature timeline](/ui/feature-timeline/) page shows the same data.
 

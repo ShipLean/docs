@@ -540,6 +540,7 @@ Connection string for the ClickHouse HTTP port, used with the `clickhouse` store
 - **Default:** Not set. Required when `SHIPLEAN_INSPECTION_STORE` is `clickhouse`.
 - **Example:** `Host=clickhouse;Port=8123;Protocol=http;Username=shiplean_reader;Password=<reader-password>`
 - **Set it when:** You use the `clickhouse` store. Use the read-only user from the [collector reference configs](/inspection/collector/#the-clickhouse-user-for-shiplean), not the collector's user.
+- **How long runs are kept:** ClickHouse keeps runs for `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` plus 30 days. The retention days default to 30, so runs are kept for 60 days. The Inspection page's token totals can only count runs inside that window. A sprint or range that started before it shows a dash and **not kept**, because those runs are gone and the tokens are unknown, not zero. Set the retention days when you want a longer window.
 
 ### `SHIPLEAN_INSPECTION_TEMPO_URL`
 

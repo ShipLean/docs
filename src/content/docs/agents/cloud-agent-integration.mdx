@@ -106,6 +106,8 @@ The panel shows:
 
 Earlier sessions for the item stay under **Earlier sessions**. Open one to see its activity.
 
+When a session ends, a **Why it ended** box gives the reason. See [Why an agent session ended](/agents/session-troubleshooting/) for each reason and what to do about it.
+
 
 A session becomes **Stale** when it has been silent for 30 minutes while starting or working. A stale session no longer blocks a new start.
 
@@ -121,6 +123,8 @@ ShipLean retries a webhook that the receiver does not accept:
 - A `prompted` webhook is retried after 1 minute, 1 hour, and 6 hours. If all retries fail, that message is marked failed, the session keeps running, and the panel does not change its state.
 
 A delivery counts as accepted only when the receiver answers `200 OK` within 5 seconds. ShipLean does not follow redirects, so any redirect counts as a failure.
+
+Project admins can read every try in the **Delivery** list on a session that has ended, and instance admins can check a connection with **Test connection**. See [Delivery attempts](/agents/session-troubleshooting/#delivery-attempts) and [Test connection](/agents/session-troubleshooting/#test-connection).
 
 ## Receiver contract
 
@@ -206,6 +210,16 @@ The endpoint enforces these limits:
 - at most 50 external URLs on a session;
 - a GraphQL query cost of at most 5,000 and a nesting depth of at most 15;
 - one operation per request. Batching is not supported.
+
+### Send a run log
+
+The prompt in the `created` webhook ends with the line "If you end with an error, POST your last 200 lines of output as text/plain to" and a one-use link. The link is valid for 24 hours. A receiver that has an error to report sends the log there, with no other credential:
+
+```sh
+curl -X POST -H 'Content-Type: text/plain' --data-binary @run.log '<link from the prompt>'
+```
+
+The body must be `text/plain` and at most 1 MiB. ShipLean saves it as an attachment on the item and shows it to project admins as the session's **Run log**. A second use, an expired link, or a creator who is no longer a member answers `404`. If an upload is refused, the link still works, so send it again. An instance with no base URL, and a session that proposes on a GitHub issue, get no link. A receiver that ignores the line loses nothing. See [The run log](/agents/session-troubleshooting/#the-run-log).
 
 ## Limits
 
