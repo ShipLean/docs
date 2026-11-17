@@ -1,0 +1,16 @@
+# A forwarding collector for one machine: agents send to 127.0.0.1:4318 with no token, and it forwards to the central collector
+# with the send-only token. Secrets come from an env file kept out of the repo:
+#   docker compose --env-file ~/.config/shiplean/forwarder.env -f docker-compose.forwarder.yml up -d
+# The env file holds CENTRAL_OTLP_ENDPOINT (e.g. https://otel.example.com) and COLLECTOR_TOKEN.
+name: shiplean-inspection-forwarder
+
+services:
+  forwarder:
+    image: otel/opentelemetry-collector-contrib:0.165.0
+    command: ["--config=/etc/collector.yaml"]
+    environment:
+      CENTRAL_OTLP_ENDPOINT: ${CENTRAL_OTLP_ENDPOINT:?set the central collector URL}
+      COLLECTOR_TOKEN: ${COLLECTOR_TOKEN:?set the send-only token}
+    volumes: ["./collector-forwarder.yaml:/etc/collector.yaml:ro"]
+    ports: ["127.0.0.1:${FORWARDER_PORT:-4318}:4318"]
+    restart: unless-stopped
