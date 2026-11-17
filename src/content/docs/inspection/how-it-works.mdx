@@ -26,7 +26,7 @@ What each agent sends differs: Claude Code sends both, Codex CLI sends log recor
 - `shiplean.project`: the project key, such as `SHIP`;
 - `shiplean.item`: the work item key, such as `SHIP-123`.
 
-Because they are set once for the process, the agent copies them onto every span and log record of the run. For Claude Code they go in the standard `OTEL_RESOURCE_ATTRIBUTES` variable; each agent's page says how for that agent.
+They are set once for the agent's process and travel with every batch it sends, so every span and log record of the run belongs to that project and item. For Claude Code they go in the standard `OTEL_RESOURCE_ATTRIBUTES` variable; each agent's page says how for that agent.
 
 ## What OTLP is
 
@@ -46,7 +46,7 @@ A **collector** is a small program, the OpenTelemetry Collector, that receives t
 1. **Receive** OTLP/HTTP on port 4318.
 2. **Authenticate**: it refuses a sender without the send-only collector token, answering 401.
 3. **Redact**: it deletes prompts, tool input and output, and secret-shaped values before anything is stored, whatever the agent was set to capture. See [Redaction](/inspection/collector/#redaction).
-4. **Batch**: it holds records for up to 5 seconds and writes them in groups.
+4. **Batch**: it writes records in groups. A group goes when it is full (2048 records in the reference configs) or after 5 seconds, whichever comes first.
 5. **Export**: it writes them to the store, with the store's writer credential.
 
 Inside the collector these steps are called the receiver, processors and exporters. Putting the collector in the middle means one place decides what is kept, one place holds the store's password, and agents only ever hold a token that can send and do nothing else.
@@ -73,8 +73,8 @@ Whether the run page shows prompt text and tool input and output is a separate, 
 Follow one run of Claude Code on item SHIP-123:
 
 1. **The agent starts.** A developer starts Claude Code with telemetry on and `OTEL_RESOURCE_ATTRIBUTES` set to `shiplean.project=SHIP,shiplean.item=SHIP-123`. The Agent setup tab on the item prints these settings; agent-relay sets them itself for the runs it starts.
-2. **The agent sends.** As the run goes, Claude Code posts batches of spans to `/v1/traces` and log records to `/v1/logs` on the collector, port 4318, with the send-only token in the `Authorization` header. Every record carries `session.id` and the two tags.
-3. **The collector cleans and writes.** The collector checks the token, deletes content and secrets, batches for up to 5 seconds and writes the records to the store with the store writer credential.
+2. **The agent sends.** As the run goes, Claude Code posts batches of spans to `/v1/traces` and log records to `/v1/logs` on the collector, port 4318, with the send-only token in the `Authorization` header. Every record carries `session.id`, and every batch carries the two tags as resource attributes.
+3. **The collector cleans and writes.** The collector checks the token, deletes content and secrets, batches (5 seconds at most) and writes the records to the store with the store writer credential.
 4. **The store keeps it.** The spans and log records sit in ClickHouse, or in Tempo and Loki, until the store's retention removes them.
 5. **ShipLean reads it.** Someone opens SHIP-123. ShipLean asks the store, with its read-only user, for runs tagged `shiplean.item=SHIP-123` in project SHIP and lists them under Agent runs. Opening a row reads that run's spans and logs and draws the [run page](/inspection/reading-a-run/).
 
@@ -119,7 +119,7 @@ If a run does not show, [Troubleshooting](/inspection/troubleshooting/) walks th
 | Trace | The tree of spans for one piece of work, sharing one trace id. |
 | Log record | One event at one moment, with a body and attributes. |
 | Attribute | A named value on a record, such as `model` or `tool_name`. |
-| Resource attribute | An attribute about the sender, copied onto every record. `shiplean.item` and `shiplean.project` are resource attributes. |
+| Resource attribute | An attribute about the sender, set once per process and sent with every batch. `shiplean.item` and `shiplean.project` are resource attributes. |
 | OTLP | The OpenTelemetry Protocol. Agents use OTLP/HTTP: `/v1/traces` and `/v1/logs`, usually on port 4318. |
 | Collector | The program that receives telemetry, checks the token, redacts, batches and writes to the store. You run it. |
 | Forwarding collector | A small collector beside the agent that adds the token and passes telemetry on to the central collector. See [Forwarding collectors](/inspection/company-setup/#forwarding-collectors). |

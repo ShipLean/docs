@@ -38,14 +38,18 @@ A forwarding collector is a small collector beside the agent: on a developer mac
 
 | File | What it is |
 |---|---|
-| [`collector-forwarder.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/collector-forwarder.yaml) | The forwarding collector: receives on port 4318, batches, and forwards to `CENTRAL_OTLP_ENDPOINT` with `Authorization: Bearer ${COLLECTOR_TOKEN}`. |
-| [`docker-compose.forwarder.yml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/docker-compose.forwarder.yml) | Runs it in Docker, published on `127.0.0.1:4318` only. |
+| [`collector-forwarder.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/collector-forwarder.yaml) | The forwarding collector: receives on `127.0.0.1:4318` by default, batches, and forwards to `CENTRAL_OTLP_ENDPOINT` with `Authorization: Bearer ${COLLECTOR_TOKEN}`. |
+| [`docker-compose.forwarder.yml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/docker-compose.forwarder.yml) | Runs it in Docker. Inside the container it listens on all interfaces (`FORWARDER_ENDPOINT=0.0.0.0:4318`), and the port is published on `127.0.0.1:4318` only. |
 
 ```sh
 cd examples/inspection
-# CENTRAL_OTLP_ENDPOINT=https://otel.example.com and COLLECTOR_TOKEN=<send-only token>, in a file only you can read
+# The env file holds the token: create it so only you can read it.
+mkdir -p ~/.config/shiplean && (umask 077 && printf 'CENTRAL_OTLP_ENDPOINT=%s\nCOLLECTOR_TOKEN=%s\n' \
+  https://otel.example.com '<send-only token>' > ~/.config/shiplean/forwarder.env)
 docker compose --env-file ~/.config/shiplean/forwarder.env -f docker-compose.forwarder.yml up -d
 ```
+
+Use an `https://` address for `CENTRAL_OTLP_ENDPOINT` whenever the central collector is on another machine. Over `http://` the token crosses the network in clear. The token also ends up in the container's environment, where anyone who can run `docker inspect` on that host can read it, so keep Docker access to the people who may hold the token.
 
 Then point the agent at `http://localhost:4318` with no `OTEL_EXPORTER_OTLP_HEADERS`. The test record on the [collector page](/inspection/collector/#docker-compose-snippets) works against it without the `Authorization` header.
 
@@ -60,7 +64,7 @@ Checked on 2026-11-17 with OpenTelemetry Collector contrib 0.165.0. We validated
 
 **When it is not needed:** a single team on one network, where every developer can reach the central collector over TLS and putting the token in their user settings is acceptable. A forwarder is one more process per machine to keep running; if it is down, the agent's telemetry has nowhere to go.
 
-The forwarder does no redaction: content passes through it to the central collector, over TLS, and is removed there. If content must not leave the machine at all, copy the `transform/redact` processor from a reference config into the forwarder's pipelines too. Its receiver has no token check because only local processes can reach it. If you make it listen on a network address, add the `bearertokenauth` extension as in the central configs.
+The forwarder does no redaction: content passes through it to the central collector, over TLS, and is removed there. If content must not leave the machine at all, copy the `transform/redact` processor from a reference config into the forwarder's pipelines too. Its receiver has no token check because it listens on `127.0.0.1` only (the default for `FORWARDER_ENDPOINT`). Local only is not an identity check: on a shared host or a CI runner, every local user and every job can send through the forwarder, and the forwarder adds the token for them. Run one where everyone who can send through it may hold the token. Never set `FORWARDER_ENDPOINT` to a network address without adding the `bearertokenauth` extension as in the central configs, or the forwarder becomes an open relay that adds your token for anyone who can reach it.
 
 ## TLS and the reverse proxy
 
