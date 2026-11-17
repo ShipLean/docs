@@ -151,6 +151,14 @@ export const sidebar = [
         "link": "/ui/feature-timeline/"
       },
       {
+        "label": "Inspection: lead time, quality and cost",
+        "link": "/ui/inspection/"
+      },
+      {
+        "label": "How Inspection measures",
+        "link": "/ui/inspection-measures/"
+      },
+      {
         "label": "Retrospectives",
         "link": "/ui/retrospectives/"
       },
@@ -206,6 +214,10 @@ export const sidebar = [
       {
         "label": "Cloud agent integration",
         "link": "/agents/cloud-agent-integration/"
+      },
+      {
+        "label": "Why an agent session ended",
+        "link": "/agents/session-troubleshooting/"
       }
     ]
   },
@@ -258,12 +270,24 @@ export const sidebar = [
         "link": "/inspection/overview/"
       },
       {
+        "label": "How agent inspection works",
+        "link": "/inspection/how-it-works/"
+      },
+      {
+        "label": "Read a run",
+        "link": "/inspection/reading-a-run/"
+      },
+      {
         "label": "Turn on agent inspection",
         "link": "/inspection/turn-on/"
       },
       {
         "label": "Collector reference configs",
         "link": "/inspection/collector/"
+      },
+      {
+        "label": "Set up inspection for a company",
+        "link": "/inspection/company-setup/"
       },
       {
         "label": "Set up Claude Code",
