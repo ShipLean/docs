@@ -5,4 +5,104 @@ sidebar:
   order: 1.6
 ---
 
-This page is being written.
+import ProductShot from '@/components/ProductShot.astro';
+
+A run is one agent session that worked on an item. This page walks through where you find a run and what its page shows, top to bottom. The screenshots come from ShipLean's own component tests, with sample data.
+
+A few terms first. A **span** is one timed step the agent reports, such as a model call or a tool call, with a start and an end. An **event** is a single record at one moment. Agents send both through OpenTelemetry, the open standard for traces and logs; [How it works](/inspection/how-it-works/) explains the path from the agent to ShipLean.
+
+## Open a run
+
+Open the item the run worked on. The **Agent runs** section lists one row per run linked to that item. The heading line totals the runs, the time they took and their tokens, with pills for errors and for time spent waiting for permission.
+
+<ProductShot name="agent-run-section" alt="The Agent runs section on an item: a heading with 2 runs, 1 m and 8.5k tokens, pills for 4 errors and Waited 3 s for permission, and a table with a Claude Code run whose What it did reads report_task: done · 1 commit, tagged, and a Cursor run linked by its .shiplean file." />
+
+The columns are:
+
+- **Agent**: the agent, who started it and when. Click the row to open the run page.
+- **What it did**: the last `report_task` or `hand_back` call of the run, such as `report_task: done · 1 commit`, or a dash when it made none. It never shows prompt text. Under it, a badge says how the run was linked (**Tagged**, **.shiplean file** or **From pick_up**), then the turns, the spans or events, and the models.
+- **Took**, **Timeline** (a small bar of the run, with errors marked), **Tokens** and **Errors**. A dash in Tokens means the agent reported no token counts; it is not zero.
+
+The footer names the store and how long it keeps runs, says whether prompts and tool output are hidden, and links to **Agent setup**.
+
+When the store cannot be reached, the section says so inside itself and the rest of the item still loads:
+
+<ProductShot name="agent-run-section-down" alt="The Agent runs section showing Can't reach the trace store right now, with the problem text, in place of the table." />
+
+The run page needs a screen at least 900 px wide. On a narrower screen it shows "Agent runs open on a wider screen." and a link back to the item.
+
+## The header
+
+<ProductShot name="agent-run-page" alt="A Claude Code run page: Back to SHIP-1, the title Claude Code run · 10 Nov, 10:00 with dev@example.com and a Linked: Tagged chip, Older and Newer buttons, totals for took, turns, spans, tokens in and out, errors and permission waits, the All and Errors only switch and a Find a span or tool box, a whole-run strip with two turns, and a waterfall with a model call, an Edit tool call that waited for permission, and a subagent." />
+
+From the top:
+
+- **Back to** the item.
+- The agent and when the run started, who started it, and a **Linked** chip saying how the run reached this item: Tagged, From the .shiplean file, or From a tool call. See [What each agent gives you](/inspection/overview/#what-each-agent-gives-you).
+- **‹ Older** and **Newer ›** step to the previous and next run on the same item. A button is greyed out when there is none.
+- The totals: how long the run took, its turns, its spans (or events), tokens in and out, errors, and the time spent waiting for permission.
+
+## The whole-run strip
+
+Under the header, a strip shows the whole run as one block per turn. A turn is one prompt and everything the agent did to answer it. Click a turn to zoom the time axis to it; the strip then says "Zoomed to Turn 1" with a **Whole run** button to zoom back out.
+
+<ProductShot name="agent-run-zoomed" alt="The run page zoomed to turn 1: the strip reads Zoomed to Turn 1 · Whole run, and the waterfall shows only turn 1 on a narrower time axis." />
+
+## The waterfall
+
+The waterfall lists each turn with its prompt (or "prompt hidden" when content is hidden), then one row per span in time order, with a bar on the shared time axis and how long it took on the right. Each row has a letter badge for its kind:
+
+- **Model call**: one request to the model, with the span name beside it.
+- **Tool**: a tool call such as Edit or Bash.
+- **ShipLean tool**: a call to a ShipLean tool such as `pick_up` or `report_task`.
+- **Subagent**: work the agent handed to a subagent. Its own spans are folded into the row, and a pill says how many.
+- **Waiting for permission**: a striped stretch before a tool's bar is the time the agent waited for someone to allow the tool. The row also has a "waited" pill.
+- **Error**: a red bar and a cross after the name.
+
+The legend under the waterfall shows the same colours.
+
+**All** and **Errors only** at the top right switch between every row and only the rows that failed, with the rows above them. Errors only shows its count.
+
+The **Find a span or tool** box keeps only the rows whose name contains what you type, in every turn:
+
+<ProductShot name="agent-run-search" alt="The run page with Edit typed in the find box: turn 1 shows only the Edit row and turn 2 shows no rows." />
+
+## The panel for one span
+
+Click a row to open its panel on the right. Click the same row again to close it. The panel shows:
+
+- The name, its kind, when it started, how long it took and how far into the run it began.
+- For a tool that waited, "Waited 3.0 s for permission" and "then ran for" the rest.
+- **Copy link**, and **Open in Grafana** when your instance has a Grafana link.
+- **Edited file**, for a tool that edited a file, and the commit when there is one.
+- **Input** and **Output**, when content is shown.
+- **Attributes**: the span's other fields.
+- **Logs**: the log records that belong to the span, with their time and level.
+
+<ProductShot name="agent-run-panel" alt="The run page with the Edit row selected and its panel open: Edit, Tool, 10:00:12, 8.0 s, 12 s into the run, Waited 3.0 s for permission then ran for 5.0 s, Copy link, the edited file src/App/Foo.cs, the input and output, two attributes and one log." />
+
+When the project hides content, Input and Output are replaced by a note: "Prompts, responses and tool input and output are hidden in SHIP. A project admin can show them in Project settings › Inspection; the agent or the team's collector decides whether they're captured at all." The turns say "prompt hidden". See [Privacy](/inspection/privacy/).
+
+<ProductShot name="agent-run-panel-hidden" alt="The same panel with content hidden: the edited file is still shown, then the note that prompts, responses and tool input and output are hidden, then the attributes and the log. Both turns say prompt hidden." />
+
+## Runs with events only
+
+Some agents send log records but no spans. Their run page has the same header and strip, and a banner that says what the agent does not send. Instead of the waterfall it lists one row per event, grouped by turn. An event with a duration draws a bar that ends at the event and reaches back by its duration; an event with no duration is a diamond.
+
+<ProductShot name="agent-run-codex-cli" alt="A Codex CLI run as events: a banner saying Codex CLI sends events, not spans, two turns of codex.user_prompt, codex.api_request and codex.tool_result rows with bars and diamonds, one failed tool result, and the panel for the selected event." />
+
+The [Codex CLI](/inspection/codex-cli/) and [Cursor](/inspection/cursor/) pages show what their runs look like.
+
+## When a run cannot be shown
+
+**Expired.** The store no longer keeps the run's traces and logs, so the page says "This run is no longer available" with a link back. See [Troubleshooting](/inspection/troubleshooting/#it-says-no-longer-available).
+
+<ProductShot name="agent-run-expired" alt="The run page saying This run is no longer available. The store no longer keeps its traces and logs, with a link back to the item's runs." />
+
+**Store unreachable.** ShipLean could not reach the store. The page shows "Store unreachable" with the problem text and a link back. See [Troubleshooting](/inspection/troubleshooting/#shiplean-says-the-store-is-unreachable).
+
+<ProductShot name="agent-run-unreachable" alt="The run page saying Store unreachable, ClickHouse is not reachable: connection refused, with a link back to SHIP-1's runs." />
+
+**Truncated.** The store returned only part of a large trace. A banner says "Only part of this trace came back." and that the end of the run is missing, with an **Open in Grafana** link when your instance has one.
+
+<ProductShot name="agent-run-truncated" alt="A banner at the top of a run saying Only part of this trace came back. The store's per-trace size limit cut it short, so the end of the run is missing, with an Open in Grafana link." />
