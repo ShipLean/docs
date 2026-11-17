@@ -8,6 +8,7 @@ checkedOn: "<yyyy-mm-dd>"
 ---
 
 import CheckedWith from '@/components/CheckedWith.astro';
+import ProductShot from '@/components/ProductShot.astro';
 
 Cursor has no OpenTelemetry export of its own that ShipLean relies on. Instead, a small hook script turns each of Cursor's hook events into one log record and sends it to your collector, tagged with the item.
 
@@ -102,11 +103,17 @@ echo '{"hook_event_name":"stop","conversation_id":"test-1","generation_id":"g-1"
 
 It prints `{}` and, within a few seconds, a record for service `cursor` should be in your collector's store. If the run does not appear, see [Troubleshooting](/inspection/troubleshooting/).
 
+A Cursor run shows as hook events grouped by turn, with a banner saying Cursor sends hook events only. [Read a run](/inspection/reading-a-run/) explains the page.
+
+<ProductShot name="agent-run-cursor" alt="A Cursor run as events: the banner Cursor sends hook events only: no model-call timing and no token counts, and rows of cursor.hook events grouped by turn, with bars and diamonds." />
+
+The screenshot uses sample data built from Cursor's hooks documentation, not a real run.
+
 ## Known gaps
 
 - This page has not been checked against a real Cursor run. Payload fields are as Cursor's documentation lists them.
 - No model-call timing. Hooks fire around tools, prompts and stops, not around model requests, so there are no model-call rows and no token counts. The run page's banner says so.
 - Events are points, not spans. A tool call is two records (before and after); only the after record has a duration, and only shell and MCP calls have one.
-- ShipLean does not link Cursor runs from tool calls: Cursor sends the bare tool name, and the item is only in the tool input, which is content. Tag the run with `SHIPLEAN_ITEM` or `.shiplean`; that is the supported path.
+- ShipLean links a Cursor run from a ShipLean tool call only when the hook script sends the tool input, which is content: that needs `SHIPLEAN_LOG_CONTENT=1`, Cursor must send the MCP server name, and the collector must not redact `tool_input` (the reference redaction deletes it). This has not been checked with a real run. Turning content on sends every tool's input, so tag the run with `SHIPLEAN_ITEM` or `.shiplean` instead; that is the recommended path.
 - Only the events in the table are hooked. Cursor also offers `afterAgentResponse`, `afterAgentThought`, `beforeReadFile`, `preToolUse`, `postToolUse`, `sessionStart`, `sessionEnd`, `subagentStart` and `subagentStop`, `postToolUseFailure`, `preCompact`, `beforeTabFileRead`, `afterTabFileEdit` and `workspaceOpen`, among others, which this setup does not use, so reads, thinking and subagents do not show.
 - Hooks run only where Cursor's agent runs; Tab completions and the other editor features are not covered.

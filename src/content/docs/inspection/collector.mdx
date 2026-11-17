@@ -16,6 +16,9 @@ Checked on 2026-11-15 with OpenTelemetry Collector contrib 0.165.0, ClickHouse 2
 | [`docker-compose.clickhouse.yml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/docker-compose.clickhouse.yml) | Collector and ClickHouse, for a team starting from nothing. |
 | [`docker-compose.tempo-loki.yml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/docker-compose.tempo-loki.yml) | Collector, Tempo and Loki, with [`tempo.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/tempo.yaml) and [`loki.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/loki.yaml). |
 | [`clickhouse-users.sql`](https://github.com/ShipLean/docs/blob/main/examples/inspection/clickhouse-users.sql) | The ShipLean user: reads `otel`, writes only `inspection`. |
+| [`collector-forwarder.yaml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/collector-forwarder.yaml), [`docker-compose.forwarder.yml`](https://github.com/ShipLean/docs/blob/main/examples/inspection/docker-compose.forwarder.yml) | A forwarding collector beside the agent, which adds the token and forwards to one of the collectors above. |
+
+For many developers or teams, including where forwarding collectors help, see [Set up inspection for a company](/inspection/company-setup/).
 
 Both configs share the same receiver and processors, in this order: `memory_limiter`, the redaction processors, `batch`.
 
@@ -78,7 +81,7 @@ The supplied `tempo.yaml` sets `block_retention: 720h` and `loki.yaml` sets `ret
 
 ### Search lag
 
-Tempo finds a trace by attribute only after the trace has been flushed from the ingester, and the collector's `batch` processor holds data first. With the supplied settings (`batch` 5 s, Tempo `trace_idle_period: 1s`, `max_block_duration: 5s`) a fixture run was searchable about 16 seconds after we sent it. With Tempo's defaults it takes longer. A run that has just finished can take a minute or so to appear. Runs are linked only by tagging them with `shiplean.item`; linking through a ShipLean tool call works for no agent today. If a finished run is missing, wait a minute and reload before you troubleshoot.
+Tempo finds a trace by attribute only after the trace has been flushed from the ingester, and the collector's `batch` processor holds data first. With the supplied settings (`batch` 5 s, Tempo `trace_idle_period: 1s`, `max_block_duration: 5s`) a fixture run was searchable about 16 seconds after we sent it. With Tempo's defaults it takes longer. A run that has just finished can take a minute or so to appear. Tag runs with `shiplean.item`: it is the recommended way to link a run to an item. Linking through a ShipLean tool call works only when the agent sends tool input, which the redaction below deletes; see the [overview](/inspection/overview/#what-each-agent-gives-you). If a finished run is missing, wait a minute and reload before you troubleshoot.
 
 ## Redaction
 

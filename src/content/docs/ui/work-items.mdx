@@ -82,6 +82,14 @@ Feature links use a separate section. That section saves immediately and can sho
 
 <Shot name="ui-work-items-link-form" alt="Link form on a Story with a Related link type menu, a work item key field, and Add link and Cancel buttons." />
 
+## Mark a bug and add its cause
+
+[Inspection](/ui/inspection/) counts escaping bugs: every Bug that is not marked as found before release. Two things on a Bug and its Task feed those numbers.
+
+To mark a bug as found before release, open the Bug and tick **Found before release** in the fields area ("Caught before the release it belonged to went out, so it did not escape."), then choose **Save**. The checkbox is on Bugs only. A bug marked this way is listed in Inspection as found before release and is not counted as escaping.
+
+To say which Task introduced a bug, open the Bug and choose **+ Caused by** in **Links**, next to **+ Add link**. Pick the Task. Only a Task can be a cause. The Task then lists the bug under **Caused**. Inspection then counts the bug in the sprint where that Task's lead time ended, instead of the sprint where you filed it. You can also choose **+ Caused by** next to a bug in the Inspection Quality view. See [how Inspection measures](/ui/inspection-measures/#quality-escaping-bugs).
+
 ## Attach files and read history
 
 Use the side rail to upload an attachment or open one already there. Markdown attachments open on their own attachment page. Images open in a preview. Other files download. You can remove an attachment from the rail. Attachments stay with the item and can hold research notes, plans, and supporting files.

@@ -63,3 +63,38 @@ test('generator groups the Inspection tools and says they need Inspection', asyn
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('generator groups the agent session and Inspection metrics tools by their own headings', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'shiplean-tool-reference-'));
+  try {
+    const scripts = join(root, 'scripts');
+    const pages = join(root, 'src/content/docs/agents');
+    const product = join(root, 'product');
+    const base = join(product, 'src/ShipLean.WebApi/Features/Mcp/Tools');
+    await Promise.all([mkdir(scripts, { recursive: true }), mkdir(pages, { recursive: true }),
+      mkdir(join(base, 'Agents'), { recursive: true }), mkdir(join(base, 'InspectionMetrics'), { recursive: true }),
+      mkdir(join(product, 'docs'), { recursive: true }),
+      mkdir(join(product, 'src/ShipLean.WebApi/Features/Mcp/Payloads'), { recursive: true })]);
+    await copyFile(resolve(import.meta.dirname, 'gen-tools.ts'), join(scripts, 'gen-tools.ts'));
+    await writeFile(join(pages, 'tools.mdx'), '{/* GENERATED TOOL REFERENCE START */}\n{/* GENERATED TOOL REFERENCE END */}\n');
+    await writeFile(join(product, 'docs/mcp.md'), '`get_agent_session` `inspection_metrics`');
+    await writeFile(join(product, 'src/ShipLean.WebApi/Features/Mcp/Payloads/McpPayloadTargets.cs'), 'class McpPayloadTargets { }');
+    await writeFile(join(base, 'Agents/GetAgentSessionTool.cs'), `
+      [McpServerTool(Name = "get_agent_session"), McpScope(McpScopes.Read)]
+      [Description("One session.")]
+      public async Task<CallToolResult> GetAsync([Description("The id.")] string? session = null) { }
+    `);
+    await writeFile(join(base, 'InspectionMetrics/InspectionMetricsTools.cs'), `
+      [McpServerTool(Name = "inspection_metrics"), McpScope(McpScopes.Read)]
+      [Description("Lead time.")]
+      public async Task<CallToolResult> MetricsAsync([Description("The key.")] string? project = null) { }
+    `);
+    execFileSync(process.execPath, [join(scripts, 'gen-tools.ts'), `--product-dir=${product}`]);
+    const page = await readFile(join(pages, 'tools.mdx'), 'utf8');
+    assert.match(page, /### Agent sessions\n\n#### `get_agent_session`/);
+    assert.match(page, /### Inspection metrics\n\n#### `inspection_metrics`/);
+    assert.doesNotMatch(page, /### Other/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

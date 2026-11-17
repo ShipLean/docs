@@ -8,6 +8,7 @@ checkedOn: "<yyyy-mm-dd>"
 ---
 
 import CheckedWith from '@/components/CheckedWith.astro';
+import ProductShot from '@/components/ProductShot.astro';
 
 Send Codex CLI telemetry to your collector so its runs show on the item.
 
@@ -100,7 +101,11 @@ Run a short session with `[otel]` set:
 codex exec "list the files in this directory"
 ```
 
-Within a few seconds the run should appear under Agent runs on the item, as flat event rows grouped by turn with a banner saying Codex CLI sends events, not spans (or a waterfall, if your release sends traces). If it does not, see [Troubleshooting](/inspection/troubleshooting/). To look at the collector's side, read the newest rows of `otel_logs` for the service name Codex CLI sends.
+Within a few seconds the run should appear under Agent runs on the item, as flat event rows grouped by turn with a banner saying Codex CLI sends events, not spans (or a waterfall, if your release sends traces). [Read a run](/inspection/reading-a-run/) explains the page.
+
+<ProductShot name="agent-run-codex-cli" alt="A Codex CLI run as events: the banner Codex CLI sends events, not spans, two turns of codex.user_prompt, codex.api_request and codex.tool_result rows with bars and diamonds, and one failed tool result marked with a cross." />
+
+The screenshot uses sample data built from OpenAI's documentation, not a real run. If it does not, see [Troubleshooting](/inspection/troubleshooting/). To look at the collector's side, read the newest rows of `otel_logs` for the service name Codex CLI sends.
 
 ## Known gaps
 

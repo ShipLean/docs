@@ -5,6 +5,8 @@ sidebar:
   order: 7
 ---
 
+import ProductShot from '@/components/ProductShot.astro';
+
 Telemetry from a coding agent can hold prompts, file contents, shell commands and secrets. Inspection is built so none of that reaches a ShipLean screen unless you choose it, and so, with the reference collector's redaction, the default path never stores it either. Codex CLI sends tool output by default, so keep the redaction on. Three separate layers control it, and each one is a separate decision.
 
 ## What each agent can capture
@@ -25,9 +27,13 @@ Anyone who can set a developer's environment can turn content capture on, so do 
 |---|---|---|
 | Capture | The agent's environment (a shell profile, `~/.claude/settings.json`, managed settings, `~/.codex/config.toml`) | What the agent puts in its telemetry. |
 | Redaction | Your collector | What is deleted before storage, whatever the agent sent. |
-| Display | ShipLean, **Show content** per project | Whether the run page may show prompts and tool input and output that the store holds. |
+| Display | ShipLean, **Show prompts, responses and tool input and output** per project | Whether the run page may show prompts and tool input and output that the store holds. |
 
 The agent environment is the only place capture is set. A repository's `.claude/settings.json` cannot switch Claude Code telemetry or content on (see [Troubleshooting](/inspection/troubleshooting/#my-settings-env-block-is-ignored)).
+
+### Tool-call linking needs content
+
+ShipLean can link a run to an item from a ShipLean tool call, but only when the record carries the call's input. Linking through a tool call has a cost: to get it you turn on `OTEL_LOG_TOOL_DETAILS` (Claude Code) or `SHIPLEAN_LOG_CONTENT` (Cursor), which sends every tool's input to your collector, not just ShipLean's: shell commands, file paths and possibly secrets. The reference collector's redaction deletes `tool_input` and `tool_parameters`, so you would also have to loosen it. Tagging with `shiplean.item` needs none of that and is the recommended way. See [the overview](/inspection/overview/#what-each-agent-gives-you).
 
 ## Redaction in the collector
 
@@ -35,11 +41,15 @@ The reference collector configs delete content attributes and secret-shaped valu
 
 ## Content display in ShipLean
 
-Content is hidden by default. A project admin turns on **Show content** in the project's Inspection settings, and the screen warns that prompts and tool output can contain secrets. Turning it on:
+Content is hidden by default. A project admin turns on **Show prompts, responses and tool input and output** in the project's Inspection settings, and the screen warns that prompts and tool output can contain secrets. Turning it on:
 
 - lets the run page and span panel show prompt text, tool input and tool output that the store holds;
 - does not change what is stored: if your collector redacts, there is nothing to show;
 - never puts prompt text in a run's "What it did" line. That line only reflects ShipLean tool calls.
+
+With content hidden, the span panel shows a note in place of the input and output, and each turn says "prompt hidden":
+
+<ProductShot name="agent-run-panel-hidden" alt="A run page with content hidden: both turns say prompt hidden, and the panel for an Edit tool call shows the edited file, then the note Prompts, responses and tool input and output are hidden in SHIP. A project admin can show them in Project settings › Inspection, then the attributes and one log." />
 
 ## What ShipLean stores
 

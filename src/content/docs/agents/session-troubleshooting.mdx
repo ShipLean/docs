@@ -1,0 +1,95 @@
+---
+title: "Why an agent session ended"
+description: "Find out why an agent session ended: the end reason, delivery attempts, the run log and the connection test."
+sidebar:
+  order: 37.5
+---
+
+When an agent session stops, the item's **Agent** panel tells you why. This page explains each reason, what the delivery attempts and the run log show, how to check that a connection works, and what to do next. For how sessions start and run, see [Cloud agent integration](/agents/cloud-agent-integration/).
+
+## Where the reason shows
+
+Open the work item and look at the **Agent** panel. When a session is no longer live, a box headed **Why it ended** appears with it. It holds one sentence. Some reasons add a line of detail under the sentence, and a **Run log** link when the agent or its relay sent one.
+
+The same sentence shows in other places:
+
+- on the Failed status of a [sprint demo](/start/guides/sprint-demos/#the-statuses);
+- in the answer to `get_work_item` and `get_agent_session`, as `end_reason` and `end_text`. See [Ask an agent instead](#ask-an-agent-instead).
+
+A session that is still live has no reason yet. A session that was stale and then gets a new activity from the agent is live again, and its reason goes away.
+
+## What each reason means
+
+| Reason | What the panel says | What it means |
+| --- | --- | --- |
+| `completed` | The agent finished. | The agent sent its final response. The session is **Completed**. |
+| `canceled` | The agent session was stopped. | Someone selected **Stop** and the agent answered, or ShipLean stopped the session itself after 10 minutes without an answer. The session is **Canceled**. |
+| `deliveryFailed` | The agent connection didn't take the job. For a project admin the sentence ends with the detail: "The agent connection didn't take the job: No answer within 5 seconds. (2 tries)". Other members see it without the detail. | ShipLean could not hand the job to the receiver. The session is **Failed**. The detail is the receiver's error and the number of tries. Only project admins see it. |
+| `agentError` | The agent reported an error: and the first line of the agent's message. | The agent sent an error. The session is **Failed**. The longer message, up to its first 1,000 characters, shows separately under the sentence. |
+| `stale` | The agent went quiet for 30 minutes. | The agent did no work and said nothing for 30 minutes while the session was starting or working. The session is **Stale**. The detail says when the last activity was, as "No activity for 30 minutes since" and a time. |
+| `proposalWithoutIssue` | The agent session ended: The item has no GitHub issue to propose on. | A session that was meant to post a proposal on a GitHub issue finished, but the item no longer has an issue to post on. The sentence includes the detail. The session is **Failed**. |
+| `unknown` | The agent session ended before ShipLean recorded why. | The session ended before ShipLean kept end reasons. ShipLean fills this in for those older sessions. |
+
+Everyone on the project sees the reason and its sentence. A detail that comes from the receiver can name its host or port, so for `deliveryFailed` only project admins see it. The delivery attempts and the run log are also for project admins only. To other members they are not there.
+
+## Delivery attempts
+
+Project admins see a **Delivery** list under the reason, with the number of attempts in brackets. Open it to see each try, oldest first. A row shows:
+
+- the action: the kind of webhook sent, such as `created`;
+- the attempt number;
+- when it was sent;
+- how it came back: the HTTP status the receiver answered with, the error, or both;
+- when the next try was due, as **next try**, if ShipLean was going to retry.
+
+A row never shows the body ShipLean sent. A failed try followed by a good one stays in the list, so a session that ran can still show an early error.
+
+A delivery counts as accepted only when the receiver answers `200 OK` within 5 seconds. See [Stop, start again, and retries](/agents/cloud-agent-integration/#stop-start-again-and-retries) for the retry schedule.
+
+## The run log
+
+The run log is the agent's last lines of output from a run that ended in an error. It helps when the reason alone does not say what went wrong.
+
+ShipLean gives every session except a propose session a one-use link for it, valid for 24 hours. The link is in the prompt the agent gets, which ends with the instruction "If you end with an error, POST your last 200 lines of output as text/plain to" the link. The agent, or the relay that runs it, sends the log there. The upload:
+
+- needs no other credential, because the link is the credential;
+- must be `text/plain` and at most 1 MiB;
+- works once. A second use, an expired link, or a creator who is no longer a member of the project all answer `404 Not Found`. When an upload is refused, the link stays usable, so it can be sent again.
+
+The log is saved as an attachment on the item, named `agent-run-` followed by the session id and `.log`, under the connection's name. The **Run log** link in the **Why it ended** box shows its size and opens it. Only project admins see it, in the panel, in the item's attachments and over MCP. A member cannot hide or replace it by uploading a file of the same name.
+
+An instance with no base URL set issues no link, because ShipLean builds the link from that address only. Set the base URL in [instance settings](/ui/instance/) if sessions never get a run log. An agent that ignores the instruction loses nothing but the log.
+
+## Test connection
+
+Instance admins check a connection from **Instance settings**, on the **Agents** tab. Each connection shows its health:
+
+- **Last delivered**, with when, or **No delivery yet**;
+- when something failed, how many deliveries failed in the last 24 hours, when the last one failed, and its error.
+
+Select **Test connection** to send the receiver a signed ping with no item data. The button reads **Testing…** while it waits. ShipLean does not count the ping as a delivery attempt, so it does not change the health numbers. An archived connection has no Test connection button.
+
+Any HTTP answer from the receiver, a 4xx or 5xx included, proves ShipLean can reach it. Only a missing answer means it cannot. The answer appears next to the button:
+
+- **Answered 200 OK**, in green, or another 2xx status: the receiver is reachable and accepted the ping.
+- **Answered** and a status, such as **Answered 404 NotFound**, in grey: the receiver is reachable but did not answer with success. This is neither good nor a failure. A ping carries no item, so a receiver may well refuse it. Check it only if real jobs also fail.
+- An error in red, such as "No answer within 5 seconds.": ShipLean could not reach the receiver. Check the receiver URL and that the service is running.
+
+## Ask an agent instead
+
+An agent connected through MCP can answer "why did this run fail" without you opening the panel:
+
+- `get_work_item` lists the item's newest five agent sessions in `agent_sessions`, each with its state, start and end, and `end_reason` and `end_text`.
+- `get_agent_session` reads one session in full, by session id or by item key for its newest session. It returns the reason, the activities newest first, and for project admins the delivery attempts and the run log.
+
+Both follow the same rules as the panel for who sees what. See the [tool reference](/agents/tools/#get_agent_session).
+
+## What to do for each reason
+
+- **`completed`**: nothing is wrong. If the work is not what you wanted, comment on the item and select **Start agent**.
+- **`canceled`**: select **Start agent** to run it again. If you did not select Stop, check the connection with Test connection.
+- **`deliveryFailed`**: ask a project admin to read the detail and the Delivery list. Test the connection, then fix what the error points to, such as a receiver that is down or too slow to answer within 5 seconds, and select **Start agent**.
+- **`agentError`**: read the detail, then the **Run log** if there is one. Fix what the agent hit, such as a failing build or a missing tool, and select **Start agent**.
+- **`stale`**: the agent or its machine probably stopped. Check the receiver, then select **Start agent**. A stale session does not block a new start.
+- **`proposalWithoutIssue`**: the item has no GitHub issue to post on. Check the item's issue link, then start again.
+- **`unknown`**: the session is old. Start a new one if you need the work done.

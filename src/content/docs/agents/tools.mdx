@@ -7,7 +7,9 @@ sidebar:
 
 ShipLean registers these tools on `/mcp`. Start with `list_projects` to find the project key you need. Each tool entry says which of the [read, write, and plan scopes](/agents/scopes/) it needs.
 
-Agents put commits on a Task or Bug with `add_commits` or `report_task`, and answer review comments with `report_task`. See [Send commits and answer code comments](/work/build/#send-commits-and-answer-code-comments).
+Agents put commits on a Task or Bug with `add_commits` or `report_task`, and answer review comments with `report_task`. See [Send commits and answer code comments](/work/build/#send-commits-and-answer-code-comments). Each commit in `report_task` can carry `committed_at`: the time the commit was authored, as `git log -1 --format=%aI <sha>` prints it. ShipLean stores it once, and the [Inspection page](/ui/inspection/) uses it to end a task's lead time at its last commit. `backfill_commit_times` fills that time in for commit links made before it was stored, and only an instance admin can use it.
+
+An agent asked why a run failed can answer from MCP alone: `get_work_item` lists the item's newest five agent sessions with the reason each ended, and `get_agent_session` reads one in full. See [Why an agent session ended](/agents/session-troubleshooting/#ask-an-agent-instead).
 
 The argument summaries below come from the server's tool registrations in the source code. Two tools record and read how a Feature was delivered. A reviewer calls `log_review` once per review round on a task, after its `Review · ` comment. A conductor or lead calls `feature_timeline` on a Feature to read its bars, waits, review rounds, and critical path, for example when writing a retro. The [Feature timeline](/ui/feature-timeline/) page shows the same data.
 
@@ -16,7 +18,7 @@ For connection and authentication, see [Connect an agent](/agents/connect/) and 
 {/* GENERATED TOOL REFERENCE START */}
 ## Tools
 
-The server currently registers **48 tools**. Each tool lists its required scope; preview calls use read scope until you apply them. 3 of them (`list_runs`, `get_run`, `agent_setup`) are listed only when [Inspection](/inspection/overview/) is turned on.
+The server currently registers **51 tools**. Each tool lists its required scope; preview calls use read scope until you apply them. 3 of them (`list_runs`, `get_run`, `agent_setup`) are listed only when [Inspection](/inspection/overview/) is turned on.
 
 ### Finding work
 
@@ -24,7 +26,7 @@ The server currently registers **48 tools**. Each tool lists its required scope;
 
 This tool needs read scope.
 
-Everything about one work item by key, like SHIP-123: its fields, revision, the parents above it, its children with their states, links, its attachments, the last 5 comments (or the 5 before comments_before) and the last 10 history entries (with the agent's name when an agent made the change). Keep the revision if you mean to change the item.
+Everything about one work item by key, like SHIP-123: its fields, revision, the parents above it, its children with their states, links, its attachments, the last 5 comments (or the 5 before comments_before) and the last 10 history entries (with the agent's name when an agent made the change) and its 5 newest agent sessions (agent_sessions: state and why each ended; get_agent_session reads one). Keep the revision if you mean to change the item.
 
 Arguments: `key`: The work item key, like SHIP-123; `comments_before` (optional): ISO 8601 time of the oldest comment you already have; returns the 5 comments before it.
 
@@ -98,17 +100,17 @@ Arguments: `item`: The item's key, such as SHIP-12; `text`: The comment, in plai
 
 This tool needs write scope.
 
-Link a work item to another one (related, blocked_by, duplicate or predecessor), or to an outside page such as a pull request or a doc by passing url and a title.
+Link a work item to another one (related, blocked_by, duplicate, predecessor or caused_by), or to an outside page such as a pull request or a doc by passing url and a title.
 
-Arguments: `item`: The item's key, such as SHIP-12; `to` (optional): The other item's key. Leave out when you pass a url; `type` (optional): related (the default), blocked_by (item is blocked by the other), duplicate or predecessor (the other comes first); `url` (optional): An outside page's address (http or https), instead of to; `title` (optional): What the outside page is called. Leave out to use the title ShipLean reads from the page; `note` (optional): A note about why the page is linked, shown on its card.
+Arguments: `item`: The item's key, such as SHIP-12; `to` (optional): The other item's key. Leave out when you pass a url; `type` (optional): related (the default), blocked_by (item is blocked by the other), duplicate, predecessor (the other comes first) or caused_by (item is a Bug and the other is the Task that introduced it; nothing else may be linked this way); `url` (optional): An outside page's address (http or https), instead of to; `title` (optional): What the outside page is called. Leave out to use the title ShipLean reads from the page; `note` (optional): A note about why the page is linked, shown on its card.
 
 #### `refine_work_item`
 
 This tool needs write scope.
 
-Improve one work item: rewrite its title, description or acceptance criteria, and set its points, tags, priority, severity or parent. A rewritten checklist keeps the ticked state of every line whose text is unchanged. Pass expected_revision (from get_work_item) to refuse if someone has edited it since you read it. A note becomes a comment explaining the change. When the new description is already in a file or is over about 20 KB, upload it with create_payload_upload (curl -T) and pass payload.
+Improve one work item: rewrite its title, description or acceptance criteria, and set its points, tags, priority, severity, found_before_release (a bug only) or parent. A rewritten checklist keeps the ticked state of every line whose text is unchanged. Pass expected_revision (from get_work_item) to refuse if someone has edited it since you read it. A note becomes a comment explaining the change. When the new description is already in a file or is over about 20 KB, upload it with create_payload_upload (curl -T) and pass payload.
 
-Arguments: `item`: The item's key, such as SHIP-12; `title` (optional): A new title; `description` (optional): A new description in Markdown; replaces the old one; `acceptance_criteria` (optional): The whole acceptance checklist, one line each; replaces the old one; `points` (optional): Story points; `tags` (optional): The whole tag list; replaces the old one; `priority` (optional): 1 (highest) to 4; `severity` (optional): A bug's severity, 1 (critical) to 4 (low); `parent` (optional): The parent's key, or none to detach it; `expected_revision` (optional): The revision you read. A stale write is refused as a conflict; `note` (optional): Why you changed it. Added as a comment after the change; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
+Arguments: `item`: The item's key, such as SHIP-12; `title` (optional): A new title; `description` (optional): A new description in Markdown; replaces the old one; `acceptance_criteria` (optional): The whole acceptance checklist, one line each; replaces the old one; `points` (optional): Story points; `tags` (optional): The whole tag list; replaces the old one; `priority` (optional): 1 (highest) to 4; `severity` (optional): A bug's severity, 1 (critical) to 4 (low); `found_before_release` (optional): A bug only: true when it was found before the release it belonged to went out (for example by your own review), false when it escaped; `parent` (optional): The parent's key, or none to detach it; `expected_revision` (optional): The revision you read. A stale write is refused as a conflict; `note` (optional): Why you changed it. Added as a comment after the change; `payload` (optional): The id create_payload_upload returned, in place of large arguments you uploaded from a file. Arguments you also send inline win over the payload's.
 
 #### `report_link_state`
 
@@ -421,6 +423,34 @@ This tool needs read scope. It is listed only when [Inspection is turned on](/in
 The files that make one agent (claude-code, codex-cli or cursor) send telemetry tagged with a work item.
 
 Arguments: `item`: The work item's key, such as SHIP-12; `agent`: claude-code, codex-cli or cursor.
+
+### Agent sessions
+
+#### `get_agent_session`
+
+This tool needs read scope.
+
+One agent session of a work item: how it ended (end_reason, end_text and, for those who may see it, end_detail), its activities newest first, its delivery attempts and its run log. Pass exactly one of session (the id from get_work_item's agent_sessions) or item (a key, like SHIP-123: its newest session).
+
+Arguments: `session` (optional): The session id; `item` (optional): A work item key, like SHIP-123: reads that item's newest session; `before` (optional): The next_before of a previous call, to read older activities; `limit` (optional): How many activities to return: default 50, at most 100.
+
+### Inspection metrics
+
+#### `backfill_commit_times`
+
+This tool needs write scope.
+
+Instance admins only; temporary. Fills in the time of commit links made before commit times were stored, so lead time can end at a task's last commit. Called with no commits, it lists the commit links that have no time yet (sha7, url, item), 200 a page; pass next_cursor as after for the next page. Called with commits (at most 500, each &#123;sha, committed_at&#125; from git log --format='%H %aI' in the repository the link points to), it sets the time on every commit link whose first 7 sha characters match and whose time is empty, never overwriting one, and returns updated, already_set and not_found. Only commit LINKS need this: commits of readable repositories live in work_item_commit and already get their time from the commit's authored date. See docs/runbooks/backfill-commit-times.md.
+
+Arguments: `commits` (optional): The commits to set times for, 1 to 500. Leave out to list the links that still have no time; `after` (optional): When listing: the previous page's next_cursor; `limit` (optional): When listing: links a page, 1 to 500. Default 200.
+
+#### `inspection_metrics`
+
+This tool needs read scope.
+
+A project's lead time per task, the numbers on the Inspection page, as JSON: the headline (last finished sprint, the running one as so far), one entry per sprint with its mean and a dot per task, quarters, the slowest tasks, the tasks left out for want of a start, escaping bugs, tokens per task from the agent runs as cost (null when agent runs are off; tokens only, never money), and with `period` that sprint's tasks and Features. Lead time runs from a task's first move to Active to its last commit (or its resolve when no commit time is recorded). Times are ISO 8601 UTC, hours are rounded to one decimal and labels are made on the server. No findings: draw your own conclusions. Use it for 'how fast did we deliver last sprint?'.
+
+Arguments: `project` (optional): The project key, such as SHIP. Needed when the user is in more than one project; `range` (optional): The sprints to show: last6 (default), quarter, lastQuarter or all; `cut` (optional): Cut the sprints by none (default), feature or who; `period` (optional): A sprint id from this tool's periods. Adds that sprint's tasks and Features as period_detail.
 
 ## Prompts
 

@@ -16,7 +16,7 @@ type Tool = { name: string; scope: string; preview: boolean; area: string; descr
 const groups: Record<string, string> = {
   Orient: 'Finding work', Capture: 'Capturing and editing', Attach: 'Capturing and editing', Links: 'Capturing and editing',
   Feature: 'Features and research', Planning: 'Planning', Sprint: 'Sprints', Backlog: 'Sprints', Status: 'Status and reporting', Work: 'Status and reporting', Retros: 'Retrospectives',
-  Asks: 'Decisions and questions', Code: 'Code changes', Reviews: 'Planning', Timeline: 'Features and research', Payload: 'Capturing and editing', Inspection: 'Agent runs',
+  Asks: 'Decisions and questions', Code: 'Code changes', Reviews: 'Planning', Timeline: 'Features and research', Payload: 'Capturing and editing', Inspection: 'Agent runs', Agents: 'Agent sessions', InspectionMetrics: 'Inspection metrics',
 };
 // Tools the server lists only while Inspection is turned on (InspectionToolFilter in the product).
 const inspectionTools = new Set(['list_runs', 'get_run', 'agent_setup']);
@@ -121,7 +121,7 @@ const doc = await readFile(mcpDoc, 'utf8');
 const docNames = new Set([...doc.matchAll(/`([a-z][a-z0-9_]+)`/g)].map((match) => match[1]));
 const docsMissing = names.filter((name) => !docNames.has(name));
 const docsListed = names.filter((name) => docNames.has(name));
-const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and research', 'Planning', 'Sprints', 'Status and reporting', 'Retrospectives', 'Decisions and questions', 'Code changes', 'Agent runs', 'Other'];
+const groupsInOrder = ['Finding work', 'Capturing and editing', 'Features and research', 'Planning', 'Sprints', 'Status and reporting', 'Retrospectives', 'Decisions and questions', 'Code changes', 'Agent runs', 'Agent sessions', 'Inspection metrics', 'Other'];
 function scopeLine(tool: Tool): string {
   const scope = tool.preview ? `This tool needs ${tool.scope} scope. A preview call uses read scope.` : `This tool needs ${tool.scope} scope.`;
   return inspectionTools.has(tool.name) ? `${scope} It is listed only when [Inspection is turned on](/inspection/overview/). Otherwise a call returns not_found.` : scope;
