@@ -5,4 +5,47 @@ sidebar:
   order: 26.4
 ---
 
-This page is being written.
+These are the rules behind every number on the [Inspection page](/ui/inspection/). They are the same for every view.
+
+## Lead time
+
+- **Start.** A task starts at its first move to an In-progress state. `pick_up` does this. It is the same start rule the [Feature timeline](/ui/feature-timeline/) uses.
+- **End.** A task ends at its **last commit**, whatever state it is in. A task still In progress that has a commit time counts as ended, and moves to a later sprint if more commits arrive. With no commit time, the end is the first move to Resolved or Completed, and the task reads **Resolved** instead of **Last commit**.
+- **The unresolved tail.** The time from the last commit to Resolved is not counted. The side panel on the One sprint view shows it as a hatched segment, and shows the Approved review or the move to Resolved in it as "not counted".
+- **Active, blocked and rework.** Lead time splits into parts that add up to it. **Blocked** is time with the Blocked tag. **Rework** runs from the first move to Resolved, or the first review that asked for changes, to the end, less the blocked time. **Active** is the rest.
+- **A commit before the start.** A commit dated before the start gives a lead time of 0 h. It is never negative.
+- **Left out.** A task that was closed with no start recorded has no lead time. It is listed under **Left out** with the reason. ShipLean does not make up a start for it.
+- **Which sprint a task counts in.** A task counts in the sprint its lead time ended in, not the sprint it was planned in. An end in the two days after a sprint's last day, the weekend, still counts in that sprint.
+- **Means.** Every figure is a mean, so the parts add up to the headline. One slow task moves a mean, so the dots on the chart show whether one task or many caused it. The change shown is the whole-percent change of the mean against the previous sprint that started.
+- **Quarters.** A sprint belongs to the calendar quarter its end date falls in. A quarter row adds up every sprint in that quarter, whether or not it is shown. The quarter to date is compared with last quarter up to the same day.
+- **Who.** The person or agent for a task is the agent connection that started it. If none did, it is the person who started it, and if there is none, its assignee.
+- **Rounding and time zone.** Hours are rounded to one decimal. Dates and times on the page use your time zone.
+
+## Quality: escaping bugs
+
+- **What escapes.** An escaping bug is every live Bug that is not marked **Found before release**. The flag is only on Bugs. Set it with the checkbox on the Bug form, or with an agent through `capture_work` or `refine_work_item` (`found_before_release`). `get_work_item` shows it. Bugs marked found before release are listed and counted as found before release, never as escaping.
+- **Which sprint a bug counts in.** A bug counts in the sprint it was filed in, until it has a **Caused by** link to the Task that introduced it. Then it counts in the sprint that Task's lead time ended in, with the same weekend rule as above. If the cause has no end yet, the bug stays in the sprint it was filed in.
+- **Caused by.** A Caused by link joins a Bug to a Task, and only a Task. Add it from the bug's **Links** with **+ Caused by**, or use the **+ Caused by** link on the Quality list. An agent uses `link` with the type `caused_by`. The Task then shows the bug under **Caused**. A Feature's link picker never offers it. See [mark a bug and add its cause](/ui/work-items/#mark-a-bug-and-add-its-cause).
+- **Severity-weighted.** This adds up the project's weights for the escaping bugs. By default the weights are 8, 4, 2 and 1 for severity 1 to 4. A project admin sets them on Settings, General. See [project settings](/ui/project-settings/#set-bug-severity-weights). A bug with no severity weighs 0 and shows as **Unset** in the severity split.
+- **Merged PRs.** This counts the pull requests that are linked to an item of the project and that merged in the sprint. The merged time comes from GitHub or GitLab. A pull request with no link to the project is left out. **Per 100 merged PRs** is the escaping bugs per 100 of those pull requests, to one decimal, and reads "—" when no pull request merged.
+- **The change on the Overview card.** The quality card shows the whole-percent change in escaping bugs against the previous sprint that started. There is no change for the first sprint, for a quarter or the whole range, or when the sprint before had no escaping bug.
+- **Quarters and the range.** Quarter rows and the range add up their sprints the same way lead time does. If the project has no live bug at all, every quality figure is empty and the view and card say **No bugs yet**.
+
+## Cost: tokens per task
+
+- **Tokens only.** Cost is tokens, never money. A run's tokens are its input plus its output, written as `950`, `18.2k` or `1.2M`.
+- **Where tokens come from.** They come from the [agent runs](/inspection/overview/) that agent inspection records on work items. The Cost view and card need agent runs turned on for the instance and for the project. With it off, the view says **Agent runs are off** and the Overview has no tokens card. See [turn on agent inspection](/inspection/turn-on/).
+- **The store.** Only the ClickHouse store can total tokens per task. On a Tempo and Loki install the view and card read "—" with **Tokens per task needs the ClickHouse store**. If the store cannot be reached, they read "—" with the reason.
+- **A run counts once.** A run counts toward the tasks it is most strongly linked to, and only toward those. Its tokens are split evenly among them, so a sprint's total never counts a run twice. The strength order is: tagged, then a ShipLean file, then a tool call. A run linked to one task by a tag and by a tool call counts once, for the tag. A run's tokens are those its spans reported, or, when no span reported any, those in its logs. A run that reported no tokens is not counted, so its task has no runs rather than zero tokens.
+- **Which sprint a task counts in.** The same rule as lead time: the sprint its lead time ended in, with the weekend rule. The runs read are those seen from a day before the earliest start of the shown tasks until now.
+- **Tokens per task.** This is the mean over the tasks that have runs. A task with no runs is left out and never counted as 0. **Tasks with agent runs** shows the share that had any. The change on the card is the whole-percent change in that mean against the previous sprint that started.
+- **Tokens per merged PR.** This is the sprint's total tokens over its merged pull requests, counted as on the Quality view. It reads "—" when no pull request merged.
+- **The kept window.** ClickHouse keeps agent runs for 60 days by default (the setting `SHIPLEAN_INSPECTION_CLICKHOUSE_RETENTION_DAYS` plus 30 days). A sprint, quarter or range that started before that reads "—" with **not kept**. The runs are gone, so the tokens are unknown, not zero.
+
+## Commit times and coverage
+
+Lead time ends at a commit time, so Inspection needs to know when each commit was made.
+
+- **Where commit times come from.** An agent sends `committed_at` with each commit it gives to `report_task`: the commit's author date, which `git log -1 --format=%aI <sha>` prints. ShipLean stores it on the commit's link. It also uses the authored time of commits in a repository it can read.
+- **Coverage.** Coverage is the share of the range's tasks that ended at a commit time. Below 70% the Overview shows a banner and the **Commit times** chip on the Lead time tab takes the caution colour. The tasks without a commit time end at Resolved, so they read longer than they were.
+- **Old commits.** On an install with commits reported before `committed_at` existed, an instance admin can fill in the old commit times once with the `backfill_commit_times` tool. Until it runs, those sprints read longer than they were.
