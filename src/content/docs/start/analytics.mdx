@@ -7,7 +7,7 @@ sidebar:
 
 ShipLean can send usage events to Umami or PostHog, so you can see how people and agents use your instance. It is off by default. An instance admin turns it on in **Instance settings**, on the **Analytics** tab.
 
-Usage events are sent by the ShipLean server, never by the browser. ShipLean adds no analytics script or cookie to its pages, so browser ad blockers do not affect usage events, and your content security policy does not change.
+Usage events are sent by the ShipLean server, never by the browser. ShipLean adds no analytics script for them, so browser ad blockers do not affect usage events. There is no cookie, and your content security policy does not change.
 
 You can also turn on Core Web Vitals from signed-in browsers. With that switch on, the browser loads one module from your ShipLean and sends its readings only to ShipLean, which forwards them to your provider. An ad blocker that blocks that module stops web vitals, and nothing is measured. See [Web vitals](#web-vitals).
 
@@ -132,18 +132,18 @@ Each reading is for a screen, not a project. Its path is `/web/` followed by the
 - Whether the reading is for a first page load (`hard`) or an in-app change of screen (`soft`).
 - The metric values.
 
-No name, no email and no IP address are sent with web vitals.
+Also sent: your instance's host name (Umami's `hostname`; PostHog's `$host` and `$current_url`, left out when the host is empty), the browser, operating system and device type derived from the user agent (`$browser`, `$os` and `$device_type` on PostHog), and the library name `$lib`. Never the visitor's IP address. No name or email is sent with web vitals.
 
 ### First load and in-app navigation
 
-LCP, INP and CLS are also measured when a person moves between screens inside the app, in Chromium-based browsers. Firefox and Safari report the first load only, and so do FCP and TTFB in every browser. Each metric counts once per page load and screen change. Later values for the same metric are ignored, so INP and CLS are not counted twice.
+LCP, INP and CLS are also measured when a person moves between screens inside the app. Firefox and Safari report the first load only. Each metric counts once per page load and screen change. Later values for the same metric are ignored, so INP and CLS are not counted twice.
 
-Umami's Performance tab has no field for this, so its numbers mix first loads with screen changes. PostHog keeps the difference as the `navigation` property, so you can split the two there.
+Umami's Performance tab has no field for this, so its numbers mix first loads with screen changes. PostHog receives the difference as the `navigation` property.
 
 ### Where to see them
 
 - **Umami:** the website's **Performance** tab. Choose a metric to focus the chart, switch between p50, p75 and p95, and break it down by page and by device or browser.
-- **PostHog:** **Web Analytics**, then the **Web Vitals** tab. Filter by `navigation` to split first loads from screen changes, or by `screen` to see one screen.
+- **PostHog:** ShipLean sends `navigation` and `screen` as event properties on each `$web_vitals` event. Whether the Web Vitals tab under Web Analytics shows them is not yet confirmed.
 
 ### Counters
 
@@ -164,5 +164,5 @@ The test works only when a provider is selected. With the provider off, it repor
 
 - **The test succeeds in Umami but nothing shows.** Check that `DISABLE_BOT_CHECK=1` is set on the Umami server and that you restarted it.
 - **The test fails.** Check that the ShipLean server can reach the host, that the address has no path you did not intend, and that the key belongs to the right website or project.
-- **Web vitals do not appear.** Check that the switch is on and a provider is selected, then load a page signed in, since the browser checks the switch on each page load. If an ad blocker is active, allow the ShipLean module or test in a private window without it.
+- **Web vitals do not appear.** Check that the switch is on and a provider is selected, then load a page signed in, since the browser checks the switch on each page load. If an ad blocker is active, allow the ShipLean module.
 - **Events arrive late.** ShipLean sends them in small batches, about two seconds after the first one. Umami dates an event when it receives it.
